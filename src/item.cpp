@@ -598,6 +598,36 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			setIntAttr(ITEM_ATTRIBUTE_AUTOOPEN, autoOpen);
 			break;
 		}
+		
+		case ATTR_IMBUEMENTSLOTS: {
+			uint32_t imbuementslots;
+			if (!propStream.read<uint32_t>(imbuementslots)) {
+				return ATTR_READ_ERROR;
+			}
+
+			setIntAttr(ITEM_ATTRIBUTE_IMBUEMENTSLOTS, imbuementslots);
+			break;
+		}
+		
+		case ATTR_CLASSIFICATION: {
+			uint32_t classification;
+			if (!propStream.read<uint32_t>(classification)) {
+				return ATTR_READ_ERROR;
+			}
+
+			setIntAttr(ITEM_ATTRIBUTE_CLASSIFICATION, classification);
+			break;
+		}
+
+		case ATTR_TIER: {
+			uint32_t tier;
+			if (!propStream.read<uint32_t>(tier)) {
+				return ATTR_READ_ERROR;
+			}
+
+			setIntAttr(ITEM_ATTRIBUTE_TIER, tier);
+			break;
+		}
 
 		//these should be handled through derived classes
 		//If these are called then something has changed in the items.xml since the map was saved
@@ -812,6 +842,21 @@ void Item::serializeAttr(PropWriteStream& propWriteStream) const
 	if (hasAttribute(ITEM_ATTRIBUTE_AUTOOPEN)) {
 		propWriteStream.write<uint8_t>(ATTR_AUTOOPEN);
 		propWriteStream.write<int8_t>(getIntAttr(ITEM_ATTRIBUTE_AUTOOPEN));
+	}
+	
+	if (hasAttribute(ITEM_ATTRIBUTE_IMBUEMENTSLOTS)) {
+		propWriteStream.write<uint8_t>(ATTR_IMBUEMENTSLOTS);
+		propWriteStream.write<uint32_t>(getIntAttr(ITEM_ATTRIBUTE_IMBUEMENTSLOTS));
+	}
+	
+	if (hasAttribute(ITEM_ATTRIBUTE_CLASSIFICATION)) {
+		propWriteStream.write<uint8_t>(ATTR_CLASSIFICATION);
+		propWriteStream.write<uint32_t>(getIntAttr(ITEM_ATTRIBUTE_CLASSIFICATION));
+	}
+	
+	if (hasAttribute(ITEM_ATTRIBUTE_TIER)) {
+		propWriteStream.write<uint8_t>(ATTR_TIER);
+		propWriteStream.write<uint32_t>(getIntAttr(ITEM_ATTRIBUTE_TIER));
 	}
 
 	if (hasAttribute(ITEM_ATTRIBUTE_CUSTOM)) {

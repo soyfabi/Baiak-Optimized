@@ -1429,6 +1429,10 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(ITEM_ATTRIBUTE_DURATION_TIMESTAMP)
 	registerEnum(ITEM_ATTRIBUTE_SPECIAL)
 
+	registerEnum(ITEM_ATTRIBUTE_IMBUEMENTSLOTS);
+	registerEnum(ITEM_ATTRIBUTE_CLASSIFICATION);
+	registerEnum(ITEM_ATTRIBUTE_TIER);
+	
 	registerEnum(ITEM_TYPE_DEPOT)
 	registerEnum(ITEM_TYPE_REWARDCHEST)
 	registerEnum(ITEM_TYPE_MAILBOX)
@@ -2548,6 +2552,10 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("ItemType", "getExtraDefense", LuaScriptInterface::luaItemTypeGetExtraDefense);
 	registerMethod("ItemType", "getArmor", LuaScriptInterface::luaItemTypeGetArmor);
 	registerMethod("ItemType", "getWeaponType", LuaScriptInterface::luaItemTypeGetWeaponType);
+	
+	registerMethod("ItemType", "getImbuementSlots", LuaScriptInterface::luaItemTypeGetImbuementSlots);
+	registerMethod("ItemType", "getClassification", LuaScriptInterface::luaItemTypeGetClassification);
+	registerMethod("ItemType", "getTier", LuaScriptInterface::luaItemTypeGetTier);
 
 	registerMethod("ItemType", "getElementType", LuaScriptInterface::luaItemTypeGetElementType);
 	registerMethod("ItemType", "getElementDamage", LuaScriptInterface::luaItemTypeGetElementDamage);
@@ -11702,6 +11710,42 @@ int LuaScriptInterface::luaItemTypeGetCorpseType(lua_State* L)
 	const ItemType* itemType = getUserdata<const ItemType>(L, 1);
 	if (itemType) {
 		lua_pushnumber(L, itemType->corpseType);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaItemTypeGetImbuementSlots(lua_State* L)
+{
+	// itemType:getImbuementSlots()
+	const ItemType* itemType = getUserdata<const ItemType>(L, 1);
+	if (itemType) {
+		lua_pushnumber(L, itemType->imbuementslots);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaItemTypeGetClassification(lua_State* L)
+{
+	// itemType:getClassification()
+	const ItemType* itemType = getUserdata<const ItemType>(L, 1);
+	if (itemType) {
+		lua_pushnumber(L, itemType->classification);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaItemTypeGetTier(lua_State* L)
+{
+	// itemType:getTier()
+	const ItemType* itemType = getUserdata<const ItemType>(L, 1);
+	if (itemType) {
+		lua_pushnumber(L, itemType->tier);
 	} else {
 		lua_pushnil(L);
 	}

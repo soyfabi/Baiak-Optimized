@@ -39,6 +39,9 @@ const std::unordered_map<std::string, ItemParseAttributes_t> ItemParseAttributes
 	{"defense", ITEM_PARSE_DEFENSE},
 	{"extradef", ITEM_PARSE_EXTRADEF},
 	{"attack", ITEM_PARSE_ATTACK},
+	{"imbuementslots", ITEM_PARSE_IMBUEMENTSLOTS},
+	{"classification", ITEM_PARSE_CLASSIFICATION},
+	{"tier", ITEM_PARSE_TIER},
 	{"rotateto", ITEM_PARSE_ROTATETO},
 	{"moveable", ITEM_PARSE_MOVEABLE},
 	{"movable", ITEM_PARSE_MOVEABLE},
@@ -628,6 +631,21 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
 
 				case ITEM_PARSE_ATTACK: {
 					it.attack = pugi::cast<int32_t>(valueAttribute.value());
+					break;
+				}
+				
+				case ITEM_PARSE_IMBUEMENTSLOTS: {
+					it.imbuementslots = pugi::cast<int32_t>(valueAttribute.value());
+					break;
+				}
+				
+				case ITEM_PARSE_CLASSIFICATION: {
+					it.classification = pugi::cast<int32_t>(valueAttribute.value());
+					break;
+				}
+
+				case ITEM_PARSE_TIER: {
+					it.tier = pugi::cast<int32_t>(valueAttribute.value());
 					break;
 				}
 

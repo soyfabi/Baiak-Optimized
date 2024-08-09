@@ -68,6 +68,9 @@ enum ItemParseAttributes_t {
 	ITEM_PARSE_DEFENSE,
 	ITEM_PARSE_EXTRADEF,
 	ITEM_PARSE_ATTACK,
+	ITEM_PARSE_IMBUEMENTSLOTS,
+	ITEM_PARSE_CLASSIFICATION,
+	ITEM_PARSE_TIER,
 	ITEM_PARSE_ROTATETO,
 	ITEM_PARSE_MOVEABLE,
 	ITEM_PARSE_BLOCKPROJECTILE,
@@ -306,6 +309,9 @@ class ItemType
 		std::unique_ptr<Abilities> abilities;
 		std::unique_ptr<ConditionDamage> conditionDamage;
 
+		uint32_t imbuementslots = 0;
+		uint32_t classification = 0;
+		uint32_t tier = 0;
 		uint32_t weight = 0;
 		uint32_t levelDoor = 0;
 		uint32_t decayTime = 0;
