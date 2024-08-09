@@ -67,6 +67,7 @@ class ConfigManager
 			GUILD_LEADER_SQUARE,
 			PVP_BALANCE,
 			PUSH_CRUZADO,
+			SORT_LOOT_BY_CHANCE,
 
 			LAST_BOOLEAN_CONFIG /* this must be the last one */
 		};
