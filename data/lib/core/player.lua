@@ -36,17 +36,17 @@ function Player.hasFlag(self, flag)
 	return self:getGroup():hasFlag(flag)
 end
 
-local lossPercent = {
-	[0] = 100,
-	[1] = 70,
-	[2] = 45,
-	[3] = 25,
-	[4] = 10,
-	[5] = 0
-}
-
 function Player.getLossPercent(self)
 	local blessings = 0
+	local lossPercent = {
+		[0] = 100,
+		[1] = 70,
+		[2] = 45,
+		[3] = 25,
+		[4] = 10,
+		[5] = 0
+	}
+
 	for i = 1, 5 do
 		if self:hasBlessing(i) then
 			blessings = blessings + 1
@@ -55,8 +55,44 @@ function Player.getLossPercent(self)
 	return lossPercent[blessings]
 end
 
+function Player.getPremiumTime(self)
+	return math.max(0, self:getPremiumEndsAt() - os.time())
+end
+
+function Player.setPremiumTime(self, seconds)
+	self:setPremiumEndsAt(os.time() + seconds)
+	return true
+end
+
+function Player.addPremiumTime(self, seconds)
+	self:setPremiumTime(self:getPremiumTime() + seconds)
+	return true
+end
+
+function Player.removePremiumTime(self, seconds)
+	local currentTime = self:getPremiumTime()
+	if currentTime < seconds then
+		return false
+	end
+
+	self:setPremiumTime(currentTime - seconds)
+	return true
+end
+
+function Player.getPremiumDays(self)
+	return math.floor(self:getPremiumTime() / 86400)
+end
+
+function Player.addPremiumDays(self, days)
+	return self:addPremiumTime(days * 86400)
+end
+
+function Player.removePremiumDays(self, days)
+	return self:removePremiumTime(days * 86400)
+end
+
 function Player.isPremium(self)
-	return self:getPremiumDays() > 0 or configManager.getBoolean(configKeys.FREE_PREMIUM)
+	return self:getPremiumTime() > 0 or configManager.getBoolean(configKeys.FREE_PREMIUM) or self:hasFlag(PlayerFlag_IsAlwaysPremium)
 end
 
 function Player.sendCancelMessage(self, message)
@@ -101,41 +137,309 @@ function Player.addManaSpent(...)
 	return ret
 end
 
-function Player.depositMoney(self, amount)
-    if not self:removeMoney(amount) then
-        return false
-    end
- 
-    self:setBankBalance(self:getBankBalance() + amount)
-    return true
-end
- 
-function Player.withdrawMoney(self, amount)
-    local balance = self:getBankBalance()
-    if amount > balance or not self:addMoney(amount) then
-        return false
-    end
- 
-    self:setBankBalance(balance - amount)
-    return true
-end
- 
+-- Always pass the number through the isValidMoney function first before using the transferMoneyTo
 function Player.transferMoneyTo(self, target, amount)
-    local balance = self:getBankBalance()
-    if amount > balance then
-        return false
-    end
- 
-    local targetPlayer = Player(target)
-    if targetPlayer then
-        targetPlayer:setBankBalance(targetPlayer:getBankBalance() + amount)
-    else
-        if not playerExists(target) then
-            return false
+	if not target then
+		return false
+	end
+
+	-- See if you can afford this transfer
+	local balance = self:getBankBalance()
+	if amount > balance then
+		return false
+	end
+
+	-- See if player is online
+	local targetPlayer = Player(target.guid)
+	if targetPlayer then
+		targetPlayer:setBankBalance(targetPlayer:getBankBalance() + amount)
+	else
+		db.query("UPDATE `players` SET `balance` = `balance` + " .. amount .. " WHERE `id` = '" .. target.guid .. "'")
+	end
+
+	self:setBankBalance(self:getBankBalance() - amount)
+	return true
+end
+
+function Player.canCarryMoney(self, amount)
+	-- Anyone can carry as much imaginary money as they desire
+	if amount == 0 then
+		return true
+	end
+
+	-- The 3 below loops will populate these local variables
+	local totalWeight = 0
+	local inventorySlots = 0
+
+	local currencyItems = Game.getCurrencyItems()
+	for index = #currencyItems, 1, -1 do
+		local currency = currencyItems[index]
+		-- Add currency coins to totalWeight and inventorySlots
+		local worth = currency:getWorth()
+		local currencyCoins = math.floor(amount / worth)
+		if currencyCoins > 0 then
+			amount = amount - (currencyCoins * worth)
+			while currencyCoins > 0 do
+				local count = math.min(100, currencyCoins)
+				totalWeight = totalWeight + currency:getWeight(count)
+				currencyCoins = currencyCoins - count
+				inventorySlots = inventorySlots + 1
+			end
+		end
+	end
+
+	-- If player don't have enough capacity to carry this money
+	if self:getFreeCapacity() < totalWeight then
+		return false
+	end
+
+	-- If player don't have enough available inventory slots to carry this money
+	local backpack = self:getSlotItem(CONST_SLOT_BACKPACK)
+	if not backpack or backpack:getEmptySlots(true) < inventorySlots then
+		return false
+	end
+	return true
+end
+
+function Player.withdrawMoney(self, amount)
+	local balance = self:getBankBalance()
+	if amount > balance or not self:addMoney(amount) then
+		return false
+	end
+
+	self:setBankBalance(balance - amount)
+	return true
+end
+
+function Player.depositMoney(self, amount)
+	if not self:removeMoney(amount) then
+		return false
+	end
+
+	self:setBankBalance(self:getBankBalance() + amount)
+	return true
+end
+
+function Player.removeTotalMoney(self, amount)
+	local moneyCount = self:getMoney()
+	local bankCount = self:getBankBalance()
+	if amount <= moneyCount then
+		self:removeMoney(amount)
+		return true
+	elseif amount <= (moneyCount + bankCount) then
+		if moneyCount ~= 0 then
+			self:removeMoney(moneyCount)
+			local remains = amount - moneyCount
+			self:setBankBalance(bankCount - remains)
+			self:sendTextMessage(MESSAGE_INFO_DESCR, ("Paid %d from inventory and %d gold coins from bank account.\nYour account balance is now:\n-%d gold coins-"):format(moneyCount, amount - moneyCount, self:getBankBalance()))
+			return true
+		else
+			self:setBankBalance(bankCount - amount)
+			self:sendTextMessage(MESSAGE_INFO_DESCR, ("Paid %d gold coins from bank account.\nYour account balance is now:\n-%d gold coins-"):format(amount, self:getBankBalance()))
+			return true
+		end
+	end
+	return false
+end
+
+function Player.addLevel(self, amount, round)
+	round = round or false
+	local level, amount = self:getLevel(), amount or 1
+	if amount > 0 then
+		return self:addExperience(Game.getExperienceForLevel(level + amount) - (round and self:getExperience() or Game.getExperienceForLevel(level)))
+	else
+		return self:removeExperience(((round and self:getExperience() or Game.getExperienceForLevel(level)) - Game.getExperienceForLevel(level + amount)))
+	end
+end
+
+function Player.addMagicLevel(self, value)
+	local currentMagLevel = self:getBaseMagicLevel()
+	local sum = 0
+
+	if value > 0 then
+		while value > 0 do
+			sum = sum + self:getVocation():getRequiredManaSpent(currentMagLevel + value)
+			value = value - 1
+		end
+
+		return self:addManaSpent(sum - self:getManaSpent())
+	else
+		value = math.min(currentMagLevel, math.abs(value))
+		while value > 0 do
+			sum = sum + self:getVocation():getRequiredManaSpent(currentMagLevel - value + 1)
+			value = value - 1
+		end
+
+		return self:removeManaSpent(sum + self:getManaSpent())
+	end
+end
+
+function Player.addSkillLevel(self, skillId, value)
+	local currentSkillLevel = self:getSkillLevel(skillId)
+	local sum = 0
+
+	if value > 0 then
+		while value > 0 do
+			sum = sum + self:getVocation():getRequiredSkillTries(skillId, currentSkillLevel + value)
+			value = value - 1
+		end
+
+		return self:addSkillTries(skillId, sum - self:getSkillTries(skillId))
+	else
+		value = math.min(currentSkillLevel, math.abs(value))
+		while value > 0 do
+			sum = sum + self:getVocation():getRequiredSkillTries(skillId, currentSkillLevel - value + 1)
+			value = value - 1
+		end
+
+		return self:removeSkillTries(skillId, sum + self:getSkillTries(skillId), true)
+	end
+end
+
+function Player.addSkill(self, skillId, value, round)
+	if skillId == SKILL_LEVEL then
+		return self:addLevel(value, round or false)
+	elseif skillId == SKILL_MAGLEVEL then
+		return self:addMagicLevel(value)
+	end
+	return self:addSkillLevel(skillId, value)
+end
+
+function Player.getWeaponType(self)
+	local weapon = self:getSlotItem(CONST_SLOT_LEFT)
+	if weapon then
+		return weapon:getType():getWeaponType()
+	end
+	return WEAPON_NONE
+end
+
+function Player.getMaxTrackedQuests(self)
+	return configManager.getNumber(self:isPremium() and configKeys.QUEST_TRACKER_PREMIUM_LIMIT or configKeys.QUEST_TRACKER_FREE_LIMIT)
+end
+
+function Player.getQuests(self)
+	local quests = {}
+	for _, quest in pairs(Game.getQuests()) do
+		if quest:isStarted(self) then
+			quests[#quests + 1] = quest
+		end
+	end
+	return quests
+end
+
+function Player.sendQuestLog(self)
+    local msg = NetworkMessage()
+    msg:addByte(0xF0)
+    local quests = self:getQuests()
+    msg:addU16(#quests)
+
+    for _, quest in pairs(quests) do
+        local questName = quest.name
+        if quest:isCompleted(self) then
+            questName = questName .. " (Completed)"
         end
-        db.query("UPDATE `players` SET `balance` = `balance` + '" .. amount .. "' WHERE `name` = " .. db.escapeString(target))
+
+        msg:addU16(quest.id)
+        msg:addString(questName)
+        msg:addByte(quest:isCompleted(self))
     end
- 
-    self:setBankBalance(self:getBankBalance() - amount)
+
+    msg:sendToPlayer(self)
+    msg:delete()
     return true
 end
+
+function Player.sendQuestLine(self, quest)
+	local msg = NetworkMessage()
+	msg:addByte(0xF1)
+	msg:addU16(quest.id)
+	local missions = quest:getMissions(self)
+	msg:addByte(#missions)
+
+	for _, mission in pairs(missions) do
+		--msg:addU16(mission.id)
+		msg:addString(mission:getName(self))
+		msg:addString(mission:getDescription(self))
+	end
+
+	msg:sendToPlayer(self)
+	msg:delete()
+	return true
+end
+
+function Player.getTrackedQuests(self, missionsId)
+	local playerId = self:getId()
+	local maxTrackedQuests = self:getMaxTrackedQuests()
+	local trackedQuests = {}
+	Game.getTrackedQuests()[playerId] = trackedQuests
+	local quests = Game.getQuests()
+	local missions = Game.getMissions()
+	local trackeds = 0
+	for _, missionId in pairs(missionsId) do
+		local mission = missions[missionId]
+		if mission and mission:isStarted(self) then
+			trackedQuests[mission] = quests[mission.questId]
+			trackeds = trackeds + 1
+			if trackeds >= maxTrackedQuests then
+				break
+			end
+		end
+	end
+	return trackedQuests, trackeds
+end
+
+function Player.sendQuestTracker(self, missionsId)
+	local msg = NetworkMessage()
+	msg:addByte(0xD0)
+	msg:addByte(1)
+
+	local trackedQuests, trackeds = self:getTrackedQuests(missionsId)
+	msg:addByte(self:getMaxTrackedQuests() - trackeds)
+	msg:addByte(trackeds)
+
+	for mission, quest in pairs(trackedQuests or {}) do
+		msg:addU16(mission.id)
+		msg:addString(quest.name)
+		msg:addString(mission:getName(self))
+		msg:addString(mission:getDescription(self))
+	end
+
+	msg:sendToPlayer(self)
+	msg:delete()
+	return true
+end
+
+function Player.sendUpdateQuestTracker(self, mission)
+	local msg = NetworkMessage()
+	msg:addByte(0xD0)
+	msg:addByte(0)
+
+	msg:addU16(mission.id)
+	msg:addString(mission:getName(self))
+	msg:addString(mission:getDescription(self))
+
+	msg:sendToPlayer(self)
+	msg:delete()
+	return true
+end
+
+function Player.sendWorldLight(self, color, level)
+	local msg = NetworkMessage()
+	msg:addByte(0x82)
+	msg:addByte(self:getGroup():getAccess() and 0xFF or level)
+	msg:addByte(color)
+	msg:sendToPlayer(self)
+	return true
+end
+
+function Player.sendWorldTime(self, time)
+	if self:getClient().version < 1272 then return false end
+	local msg = NetworkMessage()
+	msg:addByte(0xEF)
+	msg:addByte(time / 60) -- hour
+	msg:addByte(time % 60) -- min
+	msg:sendToPlayer(self)
+	return true
+end
+
+

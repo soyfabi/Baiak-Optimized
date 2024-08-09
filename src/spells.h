@@ -224,18 +224,10 @@ class Spell : public BaseSpell
 		void setCooldown(uint32_t cd) {
 			cooldown = cd;
 		}
-		uint32_t getSecondaryCooldown() const {
-			return secondaryGroupCooldown;
-		}
-		void setSecondaryCooldown(uint32_t cd) {
-			secondaryGroupCooldown = cd;
-		}
-		uint32_t getGroupCooldown() const {
-			return groupCooldown;
-		}
-		void setGroupCooldown(uint32_t cd) {
-			groupCooldown = cd;
-		}
+		uint32_t getSecondaryCooldown() const { return secondaryGroupCooldown; }
+		void setSecondaryCooldown(uint32_t cd) { secondaryGroupCooldown = cd; }
+		uint32_t getGroupCooldown() const { return groupCooldown; }
+		void setGroupCooldown(uint32_t cd) { groupCooldown = cd; }
 
 		int32_t getRange() const {
 			return range;

@@ -53,3 +53,4 @@ function Tile.isWalkable(self)
 	end
 	return true
 end
+

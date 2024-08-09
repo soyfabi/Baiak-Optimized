@@ -3356,6 +3356,10 @@ void Player::onAddCombatCondition(ConditionType_t type)
 		case CONDITION_BLEEDING:
 			sendTextMessage(MESSAGE_STATUS_DEFAULT, "Voc� est� sangrando.");
 			break;
+			
+		case CONDITION_ROOTED:
+			sendTextMessage(MESSAGE_STATUS_DEFAULT, "You are rooted.");
+			break;
 
 		default:
 			break;

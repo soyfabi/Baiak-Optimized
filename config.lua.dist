@@ -108,12 +108,16 @@ experienceStages = {
 	{ minlevel = 671, multiplier = 0.05 },
 }
 
+-- Rates
+-- NOTE: rateExp is not used if you have enabled stages above
+-- rateSpellCooldown lowering it makes the cooldown less.
 rateExp = 5
 rateSkill = 3
 rateLoot = 2
 rateMagic = 3
 rateSpawn = 2
 spawnMultiplier = 1
+rateSpellCooldown = 1
 
 -- Sort loot by chance, most rare items drop first
 -- it is good to be setted when you have a higher

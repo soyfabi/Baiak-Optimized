@@ -28,6 +28,10 @@ function Creature.getClosestFreePosition(self, position, maxRadius, mustBeReacha
 	return Position()
 end
 
+function Creature.getMonster(self)
+	return self:isMonster() and self or nil
+end
+
 function Creature.getPlayer(self)
 	return self:isPlayer() and self or nil
 end
@@ -66,10 +70,6 @@ function Creature:setMonsterOutfit(monster, time)
 		return false
 	end
 
-	if self:isPlayer() and not (self:hasFlag(PlayerFlag_CanIllusionAll) or monsterType:isIllusionable()) then
-		return false
-	end
-
 	local condition = Condition(CONDITION_OUTFIT)
 	condition:setOutfit(monsterType:getOutfit())
 	condition:setTicks(time)
@@ -105,6 +105,10 @@ function Creature:addSummon(monster)
 	summon:setDropLoot(false)
 	summon:setSkillLoss(false)
 	summon:setMaster(self)
+	
+	if self:isPlayer() then
+		summon:getPosition():notifySummonAppear(summon)
+	end
 
 	return true
 end
@@ -165,4 +169,48 @@ function Creature:addDamageCondition(target, type, list, damage, period, rounds)
 
 	target:addCondition(condition)
 	return true
+end
+
+function Creature:canAccessPz()
+	if self:isMonster() or (self:isPlayer() and self:isPzLocked()) then
+		return false
+	end
+	return true
+end
+
+function Creature.checkCreatureInsideDoor(player, toPosition)
+	local creature = Tile(toPosition):getTopCreature()
+	if creature then
+		toPosition.x = toPosition.x + 1
+		local query = Tile(toPosition):queryAdd(creature, bit.bor(FLAG_IGNOREBLOCKCREATURE, FLAG_PATHFINDING))
+		if query ~= RETURNVALUE_NOERROR then
+			toPosition.x = toPosition.x - 1
+			toPosition.y = toPosition.y + 1
+			query = Tile(toPosition):queryAdd(creature, bit.bor(FLAG_IGNOREBLOCKCREATURE, FLAG_PATHFINDING))
+		end
+		if query ~= RETURNVALUE_NOERROR then
+			toPosition.y = toPosition.y - 2
+			query = Tile(toPosition):queryAdd(creature, bit.bor(FLAG_IGNOREBLOCKCREATURE, FLAG_PATHFINDING))
+		end
+		if query ~= RETURNVALUE_NOERROR then
+			toPosition.x = toPosition.x - 1
+			toPosition.y = toPosition.y + 1
+			query = Tile(toPosition):queryAdd(creature, bit.bor(FLAG_IGNOREBLOCKCREATURE, FLAG_PATHFINDING))
+		end
+		if query ~= RETURNVALUE_NOERROR then
+			player:sendCancelMessage(RETURNVALUE_NOTPOSSIBLE)
+			return true
+		end
+		creature:teleportTo(toPosition, true)
+	end
+end
+
+function Creature:addEventStamina(target)
+	local player = self:getPlayer()
+	if player and target:getName() == staminaBonus.target then
+		local playerId = player:getId()
+		if not staminaBonus.eventsTrainer[playerId] then
+			staminaBonus.eventsTrainer[playerId] = addEvent(addStamina, staminaBonus.period, playerId)
+		end
+	end
 end

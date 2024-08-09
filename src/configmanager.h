@@ -140,6 +140,7 @@ class ConfigManager
 		};
 
 		enum floating_config_t {
+			RATE_SPELL_COOLDOWN,
 			MLVL_BONUSDMG,
 			MLVL_BONUSSPEED,
 			MLVL_BONUSHP,
