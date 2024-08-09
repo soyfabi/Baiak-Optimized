@@ -266,7 +266,7 @@ void Spawn::checkSpawn()
 		spawnBlock_t& sb = it.second;
 
 		if (OTSYS_TIME() >= sb.lastSpawn + std::max<uint32_t>(MINSPAWN_INTERVAL, sb.interval / g_game.getSpawnRate())) {
-			if (sb.mType->info.isBlockable && findPlayer(sb.pos)) {
+			if (sb.mType->info.isIgnoringSpawnBlock && findPlayer(sb.pos)) {
 				sb.lastSpawn = OTSYS_TIME();
 				continue;
 			}

@@ -49,9 +49,6 @@ dofile('data/lib/custom/rewardBoss.lua')
 -- Premium Points
 dofile('data/lib/custom/premiumPoints.lua')
 
--- Boost Creature
-dofile('data/lib/custom/boostCreature.lua')
-
 -- Monster Hunt
 dofile('data/lib/custom/monsterHunt.lua')
 
@@ -69,3 +66,5 @@ dofile('data/lib/custom/guildLevel.lua')
 
 -- Snake Minigames
 dofile('data/lib/minigames/snake.lua')
+
+dofile('data/lib/tables/registers_tables.lua')

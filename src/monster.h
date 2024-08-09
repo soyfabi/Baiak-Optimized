@@ -115,6 +115,9 @@ class Monster final : public Creature
 		bool isHostile() const {
 			return mType->info.isHostile;
 		}
+		bool isIgnoringSpawnBlock() const {
+			return mType->info.isIgnoringSpawnBlock;
+		}
 		bool isBlockable() const {
 			return mType->info.isBlockable;
 		}
