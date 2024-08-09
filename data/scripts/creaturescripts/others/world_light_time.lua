@@ -9,4 +9,4 @@ function event.onLogin(player)
 	return true
 end
 
-event:register()
+--event:register()

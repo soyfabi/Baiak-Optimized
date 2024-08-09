@@ -14,4 +14,4 @@ function event.onTime(interval)
 end
 
 event:interval(2500) -- 2.5 seconds
-event:register()
+--event:register()
