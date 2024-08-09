@@ -144,6 +144,7 @@ const std::unordered_map<std::string, ItemParseAttributes_t> ItemParseAttributes
 	{"walkstack", ITEM_PARSE_WALKSTACK},
 	{"blocking", ITEM_PARSE_BLOCKING},
 	{"allowdistread", ITEM_PARSE_ALLOWDISTREAD},
+	{"worth", ITEM_PARSE_WORTH},
 };
 
 const std::unordered_map<std::string, ItemTypes_t> ItemTypesMap = {
@@ -222,6 +223,7 @@ void Items::clear()
 	items.clear();
 	reverseItemMap.clear();
 	nameToItems.clear();
+	currencyItems.clear();
 	inventory.clear();
 }
 
@@ -1306,6 +1308,17 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
 
 				case ITEM_PARSE_ALLOWDISTREAD: {
 					it.allowDistRead = booleanString(valueAttribute.as_string());
+					break;
+				}
+				
+				case ITEM_PARSE_WORTH: {
+					uint64_t worth = pugi::cast<uint64_t>(valueAttribute.value());
+					if (currencyItems.find(worth) != currencyItems.end()) {
+						std::cout << "[Warning - Items::parseItemNode] Duplicated currency worth. Item " << id << " redefines worth " << worth << std::endl;
+					} else {
+						currencyItems.insert(CurrencyMap::value_type(worth, id));
+						it.worth = worth;
+					}
 					break;
 				}
 
