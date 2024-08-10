@@ -361,9 +361,7 @@ class Player final : public Creature, public Cylinder
 		}
 		bool isPremium() const;
 		void setPremiumDays(int32_t v);
-
-		uint16_t getHelpers() const;
-
+		
 		bool setVocation(uint16_t vocId);
 		uint16_t getVocationId() const {
 			return vocation->getId();
