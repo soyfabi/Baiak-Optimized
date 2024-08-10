@@ -2002,7 +2002,6 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::MAX_MESSAGEBUFFER);
 	registerEnumIn("configKeys", ConfigManager::ACTIONS_DELAY_INTERVAL);
 	registerEnumIn("configKeys", ConfigManager::EX_ACTIONS_DELAY_INTERVAL);
-	registerEnumIn("configKeys", ConfigManager::KICK_AFTER_MINUTES);
 	registerEnumIn("configKeys", ConfigManager::PROTECTION_LEVEL);
 	registerEnumIn("configKeys", ConfigManager::DEATH_LOSE_PERCENT);
 	registerEnumIn("configKeys", ConfigManager::STATUSQUERY_TIMEOUT);
@@ -2474,6 +2473,7 @@ void LuaScriptInterface::registerFunctions()
 
 	registerMethod("Player", "isPzLocked", LuaScriptInterface::luaPlayerIsPzLocked);
 
+	registerMethod("Player", "hasClient", LuaScriptInterface::luaPlayerHasClient);
 	registerMethod("Player", "getClient", LuaScriptInterface::luaPlayerGetClient);
 
 	registerMethod("Player", "getHouse", LuaScriptInterface::luaPlayerGetHouse);
@@ -2499,6 +2499,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Player", "isNearDepotBox", LuaScriptInterface::luaPlayerIsNearDepotBox);
 
 	registerMethod("Player", "getIdleTime", LuaScriptInterface::luaPlayerGetIdleTime);
+	registerMethod("Player", "setIdleTime", LuaScriptInterface::luaPlayerSetIdleTime);
 	registerMethod("Player", "resetIdleTime", LuaScriptInterface::luaPlayerResetIdleTime);
 
 	registerMethod("Player", "sendCreatureSquare", LuaScriptInterface::luaPlayerSendCreatureSquare);
@@ -9907,6 +9908,18 @@ int LuaScriptInterface::luaPlayerIsPzLocked(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaPlayerHasClient(lua_State* L)
+{
+	// player:hasClient()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushboolean(L, player->hasClient());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int LuaScriptInterface::luaPlayerGetClient(lua_State* L)
 {
 	// player:getClient()
@@ -10220,6 +10233,19 @@ int LuaScriptInterface::luaPlayerGetIdleTime(lua_State* L)
 		return 1;
 	}
 	lua_pushnumber(L, player->getIdleTime());
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerSetIdleTime(lua_State* L)
+{
+	// player:setIdleTime(time)
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		player->setIdleTime(getNumber<int32_t>(L, 2));
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
 	return 1;
 }
 
@@ -15543,11 +15569,7 @@ int LuaScriptInterface::luaCreatureEventOnCallback(lua_State* L)
 	// creatureevent:onLogin / logout / etc. (callback)
 	CreatureEvent* creature = getUserdata<CreatureEvent>(L, 1);
 	if (creature) {
-		if (!creature->loadCallback()) {
-			pushBoolean(L, false);
-			return 1;
-		}
-		pushBoolean(L, true);
+		pushBoolean(L, creature->loadCallback());
 	} else {
 		lua_pushnil(L);
 	}
