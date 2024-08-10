@@ -114,6 +114,7 @@ class PropStream
 				return false;
 			}
 
+			ret.assign(p, strLen);
 			ret.resize(strLen);
 			memcpy(&ret[0], p, strLen);
 			p += strLen;
