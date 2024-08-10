@@ -1102,9 +1102,7 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 
 		Account account = IOLoginData::loadAccount(accountNumber);
 		Game::updatePremium(account);
-
-		std::cout << name << " entrou no jogo." << std::endl;
-
+		
 		if (guild) {
 			guild->addMember(this);
 		}
@@ -1205,9 +1203,7 @@ void Player::onRemoveCreature(Creature* creature, bool isLogout)
 		}
 
 		g_chat->removeUserFromAllChannels(*this);
-
-		std::cout << getName() << " foi desconectado." << std::endl;
-
+		
 		if (guild) {
 			guild->removeMember(this);
 		}
