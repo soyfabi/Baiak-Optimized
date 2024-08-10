@@ -1615,35 +1615,13 @@ void Player::addExperience(Creature* source, uint64_t exp, bool sendText/* = fal
 		return;
 	}
 
-	g_events->eventPlayerOnGainExperience(this, source, exp, rawExp);
+	g_events->eventPlayerOnGainExperience(this, source, exp, rawExp, sendText);
 	if (exp == 0) {
 		return;
 	}
 
 	experience += exp;
-
-	if (sendText) {
-		std::string expString = std::to_string(exp) + (exp != 1 ? " pontos de experi�ncia." : " ponto de experi�ncia.");
-
-		TextMessage message(MESSAGE_STATUS_DEFAULT, "Voc� ganhou " + expString);
-		sendTextMessage(message);
-
-		std::ostringstream strExp;
-		strExp << exp;
-		g_game.addAnimatedText(strExp.str(), position, TEXTCOLOR_WHITE);
-
-		SpectatorVector spectators;
-		g_game.map.getSpectators(spectators, position, false, true);
-		spectators.erase(this);
-		if (!spectators.empty()) {
-			message.type = MESSAGE_STATUS_DEFAULT;
-			message.text = getName() + " ganhou " + expString;
-			for (Creature* spectator : spectators) {
-				spectator->getPlayer()->sendTextMessage(message);
-			}
-		}
-	}
-
+	
 	uint32_t prevLevel = level;
 	while (experience >= nextLevelExp) {
 		++level;

@@ -139,68 +139,8 @@ local function useStamina(player)
 	player:setStamina(staminaMinutes)
 end
 
-function Player:onGainExperience(source, exp, rawExp)
-	if not source or source:isPlayer() then
-		return exp
-	end
-
-	-- Soul regeneration
-	local vocation = self:getVocation()
-	if self:getSoul() < vocation:getMaxSoul() and exp >= self:getLevel() then
-		soulCondition:setParameter(CONDITION_PARAM_SOULTICKS, vocation:getSoulGainTicks() * 1000)
-		self:addCondition(soulCondition)
-	end
-
-	-- Apply experience stage multiplier
-	exp = exp * Game.getExperienceStage(self:getLevel())
-
-	-- Stamina modifier
-	if configManager.getBoolean(configKeys.STAMINA_SYSTEM) then
-		useStamina(self)
-
-		local staminaMinutes = self:getStamina()
-		if staminaMinutes > 2400 and self:isPremium() then
-			exp = exp * 1.5
-		elseif staminaMinutes <= 840 then
-			exp = exp * 0.5
-		end
-	end
-
-	-- Premium
-	local xpPremium = 0
-	if self:isPremium() then
-		xpPremium = exp * 0.2 -- +20% XP
-	end
-
-	-- Castle 24H
-	local xpCastle = 0
-	if self:getGuild() and self:getGuild():getId() == CASTLE24H:getGuildIdFromCastle() then
-		xpCastle = exp * 0.2 -- +20% XP
-	end
-
-	-- XP potion
-	local xpPotion = 0
-	if self:getStorageValue(STORAGEVALUE_POTIONXP_TEMPO) > os.time() then
-		local potion = expPotion[self:getStorageValue(STORAGEVALUE_POTIONXP_ID)]
-		if potion then
-			xpPotion = exp * potion.exp / 100
-		end
-	end
-
-	-- Boost Creature
-	local extraXp = 0
-	if (source:getName():lower() == boostCreature[1].name) then
-		local extraPercent = boostCreature[1].exp
-		extraXp = exp * extraPercent / 100
-		self:sendTextMessage(MESSAGE_STATUS_DEFAULT, "[Boosted Creature] Você ganhou ".. extraXp .." de experiência.")
-	end
-
-	local xpCastle48 = 0
-	if self:getGuild() and self:getGuild():getId() == Game.getStorageValue(STORAGEVALUE_CASTLE48_WINNER) then
-		xpCastle48 = exp * Castle48H.plusXP / 100
-	end
-
-	return exp + extraXp + xpPotion + xpPremium + xpCastle +xpCastle48
+function Player:onGainExperience(source, exp, rawExp, sendText)
+	return hasEvent.onGainExperience and Event.onGainExperience(self, source, exp, rawExp, sendText) or exp
 end
 
 function Player:onLoseExperience(exp)
