@@ -1471,6 +1471,11 @@ void Player::onThink(uint32_t interval)
 	Creature::onThink(interval);
 
 	sendPing();
+	
+	//Protection time down
+	if (this->getProtectionTime() > 0) {
+		this->setProtectionTime(this->getProtectionTime() - 1);
+	}
 
 	MessageBufferTicks += interval;
 	if (MessageBufferTicks >= 1500) {

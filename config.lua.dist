@@ -10,6 +10,9 @@ monsterBonusHealth = 0.5
 monsterBonusSpeed = 0.02
 monsterBonusDamage = 0.02
 
+
+-- Combat settings
+-- NOTE: valid values for worldType are: "pvp", "no-pvp" and "pvp-enforced"
 worldType = "pvp"
 hotkeyAimbotEnabled = true
 protectionLevel = 50
@@ -20,6 +23,7 @@ removeChargesFromRunes = false
 removeChargesFromPotions = false
 removeWeaponAmmunition = false
 removeWeaponCharges = false
+-- NOTE: Frags Systems"
 timeToDecreaseFrags = 24 * 60 * 60 * 1000
 whiteSkullTime = 30 * 1000
 stairJumpExhaustion = 1000
@@ -36,6 +40,13 @@ spoofInterval = 1
 spoofChangeChance = 70
 spoofIncrementChange = 100
 
+
+--When the player logs in, he has a certain protection time.
+protectionTime = 10 -- Time in seconds
+
+-- Connection Config
+-- NOTE: maxPlayers set to 0 means no limit
+-- NOTE: allowWalkthrough is only applicable to players
 ip = "127.0.0.1"
 bindOnlyGlobalAddress = false
 loginProtocolPort = 7171

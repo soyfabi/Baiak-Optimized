@@ -277,6 +277,14 @@ ReturnValue Combat::canDoCombat(Creature* attacker, Creature* target)
 	if (!attacker) {
 		return g_events->eventCreatureOnTargetCombat(attacker, target);
 	}
+	
+	// protection time
+	if (const Player* attackerPlayer = attacker->getPlayer()) {
+		if (attackerPlayer->getProtectionTime() > 0) {
+			Player* player = attacker->getPlayer();
+			player->setProtectionTime(0);
+		}
+	}
 
 	if (const Player* targetPlayer = target->getPlayer()) {
 		if (targetPlayer->hasFlag(PlayerFlag_CannotBeAttacked)) {
@@ -325,7 +333,7 @@ ReturnValue Combat::canDoCombat(Creature* attacker, Creature* target)
 			if (target->isSummon() && target->getMaster()->getPlayer() && target->getZone() == ZONE_NOPVP) {
 				return RETURNVALUE_ACTIONNOTPERMITTEDINANOPVPZONE;
 			}
-		} else if (attacker->getMonster()) {
+		} else if (attacker->getMonster()) {	
 			const Creature* targetMaster = target->getMaster();
 
 			if (!targetMaster || !targetMaster->getPlayer()) {

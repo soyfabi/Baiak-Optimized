@@ -494,6 +494,13 @@ void Creature::onCreatureMove(Creature* creature, const Tile* newTile, const Pos
 				g_game.removeCreature(despawnCreature, true);
 			}
 		}
+		
+		// protection time
+		if (creature->getPlayer()) {
+			if (creature->getPlayer()->getProtectionTime() > 0) {
+				creature->getPlayer()->setProtectionTime(0);
+			}
+		}
 
 		if (newTile->getZone() != oldTile->getZone()) {
 			g_events->eventCreatureOnChangeZone(this, oldTile->getZone(), newTile->getZone());

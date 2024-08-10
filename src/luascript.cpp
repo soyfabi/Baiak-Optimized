@@ -2013,6 +2013,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::STAIRHOP_DELAY);
 	registerEnumIn("configKeys", ConfigManager::EXP_FROM_PLAYERS_LEVEL_RANGE);
 	registerEnumIn("configKeys", ConfigManager::MAX_PACKETS_PER_SECOND);
+	registerEnumIn("configKeys", ConfigManager::PROTECTION_TIME);
 
 	registerEnumIn("configKeys", ConfigManager::CLOSED_WORLD);
 	registerEnumIn("configKeys", ConfigManager::SHOW_MONSTER_EXIVA);
@@ -2360,6 +2361,9 @@ void LuaScriptInterface::registerFunctions()
 
 	registerMethod("Player", "getDepotChest", LuaScriptInterface::luaPlayerGetDepotChest);
 	registerMethod("Player", "getInbox", LuaScriptInterface::luaPlayerGetInbox);
+	
+	registerMethod("Player", "getProtectionTime", LuaScriptInterface::luaPlayerGetProtectionTime);
+	registerMethod("Player", "setProtectionTime", LuaScriptInterface::luaPlayerSetProtectionTime);
 
 	registerMethod("Player", "getSkullTime", LuaScriptInterface::luaPlayerGetSkullTime);
 	registerMethod("Player", "setSkullTime", LuaScriptInterface::luaPlayerSetSkullTime);
@@ -8450,6 +8454,33 @@ int LuaScriptInterface::luaPlayerGetInbox(lua_State* L)
 		pushBoolean(L, false);
 	}
 	return 1;
+}
+
+int LuaScriptInterface::luaPlayerGetProtectionTime(lua_State* L)
+{
+    // player:getProtectionTime()
+    Player* player = getUserdata<Player>(L, 1);
+    if (player) {
+        lua_pushnumber(L, player->getProtectionTime());
+    } else {
+        lua_pushnil(L);
+    }
+    return 1;
+}
+
+int LuaScriptInterface::luaPlayerSetProtectionTime(lua_State* L)
+{
+    // player:setProtectionTime(time)
+    Player* player = getUserdata<Player>(L, 1);
+    if (!player) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    uint16_t time = getNumber<uint16_t>(L, 2);
+    player->setProtectionTime(time);
+    pushBoolean(L, true);
+    return 1;
 }
 
 int LuaScriptInterface::luaPlayerGetSkullTime(lua_State* L)
