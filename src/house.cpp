@@ -27,6 +27,8 @@
 #include "configmanager.h"
 #include "bed.h"
 
+#include <fmt/format.h>
+
 extern ConfigManager g_config;
 extern Game g_game;
 
@@ -125,20 +127,9 @@ void House::setOwner(uint32_t guid, bool updateDatabase/* = true*/, Player* play
 
 void House::updateDoorDescription() const
 {
-	std::ostringstream ss;
-	if (owner != 0) {
-		ss << "Essa é a casa '" << houseName << "'. " << ownerName << " é dono desta casa.";
-	} else {
-		ss << "Essa é a casa '" << houseName << "'. Ninguém é dono desta casa.";
-
-		const int32_t housePrice = g_config.getNumber(ConfigManager::HOUSE_PRICE);
-		if (housePrice != -1) {
-			ss << " Isso custa " << (houseTiles.size() * housePrice) << " gold coins.";
-		}
-	}
-
+	const int32_t housePrice = g_config.getNumber(ConfigManager::HOUSE_PRICE);
 	for (const auto& it : doorSet) {
-		it->setSpecialDescription(ss.str());
+		it->setSpecialDescription(fmt::format("It belongs to house '{:s}'. {:s} owns this house.{:s}", houseName, (owner != 0) ? ownerName : "Nobody", g_config.getBoolean(ConfigManager::HOUSE_DOOR_SHOW_PRICE) && (housePrice != -1) && (owner == 0) ? fmt::format(" It costs {:d} gold coins.", (houseTiles.size() * housePrice)) : ""));
 	}
 }
 

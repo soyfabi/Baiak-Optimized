@@ -54,8 +54,13 @@ packetCompression = true
 
 deathLosePercent = -1
 
+-- Houses
+-- NOTE: set housePriceEachSQM to -1 to disable the ingame buy house functionality
+-- NOTE: valid values for houseRentPeriod are: "daily", "weekly", "monthly", "yearly"
+-- use any other value to disable the rent system
 housePriceEachSQM = 1000
 houseRentPeriod = "weekly"
+houseDoorShowPrice = true
 
 timeBetweenActions = 200
 timeBetweenExActions = 1000
