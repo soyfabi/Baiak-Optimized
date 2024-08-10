@@ -428,7 +428,7 @@ class ItemAttributes
 			}
 		};
 
-		std::forward_list<Attribute> attributes;
+		std::vector<Attribute> attributes;
 		uint32_t attributeBits = 0;
 		
 		std::map<CombatType_t, Reflect> reflect;
@@ -544,7 +544,7 @@ class ItemAttributes
 			return (type & ITEM_ATTRIBUTE_CUSTOM) == type;
 		}
 
-		const std::forward_list<Attribute>& getList() const {
+		const std::vector<Attribute>& getList() const {
 			return attributes;
 		}
 
