@@ -265,14 +265,9 @@ bool ConfigManager::load()
 	boolean[YELL_ALLOW_PREMIUM] = getGlobalBoolean(L, "yellAlwaysAllowPremium", false);
 	boolean[FORCE_MONSTERTYPE_LOAD] = getGlobalBoolean(L, "forceMonsterTypesOnLoad", true);
 	boolean[SPOOF_ENABLED] = getGlobalBoolean(L, "spoofEnabled", false);
-	boolean[GM_FULL_LIGHT_ON_EQUIP_ITEM] = getGlobalBoolean(L, "GMFullLightOnEquipItem", false);
 	boolean[CLOSED_WORLD] = getGlobalBoolean(L, "closedWorld", false);
-	boolean[SHOW_MONSTER_EXIVA] = getGlobalBoolean(L, "showMonsterExiva", true);
 	boolean[REMOVE_ON_DESPAWN] = getGlobalBoolean(L, "removeOnDespawn", true);
 	boolean[PACKET_COMPRESSION] = getGlobalBoolean(L, "packetCompression", true);
-	boolean[ANTI_BOT] = getGlobalBoolean(L, "antiBot", true);
-	boolean[GUILD_LEADER_SQUARE] = getGlobalBoolean(L, "guildLeaderSquare", true);
-	boolean[PVP_BALANCE] = getGlobalBoolean(L, "pvpBalance", true);
 	boolean[PUSH_CRUZADO] = getGlobalBoolean(L, "pushCruzado", true);
 	boolean[SORT_LOOT_BY_CHANCE] = getGlobalBoolean(L, "sortLootByChance", false);
 	boolean[BLOCK_LOGIN] = getGlobalBoolean(L, "blockLogin", false);

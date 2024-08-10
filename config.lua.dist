@@ -1,16 +1,3 @@
-GMFullLightOnEquipItem = true
-closedWorld = false
-showMonsterExiva = true
-antiBot = true
-guildLeaderSquare = true
-pvpBalance = true
-pushCruzado = true
-
-monsterBonusHealth = 0.5
-monsterBonusSpeed = 0.02
-monsterBonusDamage = 0.02
-
-
 -- Combat settings
 -- NOTE: valid values for worldType are: "pvp", "no-pvp" and "pvp-enforced"
 worldType = "pvp"
@@ -30,16 +17,6 @@ stairJumpExhaustion = 1000
 experienceByKillingPlayers = false
 expFromPlayersLevelRange = 100
 
-spoofEnabled = false
-spoofDailyMinPlayers = 1
-spoofDailyMaxPlayers = 2050
-spoofNoiseInterval = 1000
-spoofNoise = 0
-spoofTimezone = -1
-spoofInterval = 1
-spoofChangeChance = 70
-spoofIncrementChange = 100
-
 
 --When the player logs in, he has a certain protection time.
 protectionTime = 10 -- Time in seconds
@@ -53,16 +30,38 @@ loginProtocolPort = 7171
 gameProtocolPort = 7172
 statusProtocolPort = 7171
 maxPlayers = 1900
-motd = "Bem-vindo ao Baiak Thunder!"
 onePlayerOnlinePerAccount = true
 allowClones = false
 allowWalkthrough = true
-serverName = "Baiak Thunder"
+serverName = "Fonticak Server Global"
 statusTimeout = 5000
 replaceKickOnLogin = true
 maxPacketsPerSecond = 475
 packetCompression = true
 
+-- Map
+-- NOTE: set mapName WITHOUT .otbm at the end
+mapName = "fonticakmap"
+mapAuthor = "Fabian Marzan"
+
+-- Market
+marketOfferDuration = 30 * 24 * 60 * 60
+premiumToCreateMarketOffer = true
+checkExpiredMarketOffersEachMinutes = 60
+maxMarketOffersAtATimePerPlayer = 100
+
+-- MySQL
+mysqlHost = "127.0.0.1"
+mysqlUser = "root"
+mysqlPass = ""
+mysqlDatabase = "tfsopt"
+mysqlPort = 3306
+mysqlSock = ""
+
+-- Deaths
+-- NOTE: Leave deathLosePercent as -1 if you want to use the default
+-- death penalty formula. For the old formula, set it to 10. For
+-- no skill/experience loss, set it to 0.
 deathLosePercent = -1
 
 -- Houses
@@ -73,25 +72,13 @@ housePriceEachSQM = 1000
 houseRentPeriod = "weekly"
 houseDoorShowPrice = true
 
--- Map
--- NOTE: set mapName WITHOUT .otbm at the end
-mapName = "fonticakmap"
-mapAuthor = "Fabian Marzan"
 
-marketOfferDuration = 30 * 24 * 60 * 60
-premiumToCreateMarketOffer = true
-checkExpiredMarketOffersEachMinutes = 60
-maxMarketOffersAtATimePerPlayer = 100
-
-mysqlHost = "127.0.0.1"
-mysqlUser = "root"
-mysqlPass = ""
-mysqlDatabase = "thunder"
-mysqlPort = 3306
-mysqlSock = ""
-passwordType = "sha1"
-sqlType = "mysql"
-
+-- Misc.
+-- NOTE: classicAttackSpeed set to true makes players constantly attack at regular
+-- intervals regardless of other actions such as item (potion) use. This setting
+-- may cause high CPU usage with many players and potentially affect performance!
+-- NOTE: forceMonsterTypesOnLoad loads all monster types on startup to validate them.
+-- You can disable it to save some memory if you don't see any errors at startup.
 allowChangeOutfit = true
 freePremium = false
 maxMessageBuffer = 4
@@ -100,13 +87,22 @@ classicEquipmentSlots = false
 classicAttackSpeed = false
 showScriptsLogInConsole = false
 showOnlineStatusInCharlist = false
+closedWorld = false
+pushCruzado = true
 
+-- Server Save
+-- NOTE: serverSaveNotifyDuration in minutes
 serverSaveNotifyMessage = true
 serverSaveNotifyDuration = 5
 serverSaveCleanMap = false
 serverSaveClose = false
 serverSaveShutdown = true
 
+-- Experience stages
+-- NOTE: to use a flat experience multiplier, set experienceStages to nil
+-- minlevel and multiplier are MANDATORY
+-- maxlevel is OPTIONAL, but is considered infinite by default
+-- to disable stages, create a stage with minlevel 1 and no maxlevel
 experienceStages = {
 	{ minlevel = 1, maxlevel = 100, multiplier = 400 },
 	{ minlevel = 101, maxlevel = 200, multiplier = 300 },
@@ -133,6 +129,11 @@ rateSpawn = 2
 spawnMultiplier = 1
 rateSpellCooldown = 1
 
+-- Monster Level System
+monsterBonusHealth = 0.5
+monsterBonusSpeed = 0.02
+monsterBonusDamage = 0.02
+
 -- Sort loot by chance, most rare items drop first
 -- it is good to be setted when you have a higher
 -- rateLoot to avoid losing all rare items when
@@ -145,18 +146,35 @@ deSpawnRange = 2
 deSpawnRadius = 50
 removeOnDespawn = true
 
+-- Spoof System
+spoofEnabled = false
+spoofDailyMinPlayers = 1
+spoofDailyMaxPlayers = 2050
+spoofNoiseInterval = 1000
+spoofNoise = 0
+spoofTimezone = -1
+spoofInterval = 1
+spoofChangeChance = 70
+spoofIncrementChange = 100
+
+-- Stamina
 staminaSystem = true
 
+-- Scripts
 warnUnsafeScripts = true
 convertUnsafeScripts = true
 
+-- Startup
+-- NOTE: defaultPriority only works on Windows and sets process
+-- priority, valid values are: "normal", "above-normal", "high"
 defaultPriority = "high"
 startupDatabaseOptimization = false
 blockLogin = false
 blockLoginText = "Server is closed for bug fixing."
 showPackets = false
 
-ownerName = "Movie, Felipe & Crypter"
-ownerEmail = ""
-url = ""
-location = "Brazil"
+-- Status Server Information
+ownerName = "Fabian Marzan"
+ownerEmail = "info.fonticak@gmail.com"
+url = "https://otland.net/"
+location = "Puerto Rico"

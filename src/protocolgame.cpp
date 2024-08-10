@@ -2096,10 +2096,8 @@ void ProtocolGame::AddCreature(NetworkMessage& msg, const Creature* creature, bo
 	}
 
 	LightInfo lightInfo = creature->getCreatureLight();
-	if(g_config.getBoolean(ConfigManager::GM_FULL_LIGHT_ON_EQUIP_ITEM))
-		msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
-	else
-		msg.addByte(lightInfo.level);
+	msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
+	msg.addByte(lightInfo.level);
 	msg.addByte(lightInfo.color);
 
 	msg.add<uint16_t>(creature->getStepSpeed());
@@ -2205,10 +2203,8 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 void ProtocolGame::AddWorldLight(NetworkMessage& msg, LightInfo lightInfo)
 {
 	msg.addByte(0x82);
-	if(g_config.getBoolean(ConfigManager::GM_FULL_LIGHT_ON_EQUIP_ITEM))
-		msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
-	else
-		msg.addByte(lightInfo.level);
+	msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
+	msg.addByte(lightInfo.level);
 	msg.addByte(lightInfo.color);
 }
 
@@ -2218,10 +2214,8 @@ void ProtocolGame::AddCreatureLight(NetworkMessage& msg, const Creature* creatur
 
 	msg.addByte(0x8D);
 	msg.add<uint32_t>(creature->getID());
-	if(g_config.getBoolean(ConfigManager::GM_FULL_LIGHT_ON_EQUIP_ITEM))
-		msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
-	else
-		msg.addByte(lightInfo.level);
+	msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
+	msg.addByte(lightInfo.level);
 	msg.addByte(lightInfo.color);
 }
 
