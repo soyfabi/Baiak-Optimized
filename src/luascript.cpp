@@ -7384,6 +7384,15 @@ int LuaScriptInterface::luaCreatureSetMaster(lua_State* L)
 	}
 
 	pushBoolean(L, creature->setMaster(getCreature(L, 2)));
+	
+	// update summon icon
+	SpectatorVector spectators;
+	g_game.map.getSpectators(spectators, creature->getPosition(), true, true);
+
+	for (Creature* spectator : spectators) {
+		assert(dynamic_cast<Player*>(spectator) != nullptr);
+		static_cast<Player*>(spectator)->sendUpdateTileCreature(creature);
+	}
 	return 1;
 }
 
@@ -9991,19 +10000,21 @@ int LuaScriptInterface::luaPlayerSetGhostMode(lua_State* L)
 	SpectatorVector spectators;
 	g_game.map.getSpectators(spectators, position, true, true);
 	for (Creature* spectator : spectators) {
-		Player* tmpPlayer = spectator->getPlayer();
-		if (tmpPlayer != player && !tmpPlayer->isAccessPlayer()) {
+		assert(dynamic_cast<Player*>(spectator) != nullptr);
+
+		Player* spectatorPlayer = static_cast<Player*>(spectator);
+		if (spectatorPlayer != player && !spectatorPlayer->isAccessPlayer()) {
 			if (enabled) {
-				tmpPlayer->sendRemoveTileThing(position, tile->getStackposOfCreature(tmpPlayer, player));
+				spectatorPlayer->sendRemoveTileThing(position, tile->getStackposOfCreature(spectatorPlayer, player));
 			} else {
-				tmpPlayer->sendCreatureAppear(player, position, showEffect);
+				spectatorPlayer->sendCreatureAppear(player, position, showEffect);
 			}
 		} else {
 			if (isInvisible) {
 				continue;
 			}
 			
-			tmpPlayer->sendCreatureChangeVisible(player, !enabled);
+			spectatorPlayer->sendCreatureChangeVisible(player, !enabled);
 		}
 	}
 

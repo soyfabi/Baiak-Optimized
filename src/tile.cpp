@@ -381,8 +381,8 @@ void Tile::onAddTileItem(Item* item)
 
 	//send to client
 	for (Creature* spectator : spectators) {
-		if (Player* tmpPlayer = spectator->getPlayer()) {
-			tmpPlayer->sendAddTileItem(this, cylinderMapPos, item);
+		if (Player* spectatorPlayer = spectator->getPlayer()) {
+			spectatorPlayer->sendAddTileItem(this, cylinderMapPos, item);
 		}
 	}
 
@@ -401,8 +401,8 @@ void Tile::onUpdateTileItem(Item* oldItem, const ItemType& oldType, Item* newIte
 
 	//send to client
 	for (Creature* spectator : spectators) {
-		if (Player* tmpPlayer = spectator->getPlayer()) {
-			tmpPlayer->sendUpdateTileItem(this, cylinderMapPos, newItem);
+		if (Player* spectatorPlayer = spectator->getPlayer()) {
+			spectatorPlayer->sendUpdateTileItem(this, cylinderMapPos, newItem);
 		}
 	}
 
@@ -1060,8 +1060,8 @@ void Tile::removeThing(Thing* thing, uint32_t count)
 		SpectatorVector spectators;
 		g_game.map.getSpectators(spectators, getPosition(), true);
 		for (Creature* spectator : spectators) {
-			if (Player* tmpPlayer = spectator->getPlayer()) {
-				oldStackPosVector.push_back(getStackposOfItem(tmpPlayer, item));
+			if (Player* spectatorPlayer = spectator->getPlayer()) {
+				oldStackPosVector.push_back(getStackposOfItem(spectatorPlayer, item));
 			}
 		}
 
@@ -1084,8 +1084,8 @@ void Tile::removeThing(Thing* thing, uint32_t count)
 			SpectatorVector spectators;
 			g_game.map.getSpectators(spectators, getPosition(), true);
 			for (Creature* spectator : spectators) {
-				if (Player* tmpPlayer = spectator->getPlayer()) {
-					oldStackPosVector.push_back(getStackposOfItem(tmpPlayer, item));
+				if (Player* spectatorPlayer = spectator->getPlayer()) {
+					oldStackPosVector.push_back(getStackposOfItem(spectatorPlayer, item));
 				}
 			}
 
@@ -1327,7 +1327,8 @@ void Tile::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t 
 	SpectatorVector spectators;
 	g_game.map.getSpectators(spectators, getPosition(), true, true);
 	for (Creature* spectator : spectators) {
-		spectator->getPlayer()->postAddNotification(thing, oldParent, index, LINK_NEAR);
+		assert(dynamic_cast<Player*>(spectator) != nullptr);
+		static_cast<Player*>(spectator)->postAddNotification(thing, oldParent, index, LINK_NEAR);
 	}
 
 	//add a reference to this item, it may be deleted after being added (mailbox for example)
