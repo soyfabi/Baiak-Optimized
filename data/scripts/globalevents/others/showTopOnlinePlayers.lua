@@ -18,6 +18,7 @@ end
 
 local function createTopScoreMonster(index)
     local monster = Game.createMonster("deer", topPlayers[index].position, false, true)
+	if not monster then return false end
     monster:setDropLoot(false)
     topPlayers[index].monsterId = monster:getId()
     setMonsterDefaultSettings(monster)

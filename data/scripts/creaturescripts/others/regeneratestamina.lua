@@ -28,4 +28,5 @@ function RegS.onLogin(player)
 	player:setStamina(staminaMinutes)
 	return true
 end
+
 RegS:register()

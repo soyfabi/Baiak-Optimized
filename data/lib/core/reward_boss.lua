@@ -9,8 +9,8 @@ function Monster.setReward(self, enable)
 			return false
 		end
 		globalBosses[self:getId()] = {}
-		self:registerEvent("BossDeath")
-		self:registerEvent("BossThink")
+		self:registerEvent("BossDeath")    
+		self:registerEvent("BossThink")    
 	else
 		globalBosses[self:getId()] = nil
 		self:unregisterEvent("BossDeath")
@@ -37,8 +37,8 @@ function Item.getNameDescription(self)
 	local buffer = {}
 
 	local name = self:getName() or ''
-	if(#name ~= 0) then
-		if(itemType:isStackable() and subType > 1) then
+	if #name ~= 0 then
+		if itemType:isStackable() and subType > 1 then
 			pushValues(buffer, ' ', subType, self:getPluralName())
 		else
 			local article = self:getArticle() or ''
@@ -46,7 +46,7 @@ function Item.getNameDescription(self)
 		end
 	else
 		pushValues(buffer, ' ', 'an item of type', self:getId())
-	end
+	end 
 
 	return table.concat(buffer)
 end
@@ -57,7 +57,7 @@ function Container.getContentDescription(self, outputBuffer)
 	for i = 1, self:getSize() do
 		local item = self:getItem(i - 1)
 
-		if(firstItem) then
+		if firstItem then
 			firstItem = false
 		else
 			table.insert(buffer, ", ")
@@ -83,8 +83,8 @@ function Player.inBossFight(self)
 	if not next(globalBosses) then
 		return false
 	end
-	local playerGuid = self:getGuid()
 
+	local playerGuid = self:getGuid()
 	for _, info in pairs(globalBosses) do
 		local stats = info[playerGuid]
 		if stats and stats.active then
@@ -94,9 +94,10 @@ function Player.inBossFight(self)
 	return false
 end
 
+-- by https://otland.net/members/cbrm.25752/ with some modifications
 function MonsterType.createLootItem(self, lootBlock, chance, lootTable)
 	local lootTable, itemCount = lootTable or {}, 0
-	local randvalue = math.random(0, 100000) / (getConfigInfo("rateLoot") * chance)
+	local randvalue = math.random(0, 100000) / (configManager.getNumber("rateLoot") * chance)
 	if randvalue < lootBlock.chance then
 		if (ItemType(lootBlock.itemId):isStackable()) then
 			itemCount = randvalue % lootBlock.maxCount + 1
@@ -116,16 +117,12 @@ end
 
 function MonsterType.getBossReward(self, lootFactor, topScore)
 	local result = {}
-	if getConfigInfo("rateLoot") > 0 then
-		local loot = self:getLoot() or {}
-		for i = #loot, 0, -1 do
-			local lootBlock = loot[i]
-			if lootBlock then
-				if lootBlock.unique and not topScore then
-					--continue
+	if configManager.getNumber("rateLoot") > 0 then
+		for _, lootBlock in pairs(self:getLoot()) do
+			if lootBlock.unique and not topScore then
+				--continue
 				else
-					self:createLootItem(lootBlock, lootFactor, result)
-				end
+				self:createLootItem(lootBlock, lootFactor, result)
 			end
 		end
 	end

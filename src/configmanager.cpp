@@ -316,6 +316,8 @@ bool ConfigManager::load()
 	integer[SPOOF_INTERVAL] = getGlobalNumber(L, "spoofInterval", 60 * 1000);
 	integer[SPOOF_CHANGE_CHANCE] = getGlobalNumber(L, "spoofChangeChance", 100);
 	integer[SPOOF_INCREMENT_CHANCE] = getGlobalNumber(L, "spoofIncrementChange", 5);
+	integer[STAMINA_REGEN_MINUTE] = getGlobalNumber(L, "timeToRegenMinuteStamina", 3 * 60);
+	integer[STAMINA_REGEN_PREMIUM] = getGlobalNumber(L, "timeToRegenMinutePremiumStamina", 10 * 60);
 
 	expStages = loadXMLStages();
 	if (expStages.empty()) {

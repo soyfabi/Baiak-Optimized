@@ -132,6 +132,8 @@ class ConfigManager
 			SPOOF_INTERVAL,
 			SPOOF_CHANGE_CHANCE,
 			SPOOF_INCREMENT_CHANCE,
+			STAMINA_REGEN_MINUTE,
+			STAMINA_REGEN_PREMIUM,
 
 			LAST_INTEGER_CONFIG /* this must be the last one */
 		};

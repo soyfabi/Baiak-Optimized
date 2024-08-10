@@ -2009,11 +2009,11 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::EXP_FROM_PLAYERS_LEVEL_RANGE);
 	registerEnumIn("configKeys", ConfigManager::MAX_PACKETS_PER_SECOND);
 	registerEnumIn("configKeys", ConfigManager::PROTECTION_TIME);
-
 	registerEnumIn("configKeys", ConfigManager::CLOSED_WORLD);
-	registerEnumIn("configKeys", ConfigManager::SHOW_MONSTER_EXIVA);
-	registerEnumIn("configKeys", ConfigManager::ANTI_BOT);
-	registerEnumIn("configKeys", ConfigManager::GUILD_LEADER_SQUARE);
+	
+	// Stamina Configs
+	registerEnumIn("configKeys", ConfigManager::STAMINA_REGEN_MINUTE);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_REGEN_PREMIUM);
 	
 	// Login Text when Server is Closed and Packets
 	registerEnumIn("configKeys", ConfigManager::BLOCK_LOGIN);
