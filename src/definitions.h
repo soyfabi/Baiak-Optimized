@@ -20,9 +20,9 @@
 #ifndef FS_DEFINITIONS_H_877452FEC245450C9F96B8FD268D8963
 #define FS_DEFINITIONS_H_877452FEC245450C9F96B8FD268D8963
 
-static constexpr auto STATUS_SERVER_NAME = "Baiak Thunder";
-static constexpr auto STATUS_SERVER_VERSION = "1.3";
-static constexpr auto STATUS_SERVER_DEVELOPERS = "Movie, Felipe & Crypter";
+static constexpr auto STATUS_SERVER_NAME = "TFS: Premier";
+static constexpr auto STATUS_SERVER_VERSION = "1.5+";
+static constexpr auto STATUS_SERVER_DEVELOPERS = "SoyFabi";
 
 static constexpr auto CLIENT_VERSION_MIN = 860;
 static constexpr auto CLIENT_VERSION_MAX = 860;
