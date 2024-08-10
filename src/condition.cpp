@@ -712,7 +712,7 @@ bool ConditionRegeneration::executeCondition(Creature* creature, int32_t interva
 			if (player) {
 				std::string healString = std::to_string(realHealthGain) + (realHealthGain != 1 ? " hitpoints." : " hitpoint.");
 
-				TextMessage message(MESSAGE_STATUS_DEFAULT, "Você foi curado por " + healString);
+				TextMessage message(MESSAGE_STATUS_DEFAULT, "You were healed for " + healString);
 				player->sendTextMessage(message);
 
 				std::stringstream strHealthGain;
@@ -724,7 +724,7 @@ bool ConditionRegeneration::executeCondition(Creature* creature, int32_t interva
 				spectators.erase(player);
 				if (!spectators.empty()) {
 					message.type = MESSAGE_STATUS_DEFAULT;
-					message.text = player->getName() + " foi curado por " + healString;
+					message.text = player->getName() + " was healed for " + healString;
 					for (Creature* spectator : spectators) {
 						assert(dynamic_cast<Player*>(spectator) != nullptr);
 						static_cast<Player*>(spectator)->sendTextMessage(message);
@@ -745,7 +745,7 @@ bool ConditionRegeneration::executeCondition(Creature* creature, int32_t interva
 			if (isBuff && realManaGain > 0) {
 				std::string manaGainString = std::to_string(realManaGain);
 
-				TextMessage message(MESSAGE_STATUS_DEFAULT, "Você ganhou " + manaGainString + " mana.");
+				TextMessage message(MESSAGE_STATUS_DEFAULT, "You gained " + manaGainString + " mana.");
 				player->sendTextMessage(message);
 
 				std::ostringstream strManaDamage;
@@ -757,7 +757,7 @@ bool ConditionRegeneration::executeCondition(Creature* creature, int32_t interva
 				spectators.erase(player);
 				if (!spectators.empty()) {
 					message.type = MESSAGE_STATUS_DEFAULT;
-					message.text = player->getName() + " ganhou " + manaGainString + " mana.";
+					message.text = player->getName() + " gained " + manaGainString + " mana.";
 					for (Creature* spectator : spectators) {
 						assert(dynamic_cast<Player*>(spectator) != nullptr);
 						static_cast<Player*>(spectator)->sendTextMessage(message);
