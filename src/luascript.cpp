@@ -2020,6 +2020,10 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::ANTI_BOT);
 	registerEnumIn("configKeys", ConfigManager::GUILD_LEADER_SQUARE);
 	registerEnumIn("configKeys", ConfigManager::PVP_BALANCE);
+	
+	// Login Text when Server is Closed
+	registerEnumIn("configKeys", ConfigManager::BLOCK_LOGIN);
+	registerEnumIn("configKeys", ConfigManager::BLOCK_LOGIN_TEXT);
 
 	// os
 	registerMethod("os", "mtime", LuaScriptInterface::luaSystemTime);
