@@ -12,14 +12,13 @@
 	<event class="Party" method="onShareExperience" enabled="1" />
 
 	<!-- Player methods -->
-	<event class="Player" method="onSay" enabled="1" />
 	<event class="Player" method="onLook" enabled="1" />
 	<event class="Player" method="onLookInBattleList" enabled="1" />
 	<event class="Player" method="onLookInTrade" enabled="1" />
 	<event class="Player" method="onLookInShop" enabled="0" />
 	<event class="Player" method="onMoveItem" enabled="1" />
 	<event class="Player" method="onItemMoved" enabled="0" />
-	<event class="Player" method="onMoveCreature" enabled="0" />
+	<event class="Player" method="onMoveCreature" enabled="1" />
 	<event class="Player" method="onReportBug" enabled="1" />
 	<event class="Player" method="onReportRuleViolation" enabled="1" />
 	<event class="Player" method="onTurn" enabled="1" />
@@ -28,6 +27,7 @@
 	<event class="Player" method="onGainExperience" enabled="1" />
 	<event class="Player" method="onLoseExperience" enabled="0" />
 	<event class="Player" method="onGainSkillTries" enabled="1" />
+	<event class="Player" method="onSay" enabled="1" />
 
 	<!-- Monster methods -->
 	<event class="Monster" method="onDropLoot" enabled="1" />

@@ -1,18 +1,28 @@
 function Party:onJoin(player)
+	if hasEvent.onJoin then
+		return Event.onJoin(self, player)
+	end
 	return true
 end
 
 function Party:onLeave(player)
+	if hasEvent.onLeave then
+		return Event.onLeave(self, player)
+	end
 	return true
 end
 
 function Party:onDisband()
+	if hasEvent.onDisband then
+		return Event.onDisband(self)
+	end
 	return true
 end
 
 function Party:onShareExperience(exp)
-	local sharedExperienceMultiplier = 1.20
+	local sharedExperienceMultiplier = 1.20 --20%
 	local vocationsIds = {}
+	local rawExp = exp
 
 	local vocationId = self:getLeader():getVocation():getBase():getId()
 	if vocationId ~= VOCATION_NONE then
@@ -31,5 +41,6 @@ function Party:onShareExperience(exp)
 		sharedExperienceMultiplier = 1.0 + ((size * (5 * (size - 1) + 10)) / 100)
 	end
 
-	return math.ceil((exp * sharedExperienceMultiplier) / (#self:getMembers() + 1))
+	exp = math.ceil((exp * sharedExperienceMultiplier) / (#self:getMembers() + 1))
+	return hasEvent.onShareExperience and Event.onShareExperience(self, exp, rawExp) or exp
 end
