@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef FS_LUASCRIPT_H_5344B2BC907E46E3943EA78574A212D8
-#define FS_LUASCRIPT_H_5344B2BC907E46E3943EA78574A212D8
+#ifndef FS_LUASCRIPT_H
+#define FS_LUASCRIPT_H
 
 #if defined(_MSC_VER)
 extern "C"
@@ -1003,8 +1003,16 @@ class LuaScriptInterface
 		static int luaPlayerHasChaseMode(lua_State* L);
 		static int luaPlayerHasSecureMode(lua_State* L);
 		static int luaPlayerGetFightMode(lua_State* L);
-		static int luaPlayerSetAttackSpeed(lua_State* L);
+		
 		static int luaPlayerGetAttackSpeed(lua_State* L);
+		static int luaPlayerSetAttackSpeed(lua_State* L);
+		
+		static int luaPlayerIsNearDepotBox(lua_State* L);
+
+		static int luaPlayerGetIdleTime(lua_State* L);
+		static int luaPlayerResetIdleTime(lua_State* L);
+
+		static int luaPlayerSendCreatureSquare(lua_State* L);
 
 		// Monster
 		static int luaMonsterCreate(lua_State* L);

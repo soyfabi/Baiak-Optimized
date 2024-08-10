@@ -2491,8 +2491,16 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Player", "hasChaseMode", LuaScriptInterface::luaPlayerHasChaseMode);
 	registerMethod("Player", "hasSecureMode", LuaScriptInterface::luaPlayerHasSecureMode);
 	registerMethod("Player", "getFightMode", LuaScriptInterface::luaPlayerGetFightMode);
+	
 	registerMethod("Player", "getAttackSpeed", LuaScriptInterface::luaPlayerGetAttackSpeed);
 	registerMethod("Player", "setAttackSpeed", LuaScriptInterface::luaPlayerSetAttackSpeed);
+	
+	registerMethod("Player", "isNearDepotBox", LuaScriptInterface::luaPlayerIsNearDepotBox);
+
+	registerMethod("Player", "getIdleTime", LuaScriptInterface::luaPlayerGetIdleTime);
+	registerMethod("Player", "resetIdleTime", LuaScriptInterface::luaPlayerResetIdleTime);
+
+	registerMethod("Player", "sendCreatureSquare", LuaScriptInterface::luaPlayerSendCreatureSquare);
 
 	// AutoLoot
 	registerMethod("Player", "addAutoLootItem", LuaScriptInterface::luaAddAutoLootItem);
@@ -10151,16 +10159,13 @@ int LuaScriptInterface::luaPlayerHasSecureMode(lua_State* L)
 	return 1;
 }
 
-int LuaScriptInterface::luaPlayerSetAttackSpeed(lua_State* L)
+int LuaScriptInterface::luaPlayerGetFightMode(lua_State* L)
 {
-	// player:setAttackSpeed(ms)
+	// player:getFightMode()
 	Player* player = getUserdata<Player>(L, 1);
-	uint32_t ms = getNumber<uint32_t>(L, 2);
 	if (player) {
-		player->setAttackSpeed(ms);
-		pushBoolean(L, true);
-	}
-	else {
+		lua_pushnumber(L, player->fightMode);
+	} else {
 		lua_pushnil(L);
 	}
 	return 1;
@@ -10179,15 +10184,74 @@ int LuaScriptInterface::luaPlayerGetAttackSpeed(lua_State* L)
 	return 1;
 }
 
-int LuaScriptInterface::luaPlayerGetFightMode(lua_State* L)
+int LuaScriptInterface::luaPlayerSetAttackSpeed(lua_State* L)
 {
-	// player:getFightMode()
+	// player:setAttackSpeed(ms)
 	Player* player = getUserdata<Player>(L, 1);
+	uint32_t ms = getNumber<uint32_t>(L, 2);
 	if (player) {
-		lua_pushnumber(L, player->fightMode);
-	} else {
+		player->setAttackSpeed(ms);
+		pushBoolean(L, true);
+	}
+	else {
 		lua_pushnil(L);
 	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerIsNearDepotBox(lua_State* L)
+{
+	// player:isNearDepotBox()
+	const Player* const player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+	pushBoolean(L, player->isNearDepotBox());
+	return 1;
+}
+int LuaScriptInterface::luaPlayerGetIdleTime(lua_State* L)
+{
+	// player:getIdleTime()
+	const Player* const player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+	lua_pushnumber(L, player->getIdleTime());
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerResetIdleTime(lua_State* L)
+{
+	// player:resetIdleTime()
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	player->resetIdleTime();
+	pushBoolean(L, true);
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerSendCreatureSquare(lua_State* L)
+{
+	// player:sendCreatureSquare(creature, color)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+	auto creature = getCreature(L, 2);
+	if (!creature) {
+		reportErrorFunc(getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
+		pushBoolean(L, false);
+		return 1;
+	}
+	player->sendCreatureSquare(creature, getNumber<SquareColor_t>(L, 3));
+	pushBoolean(L, true);
 	return 1;
 }
 

@@ -311,6 +311,8 @@ class Player final : public Creature, public Cylinder
 		Group* getGroup() const {
 			return group;
 		}
+		
+		int32_t getIdleTime() const { return idleTime; }
 
 		void setLastDepotId(int16_t newId) {
 			lastDepotId = newId;
