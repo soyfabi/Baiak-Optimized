@@ -276,6 +276,7 @@ bool ConfigManager::load()
 	boolean[PUSH_CRUZADO] = getGlobalBoolean(L, "pushCruzado", true);
 	boolean[SORT_LOOT_BY_CHANCE] = getGlobalBoolean(L, "sortLootByChance", false);
 	boolean[BLOCK_LOGIN] = getGlobalBoolean(L, "blockLogin", false);
+	boolean[SHOW_PACKETS] = getGlobalBoolean(L, "showPackets", false);
 
 	string[DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
 	string[SERVER_NAME] = getGlobalString(L, "serverName", "");

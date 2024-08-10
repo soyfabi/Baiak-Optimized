@@ -70,6 +70,7 @@ class ConfigManager
 			PUSH_CRUZADO,
 			SORT_LOOT_BY_CHANCE,
 			BLOCK_LOGIN,
+			SHOW_PACKETS,
 
 			LAST_BOOLEAN_CONFIG /* this must be the last one */
 		};
