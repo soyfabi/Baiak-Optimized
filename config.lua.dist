@@ -73,11 +73,10 @@ housePriceEachSQM = 1000
 houseRentPeriod = "weekly"
 houseDoorShowPrice = true
 
-timeBetweenActions = 200
-timeBetweenExActions = 1000
-
+-- Map
+-- NOTE: set mapName WITHOUT .otbm at the end
 mapName = "fonticakmap"
-mapAuthor = "Felipe"
+mapAuthor = "Fabian Marzan"
 
 marketOfferDuration = 30 * 24 * 60 * 60
 premiumToCreateMarketOffer = true
