@@ -747,8 +747,8 @@ void Player::onReceiveMail() const
 bool Player::isNearDepotBox() const
 {
 	const Position& pos = getPosition();
-	for (int32_t cx = -1; cx <= 1; ++cx) {
-		for (int32_t cy = -1; cy <= 1; ++cy) {
+	for (int32_t cx = -NOTIFY_DEPOT_BOX_RANGE; cx <= NOTIFY_DEPOT_BOX_RANGE; ++cx) {
+		for (int32_t cy = -NOTIFY_DEPOT_BOX_RANGE; cy <= NOTIFY_DEPOT_BOX_RANGE; ++cy) {
 			Tile* tile = g_game.map.getTile(pos.x + cx, pos.y + cy, pos.z);
 			if (!tile) {
 				continue;
@@ -3042,6 +3042,13 @@ void Player::postRemoveNotification(Thing* thing, const Cylinder* newParent, int
 					}
 
 					if (!isOwner) {
+						autoCloseContainers(container);
+					}
+				} else if (const Inbox* inboxContainer = dynamic_cast<const Inbox*>(topContainer)) {
+					if (inboxContainer == inbox) {
+						onSendContainer(container);
+					}
+					else {
 						autoCloseContainers(container);
 					}
 				} else {
