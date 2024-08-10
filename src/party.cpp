@@ -94,7 +94,7 @@ bool Party::leaveParty(Player* player)
 			if (memberList.size() == 1 && inviteList.empty()) {
 				missingLeader = true;
 			} else {
-				passPartyLeadership(memberList.front());
+				passPartyLeadership(memberList.front(), true);
 			}
 		} else {
 			missingLeader = true;
@@ -142,9 +142,13 @@ bool Party::leaveParty(Player* player)
 	return true;
 }
 
-bool Party::passPartyLeadership(Player* player)
+bool Party::passPartyLeadership(Player* player, bool forceRemove /* = false*/)
 {
 	if (!player || leader == player || player->getParty() != this) {
+		return false;
+	}
+	
+	if (!g_events->eventPartyOnPassLeadership(this, player) && !forceRemove) {
 		return false;
 	}
 
@@ -262,6 +266,10 @@ bool Party::removeInvite(Player& player, bool removeFromPlayer/* = true*/)
 
 void Party::revokeInvitation(Player& player)
 {
+	if (!g_events->eventPartyOnRevokeInvitation(this, &player)) {
+		return;
+	}
+	
 	std::ostringstream ss;
 	ss << leader->getName() << " revogou " << (leader->getSex() == PLAYERSEX_FEMALE ? "sua" : "seu") << " convite.";
 	player.sendTextMessage(MESSAGE_INFO_DESCR, ss.str());
