@@ -34,6 +34,8 @@
 #include "scheduler.h"
 #include "weapons.h"
 
+#include <fmt/format.h>
+
 extern ConfigManager g_config;
 extern Game g_game;
 extern Chat* g_chat;
@@ -466,9 +468,7 @@ void Player::addSkillAdvance(skills_t skill, uint64_t count)
 		skills[skill].tries = 0;
 		skills[skill].percent = 0;
 
-		std::ostringstream ss;
-		ss << "Voc� avan�ou para " << getSkillName(skill) << " level " << skills[skill].level << '.';
-		sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
+		sendTextMessage(MESSAGE_EVENT_ADVANCE, fmt::format("You advanced to {:s} level {:d}.", getSkillName(skill), skills[skill].level));
 
 		g_creatureEvents->playerAdvance(this, skill, (skills[skill].level - 1), skills[skill].level);
 
@@ -740,7 +740,7 @@ bool Player::canWalkthroughEx(const Creature* creature) const
 void Player::onReceiveMail() const
 {
 	if (isNearDepotBox()) {
-		sendTextMessage(MESSAGE_EVENT_ADVANCE, "Chegou um novo pacote.");
+		sendTextMessage(MESSAGE_EVENT_ADVANCE, "New mail has arrived.");
 	}
 }
 
@@ -1106,7 +1106,7 @@ void Player::onAttackedCreatureDisappear(bool isLogout)
 	sendCancelTarget();
 
 	if (!isLogout) {
-		sendTextMessage(MESSAGE_STATUS_SMALL, "Alvo perdido.");
+		sendTextMessage(MESSAGE_STATUS_SMALL, "Target lost.");
 	}
 }
 
@@ -1115,7 +1115,7 @@ void Player::onFollowCreatureDisappear(bool isLogout)
 	sendCancelTarget();
 
 	if (!isLogout) {
-		sendTextMessage(MESSAGE_STATUS_SMALL, "Alvo perdido.");
+		sendTextMessage(MESSAGE_STATUS_SMALL, "Target lost.");
 	}
 }
 
@@ -1464,9 +1464,7 @@ void Player::onThink(uint32_t interval)
 		if (idleTime > (kickAfterMinutes * 60000) + 60000) {
 			kickPlayer(true);
 		} else if (client && idleTime == 60000 * kickAfterMinutes) {
-			std::ostringstream ss;
-			ss << "N�o houve varia��o no seu comportamento por " << kickAfterMinutes << " minutos. Voc� ser� desconectado em um minuto se n�o houver altera��es em suas a��es at� ent�o.";
-			client->sendTextMessage(TextMessage(MESSAGE_STATUS_WARNING, ss.str()));
+			client->sendTextMessage(TextMessage(MESSAGE_STATUS_WARNING, fmt::format("There was no variation in your behaviour for {:d} minutes. You will be disconnected in one minute if there is no change in your actions until then.", kickAfterMinutes)));
 		}
 	}
 
@@ -1517,9 +1515,7 @@ void Player::removeMessageBuffer()
 			Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_MUTED, muteTime * 1000, 0);
 			addCondition(condition);
 
-			std::ostringstream ss;
-			ss << "Voc� est� mudo por " << muteTime << " segundos.";
-			sendTextMessage(MESSAGE_STATUS_SMALL, ss.str());
+			sendTextMessage(MESSAGE_STATUS_SMALL, fmt::format("You are muted for {:d} seconds.", muteTime));
 		}
 	}
 }
@@ -1567,9 +1563,7 @@ void Player::addManaSpent(uint64_t amount)
 		magLevel++;
 		manaSpent = 0;
 
-		std::ostringstream ss;
-		ss << "Voc� avan�ou para o magic level " << magLevel << '.';
-		sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
+		sendTextMessage(MESSAGE_EVENT_ADVANCE, fmt::format("You advanced to magic level {:d}.", magLevel));
 
 		g_creatureEvents->playerAdvance(this, SKILL_MAGLEVEL, magLevel - 1, magLevel);
 
@@ -1652,9 +1646,7 @@ void Player::addExperience(Creature* source, uint64_t exp, bool sendText/* = fal
 
 		g_creatureEvents->playerAdvance(this, SKILL_LEVEL, prevLevel, level);
 
-		std::ostringstream ss;
-		ss << "Voc� avan�ou do Level " << prevLevel << " para o Level " << level << '.';
-		sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
+		sendTextMessage(MESSAGE_EVENT_ADVANCE, fmt::format("You advanced from Level {:d} to Level {:d}.", prevLevel, level));
 	}
 
 	if (nextLevelExp > currLevelExp) {
@@ -1682,9 +1674,9 @@ void Player::removeExperience(uint64_t exp, bool sendText/* = false*/)
 	if (sendText) {
 		lostExp -= experience;
 
-		std::string expString = std::to_string(lostExp) + (lostExp != 1 ? " pontos de experi�ncia." : " ponto de experi�ncia.");
+		std::string expString = std::to_string(lostExp) + (lostExp != 1 ? " experience points." : " experience point.");
 
-		TextMessage message(MESSAGE_STATUS_DEFAULT, "Voc� perdeu " + expString);
+		TextMessage message(MESSAGE_STATUS_DEFAULT, "You lost " + expString);
 		sendTextMessage(message);
 
 		std::ostringstream strExp;
@@ -1696,7 +1688,7 @@ void Player::removeExperience(uint64_t exp, bool sendText/* = false*/)
 		spectators.erase(this);
 		if (!spectators.empty()) {
 			message.type = MESSAGE_STATUS_DEFAULT;
-			message.text = getName() + " perdeu " + expString;
+			message.text = getName() + " lost " + expString;
 			for (Creature* spectator : spectators) {
 				spectator->getPlayer()->sendTextMessage(message);
 			}
@@ -1728,9 +1720,7 @@ void Player::removeExperience(uint64_t exp, bool sendText/* = false*/)
 			party->updateSharedExperience();
 		}
 
-		std::ostringstream ss;
-		ss << "Voc� foi rebaixado do Level " << oldLevel << " para o Level " << level << '.';
-		sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
+		sendTextMessage(MESSAGE_EVENT_ADVANCE, fmt::format("You were downgraded from Level {:d} to Level {:d}.", oldLevel, level));
 	}
 
 	uint64_t nextLevelExp = Player::getExpForLevel(level + 1);
@@ -1985,9 +1975,7 @@ void Player::death(Creature* lastHitCreature)
 			}
 
 			if (oldLevel != level) {
-				std::ostringstream ss;
-				ss << "Voc� foi rebaixado do Level " << oldLevel << " para o Level " << level << '.';
-				sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
+				sendTextMessage(MESSAGE_EVENT_ADVANCE, fmt::format("You were downgraded from Level {:d} to Level {:d}.", oldLevel, level));
 			}
 
 			uint64_t currLevelExp = Player::getExpForLevel(level);
@@ -2076,14 +2064,11 @@ Item* Player::getCorpse(Creature* lastHitCreature, Creature* mostDamageCreature)
 {
 	Item* corpse = Creature::getCorpse(lastHitCreature, mostDamageCreature);
 	if (corpse && corpse->getContainer()) {
-		std::ostringstream ss;
 		if (lastHitCreature) {
-			ss << "Voc� v� " << getNameDescription() << ". " << (getSex() == PLAYERSEX_FEMALE ? "Ela foi morta" : "Ele foi morto") << " por " << lastHitCreature->getNameDescription() << '.';
+			corpse->setSpecialDescription(fmt::format("You recognize {:s}. {:s} was killed by {:s}.", getNameDescription(), getSex() == PLAYERSEX_FEMALE ? "She" : "He", lastHitCreature->getNameDescription()));
 		} else {
-			ss << "Voc� v� " << getNameDescription() << '.';
+			corpse->setSpecialDescription(fmt::format("You recognize {:s}.", getNameDescription()));
 		}
-
-		corpse->setSpecialDescription(ss.str());
 	}
 	return corpse;
 }
@@ -2168,14 +2153,14 @@ bool Player::removeVIP(uint32_t vipGuid)
 
 bool Player::addVIP(uint32_t vipGuid, const std::string& vipName, VipStatus_t status)
 {
-	if (VIPList.size() >= getMaxVIPEntries() || VIPList.size() == 200) { // max number of buddies is 200 in 9.53
-		sendTextMessage(MESSAGE_STATUS_SMALL, "Voc� n�o pode adicionar mais amigos.");
+	if (VIPList.size() >= getMaxVIPEntries()) { // max number of buddies is 200 in 9.53
+		sendTextMessage(MESSAGE_STATUS_SMALL, "You cannot add more buddies.");
 		return false;
 	}
 
 	auto result = VIPList.insert(vipGuid);
 	if (!result.second) {
-		sendTextMessage(MESSAGE_STATUS_SMALL, "Este jogador j� est� na sua lista.");
+		sendTextMessage(MESSAGE_STATUS_SMALL, "This player is already in your list.");
 		return false;
 	}
 
@@ -2188,7 +2173,7 @@ bool Player::addVIP(uint32_t vipGuid, const std::string& vipName, VipStatus_t st
 
 bool Player::addVIPInternal(uint32_t vipGuid)
 {
-	if (VIPList.size() >= getMaxVIPEntries() || VIPList.size() == 200) { // max number of buddies is 200 in 9.53
+	if (VIPList.size() >= getMaxVIPEntries()) {
 		return false;
 	}
 

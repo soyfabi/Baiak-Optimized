@@ -2373,9 +2373,7 @@ void Game::playerRequestTrade(uint32_t playerId, const Position& pos, uint8_t st
 	}
 
 	if (!Position::areInRange<2, 2, 0>(tradePartner->getPosition(), player->getPosition())) {
-		std::ostringstream ss;
-		ss << tradePartner->getName() << " diz para voc� se aproximar.";
-		player->sendTextMessage(MESSAGE_INFO_DESCR, ss.str());
+		player->sendTextMessage(MESSAGE_INFO_DESCR, fmt::format("{:s} tells you to move closer.", tradePartner->getName()));
 		return;
 	}
 
@@ -2486,9 +2484,7 @@ bool Game::internalStartTrade(Player* player, Player* tradePartner, Item* tradeI
 	player->sendTradeItemRequest(player->getName(), tradeItem, true);
 
 	if (tradePartner->tradeState == TRADE_NONE) {
-		std::ostringstream ss;
-		ss << player->getName() << " quer fazer uma troca com voc�.";
-		tradePartner->sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
+		tradePartner->sendTextMessage(MESSAGE_EVENT_ADVANCE, fmt::format("{:s} wants to trade with you.", player->getName()));
 		tradePartner->tradeState = TRADE_ACKNOWLEDGE;
 		tradePartner->tradePartner = player;
 	} else {
@@ -2599,31 +2595,12 @@ std::string Game::getTradeErrorDescription(ReturnValue ret, Item* item)
 {
 	if (item) {
 		if (ret == RETURNVALUE_NOTENOUGHCAPACITY) {
-			std::ostringstream ss;
-			ss << "Voc� n�o tem espa�o suficiente para transportar";
-
-			if (item->isStackable() && item->getItemCount() > 1) {
-				ss << " esses objetos.";
-			} else {
-				ss << " esse objeto.";
-			}
-
-			ss << "\n " << item->getWeightDescription();
-			return ss.str();
+			return fmt::format("You do not have enough capacity to carry {:s}.\n {:s}", item->isStackable() && item->getItemCount() > 1 ? "these objects" : "this object", item->getWeightDescription());
 		} else if (ret == RETURNVALUE_NOTENOUGHROOM || ret == RETURNVALUE_CONTAINERNOTENOUGHROOM) {
-			std::ostringstream ss;
-			ss << "Voc� n�o tem espa�o suficiente para carregar";
-
-			if (item->isStackable() && item->getItemCount() > 1) {
-				ss << " esses objetos.";
-			} else {
-				ss << " esse objeto.";
-			}
-
-			return ss.str();
+			return fmt::format("You do not have enough room to carry {:s}.", item->isStackable() && item->getItemCount() > 1 ? "these objects" : "this object");
 		}
 	}
-	return "A troca n�o foi completada.";
+	return "Trade could not be completed.";
 }
 
 void Game::playerLookInTrade(uint32_t playerId, bool lookAtCounterOffer, uint8_t index)
@@ -2713,7 +2690,7 @@ void Game::internalCloseTrade(Player* player)
 	player->setTradeState(TRADE_NONE);
 	player->tradePartner = nullptr;
 
-	player->sendTextMessage(MESSAGE_STATUS_SMALL, "Troca cancelada.");
+	player->sendTextMessage(MESSAGE_STATUS_SMALL, "Trade cancelled.");
 	player->sendTradeClose();
 
 	if (tradePartner) {
@@ -2731,7 +2708,7 @@ void Game::internalCloseTrade(Player* player)
 		tradePartner->setTradeState(TRADE_NONE);
 		tradePartner->tradePartner = nullptr;
 
-		tradePartner->sendTextMessage(MESSAGE_STATUS_SMALL, "Troca cancelada.");
+		tradePartner->sendTextMessage(MESSAGE_STATUS_SMALL, "Trade cancelled.");
 		tradePartner->sendTradeClose();
 	}
 }
@@ -3139,9 +3116,7 @@ void Game::playerSay(uint32_t playerId, uint16_t channelId, SpeakClasses type, c
 
 	uint32_t muteTime = player->isMuted();
 	if (muteTime > 0) {
-		std::ostringstream ss;
-		ss << "Voc� ainda est� mudo por " << muteTime << " segundos.";
-		player->sendTextMessage(MESSAGE_STATUS_SMALL, ss.str());
+		player->sendTextMessage(MESSAGE_STATUS_SMALL, fmt::format("You are still muted for {:d} seconds.", muteTime));
 		return;
 	}
 
@@ -3251,18 +3226,16 @@ bool Game::playerYell(Player* player, const std::string& text)
 
 	uint32_t minimumLevel = g_config.getNumber(ConfigManager::YELL_MINIMUM_LEVEL);
 	if (player->getLevel() < minimumLevel) {
-		std::ostringstream ss;
-		ss << "Voc� n�o pode gritar a menos que tenha atingido o n�vel " << minimumLevel;
 		if (g_config.getBoolean(ConfigManager::YELL_ALLOW_PREMIUM)) {
 			if (player->isPremium()) {
 				internalCreatureSay(player, TALKTYPE_YELL, asUpperCaseString(text), false);
 				return true;
 			} else {
-				ss << " ou tenha uma premium account";
+				player->sendTextMessage(MESSAGE_STATUS_SMALL, fmt::format("You may not yell unless you have reached level {:d} or have a premium account.", minimumLevel));
 			}
+		} else {
+			player->sendTextMessage(MESSAGE_STATUS_SMALL, fmt::format("You may not yell unless you have reached level {:d}.", minimumLevel));
 		}
-		ss << ".";
-		player->sendTextMessage(MESSAGE_STATUS_SMALL, ss.str());
 		return false;
 	}
 
@@ -3281,14 +3254,14 @@ bool Game::playerSpeakTo(Player* player, SpeakClasses type, const std::string& r
 	const Position& playerPos = player->getPosition();
 	Player* toPlayer = getPlayerByName(receiver);
 	if (!toPlayer) {
-		player->sendTextMessage(MESSAGE_STATUS_SMALL, "O player com esse nome n�o est� online.");
+		player->sendTextMessage(MESSAGE_STATUS_SMALL, "A player with this name is not online.");
 		return false;
 	}
 
 	if(player->getLevel() < 150) {
 		player->sendTextMessage(MESSAGE_STATUS_SMALL, "Voc� precisa ser level 150+ para enviar enviar mensagens privadas.");
 		addMagicEffect(playerPos, CONST_ME_POFF);
-	return false;
+		return false;
 	}
 
 	if (type == TALKTYPE_PRIVATE_RED && (player->hasFlag(PlayerFlag_CanTalkRedPrivate) || player->getAccountType() >= ACCOUNT_TYPE_GAMEMASTER)) {
@@ -3301,11 +3274,9 @@ bool Game::playerSpeakTo(Player* player, SpeakClasses type, const std::string& r
 	toPlayer->onCreatureSay(player, type, text);
 
 	if (toPlayer->isInGhostMode() && !player->isAccessPlayer()) {
-		player->sendTextMessage(MESSAGE_STATUS_SMALL, "O player com esse nome n�o est� online.");
+		player->sendTextMessage(MESSAGE_STATUS_SMALL, "A player with this name is not online.");
 	} else {
-		std::ostringstream ss;
-		ss << "Mensagem enviada para " << toPlayer->getName() << '.';
-		player->sendTextMessage(MESSAGE_STATUS_SMALL, ss.str());
+		player->sendTextMessage(MESSAGE_STATUS_SMALL, fmt::format("Message sent to {:s}.", toPlayer->getName()));
 	}
 	return true;
 }
@@ -4690,13 +4661,8 @@ void Game::saveMotdNum() const
 {
 	Database& db = Database::getInstance();
 
-	std::ostringstream query;
-	query << "UPDATE `server_config` SET `value` = '" << motdNum << "' WHERE `config` = 'motd_num'";
-	db.executeQuery(query.str());
-
-	query.str(std::string());
-	query << "UPDATE `server_config` SET `value` = '" << transformToSHA1(g_config.getString(ConfigManager::MOTD)) << "' WHERE `config` = 'motd_hash'";
-	db.executeQuery(query.str());
+	db.executeQuery(fmt::format("UPDATE `server_config` SET `value` = '{:d}' WHERE `config` = 'motd_num'", motdNum));
+	db.executeQuery(fmt::format("UPDATE `server_config` SET `value` = '{:s}' WHERE `config` = 'motd_hash'", transformToSHA1(g_config.getString(ConfigManager::MOTD))));
 }
 
 void Game::checkPlayersRecord()
@@ -4717,9 +4683,7 @@ void Game::updatePlayersRecord() const
 {
 	Database& db = Database::getInstance();
 
-	std::ostringstream query;
-	query << "UPDATE `server_config` SET `value` = '" << playersRecord << "' WHERE `config` = 'players_record'";
-	db.executeQuery(query.str());
+	db.executeQuery(fmt::format("UPDATE `server_config` SET `value` = '{:d}' WHERE `config` = 'players_record'", playersRecord));
 }
 
 void Game::loadPlayersRecord()
@@ -4751,9 +4715,7 @@ void Game::playerInviteToParty(uint32_t playerId, uint32_t invitedId)
 	}
 
 	if (invitedPlayer->getParty()) {
-		std::ostringstream ss;
-		ss << invitedPlayer->getName() << " j� est� em uma party.";
-		player->sendTextMessage(MESSAGE_INFO_DESCR, ss.str());
+		player->sendTextMessage(MESSAGE_INFO_DESCR, fmt::format("{:s} is already in a party.", invitedPlayer->getName()));
 		return;
 	}
 
