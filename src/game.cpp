@@ -1048,7 +1048,7 @@ void Game::playerMoveItem(Player* player, const Position& fromPos,
 		}
 	}
 
-	ReturnValue ret = internalMoveItem(fromCylinder, toCylinder, toIndex, item, count, nullptr, 0, player);
+	ReturnValue ret = internalMoveItem(fromCylinder, toCylinder, toIndex, item, count, nullptr, 0, player, nullptr, &fromPos, &toPos);
 	if (ret != RETURNVALUE_NOERROR) {
 		player->sendCancelMessage(ret);
 	} else {
@@ -1057,8 +1057,15 @@ void Game::playerMoveItem(Player* player, const Position& fromPos,
 }
 
 ReturnValue Game::internalMoveItem(Cylinder* fromCylinder, Cylinder* toCylinder, int32_t index,
-                                   Item* item, uint32_t count, Item** _moveItem, uint32_t flags /*= 0*/, Creature* actor/* = nullptr*/, Item* tradeItem/* = nullptr*/)
+                                   Item* item, uint32_t count, Item** _moveItem, uint32_t flags /*= 0*/, Creature* actor/* = nullptr*/, Item* tradeItem/* = nullptr*/, const Position* fromPos /*= nullptr*/, const Position* toPos/*= nullptr*/)
 {
+	Player* actorPlayer = actor ? actor->getPlayer() : nullptr;
+	if (actorPlayer && fromPos && toPos) {
+		if (!g_events->eventPlayerOnMoveItem(actorPlayer, item, count, *fromPos, *toPos, fromCylinder, toCylinder)) {
+			return RETURNVALUE_NOTPOSSIBLE;
+		}
+	}
+	
 	Item* toItem = nullptr;
 
 	Cylinder* subCylinder;
@@ -1217,6 +1224,11 @@ ReturnValue Game::internalMoveItem(Cylinder* fromCylinder, Cylinder* toCylinder,
 		} else {
 			*_moveItem = item;
 		}
+	}
+	
+	// update quiver
+	if (actorPlayer) {
+		actorPlayer->sendQuiverUpdate(g_config.getBoolean(ConfigManager::CLASSIC_EQUIPMENT_SLOTS));
 	}
 
 	//we could not move all, inform the player
@@ -1704,7 +1716,7 @@ Item* searchForItem(Container* container, uint16_t itemId)
 slots_t getSlotType(const ItemType& it)
 {
 	slots_t slot = CONST_SLOT_RIGHT;
-	if (it.weaponType != WeaponType_t::WEAPON_SHIELD) {
+	if (it.weaponType != WeaponType_t::WEAPON_SHIELD && it.weaponType != WeaponType_t::WEAPON_QUIVER) {
 		int32_t slotPosition = it.slotPosition;
 
 		if (slotPosition & SLOTP_HEAD) {

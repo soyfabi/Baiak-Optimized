@@ -439,6 +439,7 @@ enum WeaponType_t : uint8_t {
 	WEAPON_DISTANCE,
 	WEAPON_WAND,
 	WEAPON_AMMO,
+	WEAPON_QUIVER,
 };
 
 enum Ammo_t : uint8_t {

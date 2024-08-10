@@ -1537,6 +1537,9 @@ const char* getReturnMessage(ReturnValue value)
 
 		case RETURNVALUE_YOUDONTHAVEREQUIREDPROFESSION:
 			return "Você Não tem a profiss�o necess�ria.";
+			
+		case RETURNVALUE_QUIVERAMMOONLY:
+			return "This quiver only holds arrows and bolts.\nYou cannot put any other items in it.";
 
 		default: // RETURNVALUE_NOTPOSSIBLE, etc
 			return "Desculpe, Não � poss�vel.";
