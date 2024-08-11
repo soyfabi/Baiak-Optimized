@@ -108,6 +108,7 @@ class Condition
 		static Condition* createCondition(PropStream& propStream);
 
 		virtual bool setParam(ConditionParam_t param, int32_t value);
+		virtual int32_t getParam(ConditionParam_t param);
 
 		//serialization
 		bool unserialize(PropStream& propStream);
@@ -158,6 +159,7 @@ class ConditionAttributes final : public ConditionGeneric
 		void addCondition(Creature* creature, const Condition* condition) override;
 
 		bool setParam(ConditionParam_t param, int32_t value) override;
+		int32_t getParam(ConditionParam_t param) override;
 
 		ConditionAttributes* clone() const override {
 			return new ConditionAttributes(*this);
@@ -195,6 +197,7 @@ class ConditionRegeneration final : public ConditionGeneric
 		bool executeCondition(Creature* creature, int32_t interval) override;
 
 		bool setParam(ConditionParam_t param, int32_t value) override;
+		int32_t getParam(ConditionParam_t param) override;
 
 		ConditionRegeneration* clone() const override {
 			return new ConditionRegeneration(*this);
@@ -224,6 +227,7 @@ class ConditionSoul final : public ConditionGeneric
 		bool executeCondition(Creature* creature, int32_t interval) override;
 
 		bool setParam(ConditionParam_t param, int32_t value) override;
+		int32_t getParam(ConditionParam_t param) override;
 
 		ConditionSoul* clone() const override {
 			return new ConditionSoul(*this);
@@ -273,6 +277,7 @@ class ConditionDamage final : public Condition
 		}
 
 		bool setParam(ConditionParam_t param, int32_t value) override;
+		int32_t getParam(ConditionParam_t param) override;
 
 		bool addDamage(int32_t rounds, int32_t time, int32_t value);
 		bool doForceUpdate() const {
@@ -324,6 +329,7 @@ class ConditionSpeed final : public Condition
 		}
 
 		bool setParam(ConditionParam_t param, int32_t value) override;
+		int32_t getParam(ConditionParam_t param) override;
 
 		void setFormulaVars(float mina, float minb, float maxa, float maxb);
 
@@ -383,6 +389,7 @@ class ConditionLight final : public Condition
 		}
 
 		bool setParam(ConditionParam_t param, int32_t value) override;
+		int32_t getParam(ConditionParam_t param) override;
 
 		//serialization
 		void serialize(PropWriteStream& propWriteStream) override;
