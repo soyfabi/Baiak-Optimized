@@ -66,6 +66,8 @@ class ConfigManager
 			SORT_LOOT_BY_CHANCE,
 			BLOCK_LOGIN,
 			SHOW_PACKETS,
+			STAMINA_TRAINER,
+			STAMINA_PZ,
 
 			LAST_BOOLEAN_CONFIG /* this must be the last one */
 		};
@@ -134,6 +136,11 @@ class ConfigManager
 			SPOOF_INCREMENT_CHANCE,
 			STAMINA_REGEN_MINUTE,
 			STAMINA_REGEN_PREMIUM,
+			STAMINA_PZ_GAIN,
+			STAMINA_ORANGE_DELAY,
+			STAMINA_GREEN_DELAY,
+			STAMINA_TRAINER_DELAY,
+			STAMINA_TRAINER_GAIN,
 
 			LAST_INTEGER_CONFIG /* this must be the last one */
 		};

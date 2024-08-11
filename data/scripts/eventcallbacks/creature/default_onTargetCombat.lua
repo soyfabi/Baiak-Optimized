@@ -4,7 +4,7 @@ function event.onTargetCombat(self, target)
 		return true
 	end
 	
-	--self:addEventStamina(target)
+	self:addEventStamina(target)
 	return true
 end
 
