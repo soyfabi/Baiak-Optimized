@@ -14,28 +14,7 @@ event.onDropLoot = function(self, corpse)
     if not player then
         return false
     end
-
-	-- Raids Fonticak Token
-    if self:getStorageValue(monsterRaidStorages.FONTICAK_TOKEN) == 1 then
-        if math.random(100) <= 30 then
-			local itemCount = math.random(1, 7)
-			corpse:addItem(3043, itemCount)
-      
-			local position = corpse:getPosition()
-			for i = 1, 10 do
-            addEvent(function()
-                position:sendMagicEffect(CONST_ME_LOOT_HIGHLIGHT)
-				end, i * 1000)
-			end
-
-			local animatedText = position:getTile():getTopCreature()
-			if animatedText then
-				animatedText:say("Dropped!", TALKTYPE_MONSTER_SAY)
-			end
-		end
-    end
-	------
-
+	
     if player:getStamina() > 840 then
         local monsterLoot = mType:getLoot()
 

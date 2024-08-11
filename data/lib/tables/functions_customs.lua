@@ -1,8 +1,3 @@
--- Exercise Training --
-if onExerciseTraining == nil then
-	onExerciseTraining = {}
-end
-
 if not nextUseStaminaTime then
 	nextUseStaminaTime = {}
 end
