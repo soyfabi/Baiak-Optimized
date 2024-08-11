@@ -2909,7 +2909,9 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Spell", "register", LuaScriptInterface::luaSpellRegister);
 	registerMethod("Spell", "name", LuaScriptInterface::luaSpellName);
 	registerMethod("Spell", "id", LuaScriptInterface::luaSpellId);
+	registerMethod("Spell", "group", LuaScriptInterface::luaSpellGroup);
 	registerMethod("Spell", "cooldown", LuaScriptInterface::luaSpellCooldown);
+	registerMethod("Spell", "groupCooldown", LuaScriptInterface::luaSpellGroupCooldown);
 	registerMethod("Spell", "level", LuaScriptInterface::luaSpellLevel);
 	registerMethod("Spell", "magicLevel", LuaScriptInterface::luaSpellMagicLevel);
 	registerMethod("Spell", "mana", LuaScriptInterface::luaSpellMana);
@@ -2924,6 +2926,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Spell", "isSelfTarget", LuaScriptInterface::luaSpellSelfTarget);
 	registerMethod("Spell", "isBlocking", LuaScriptInterface::luaSpellBlocking);
 	registerMethod("Spell", "isAggressive", LuaScriptInterface::luaSpellAggressive);
+	registerMethod("Spell", "isPzLock", LuaScriptInterface::luaSpellPzLock);
 	registerMethod("Spell", "vocation", LuaScriptInterface::luaSpellVocation);
 
 	// only for InstantSpell
@@ -2988,6 +2991,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("MoveEvent", "position", LuaScriptInterface::luaMoveEventPosition);
 	registerMethod("MoveEvent", "premium", LuaScriptInterface::luaMoveEventPremium);
 	registerMethod("MoveEvent", "vocation", LuaScriptInterface::luaMoveEventVocation);
+	registerMethod("MoveEvent", "tileItem", LuaScriptInterface::luaMoveEventTileItem);
 	registerMethod("MoveEvent", "onEquip", LuaScriptInterface::luaMoveEventOnCallback);
 	registerMethod("MoveEvent", "onDeEquip", LuaScriptInterface::luaMoveEventOnCallback);
 	registerMethod("MoveEvent", "onStepIn", LuaScriptInterface::luaMoveEventOnCallback);
@@ -14903,6 +14907,23 @@ int LuaScriptInterface::luaSpellAggressive(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaSpellPzLock(lua_State* L)
+{
+	// spell:isPzLock(bool)
+	Spell* spell = getUserdata<Spell>(L, 1);
+	if (spell) {
+		if (lua_gettop(L) == 1) {
+			pushBoolean(L, spell->getPzLock());
+		} else {
+			spell->setPzLock(getBoolean(L, 2));
+			pushBoolean(L, true);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int LuaScriptInterface::luaSpellVocation(lua_State* L)
 {
 	// spell:vocation(vocation)
@@ -15731,6 +15752,19 @@ int LuaScriptInterface::luaMoveEventVocation(lua_State* L)
 				moveevent->setVocationString(tmp);
 			}
 		}
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaMoveEventTileItem(lua_State* L)
+{
+	// moveevent:tileItem(bool)
+	MoveEvent* moveevent = getUserdata<MoveEvent>(L, 1);
+	if (moveevent) {
+		moveevent->setTileItem(getBoolean(L, 2));
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);

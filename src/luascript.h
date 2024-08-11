@@ -1399,6 +1399,7 @@ class LuaScriptInterface
 		static int luaSpellSelfTarget(lua_State* L);
 		static int luaSpellBlocking(lua_State* L);
 		static int luaSpellAggressive(lua_State* L);
+		static int luaSpellPzLock(lua_State* L);
 		static int luaSpellVocation(lua_State* L);
 
 		// only for InstantSpells
@@ -1449,6 +1450,7 @@ class LuaScriptInterface
 		static int luaMoveEventMagLevel(lua_State* L);
 		static int luaMoveEventPremium(lua_State* L);
 		static int luaMoveEventVocation(lua_State* L);
+		static int luaMoveEventTileItem(lua_State* L);
 		static int luaMoveEventItemId(lua_State* L);
 		static int luaMoveEventActionId(lua_State* L);
 		static int luaMoveEventUniqueId(lua_State* L);
