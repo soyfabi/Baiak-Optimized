@@ -829,9 +829,9 @@ InstantSpell* LuaScriptInterface::getInstantSpell(lua_State* L, int32_t arg)
 Reflect LuaScriptInterface::getReflect(lua_State* L, int32_t arg)
 {
 	uint16_t percent = getField<uint16_t>(L, arg, "percent");
-	uint16_t value = getField<uint16_t>(L, arg, "value");
+	uint16_t chance  = getField<uint16_t>(L, arg, "chance ");
 	lua_pop(L, 2);
-	return Reflect(percent, value);
+	return Reflect(percent, chance);
 }
 
 Thing* LuaScriptInterface::getThing(lua_State* L, int32_t arg)
@@ -3736,9 +3736,7 @@ int LuaScriptInterface::luaAddEvent(lua_State* L)
 	eventDesc.scriptId = getScriptEnv()->getScriptId();
 
 	auto& lastTimerEventId = g_luaEnvironment.lastEventTimerId;
-	eventDesc.eventId = g_scheduler.addEvent(createSchedulerTask(
-		delay, std::bind(&LuaEnvironment::executeTimerEvent, &g_luaEnvironment, lastTimerEventId)
-	));
+	eventDesc.eventId = g_scheduler.addEvent(createSchedulerTask(delay, std::bind(&LuaEnvironment::executeTimerEvent, &g_luaEnvironment, lastTimerEventId)));
 
 	g_luaEnvironment.timerEvents.emplace(lastTimerEventId, std::move(eventDesc));
 	lua_pushnumber(L, lastTimerEventId++);
@@ -7912,7 +7910,7 @@ int LuaScriptInterface::luaCreatureGetDamageMap(lua_State* L)
 	}
 
 	lua_createtable(L, creature->damageMap.size(), 0);
-	for (auto damageEntry : creature->damageMap) {
+	for (const auto& damageEntry : creature->damageMap) {
 		lua_createtable(L, 0, 2);
 		setField(L, "total", damageEntry.second.total);
 		setField(L, "ticks", damageEntry.second.ticks);

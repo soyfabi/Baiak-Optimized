@@ -243,6 +243,21 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 				} else {
 					thing = tile->getTopVisibleCreature(player);
 				}
+				
+				if (player && tile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
+					// do extra checks here if the thing is accessible
+					if (thing && thing->getItem()) {
+						if (tile->hasProperty(CONST_PROP_ISVERTICAL)) {
+							if (player->getPosition().x + 1 == tile->getPosition().x) {
+								thing = nullptr;
+							}
+						} else { // horizontal
+							if (player->getPosition().y + 1 == tile->getPosition().y) {
+								thing = nullptr;
+							}
+						}
+					}
+				}
 				break;
 			}
 
@@ -267,21 +282,6 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 			default: {
 				thing = nullptr;
 				break;
-			}
-		}
-
-		if (player && tile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
-			//do extra checks here if the thing is accessable
-			if (thing && thing->getItem()) {
-				if (tile->hasProperty(CONST_PROP_ISVERTICAL)) {
-					if (player->getPosition().x + 1 == tile->getPosition().x) {
-						thing = nullptr;
-					}
-				} else { // horizontal
-					if (player->getPosition().y + 1 == tile->getPosition().y) {
-						thing = nullptr;
-					}
-				}
 			}
 		}
 		return thing;
@@ -1073,8 +1073,7 @@ ReturnValue Game::internalMoveItem(Cylinder* fromCylinder, Cylinder* toCylinder,
 
 	while ((subCylinder = toCylinder->queryDestination(index, *item, &toItem, flags)) != toCylinder) {
 		toCylinder = subCylinder;
-		flags = 0;
-
+		
 		//to prevent infinite loop
 		if (++floorN >= MAP_MAX_LAYERS) {
 			break;
