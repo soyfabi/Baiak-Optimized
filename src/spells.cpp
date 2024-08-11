@@ -525,6 +525,10 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 			std::cout << "[Warning - Spell::configureSpell] Blocktype \"" << attr.as_string() << "\" does not exist." << std::endl;
 		}
 	}
+	
+	if ((attr = node.attribute("pzlock"))) {
+		pzLock = booleanString(attr.as_string());
+	}
 
 	if ((attr = node.attribute("aggressive"))) {
 		aggressive = booleanString(attr.as_string());
@@ -1200,6 +1204,12 @@ bool RuneSpell::executeUse(Player* player, Item* item, const Position&, Thing* t
 	}
 
 	postCastSpell(player);
+	
+	target = g_game.getCreatureByID(var.number);
+	if (getPzLock() && target) {
+		player->onAttackedCreature(target->getCreature());
+	}
+	
 	if (hasCharges && item && g_config.getBoolean(ConfigManager::REMOVE_RUNE_CHARGES)) {
 		int32_t newCount = std::max<int32_t>(0, item->getItemCount() - 1);
 		g_game.transformItem(item, item->getID(), newCount);
