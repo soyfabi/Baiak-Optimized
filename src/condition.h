@@ -55,6 +55,8 @@ enum ConditionAttr_t {
 	CONDITIONATTR_PERIODDAMAGE,
 	CONDITIONATTR_ISBUFF,
 	CONDITIONATTR_SUBID,
+	CONDITIONATTR_DISABLEDEFENSE,
+	CONDITIONATTR_SPECIALSKILLS,
 	CONDITIONATTR_LIGHTCOLOR_8B,
 	CONDITIONATTR_LIGHTLEVEL_8B,
 
@@ -172,6 +174,7 @@ class ConditionAttributes final : public ConditionGeneric
 		int32_t stats[STAT_LAST + 1] = {};
 		int32_t statsPercent[STAT_LAST + 1] = {};
 		int32_t currentSkill = 0;
+		int32_t currentSpecialSkill = 0;
 		int32_t currentStat = 0;
 
 		bool disableDefense = false;
