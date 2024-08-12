@@ -1906,17 +1906,17 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance,
 								}
 								s << ": ";
 							} else {
-								s << "Voc� l�: ";
+								s << "You read: ";
 							}
 							s << *text;
 						} else {
-							s << "Nada est� escrito";
+							s << "Nothing is written on it";
 						}
 					} else {
-						s << "Nada est� escrito";
+						s << "Nothing is written on it";
 					}
 				} else {
-					s << "Voc� est� muito longe para ler";
+					s << "You are too far away to read it";
 				}
 			} else if (it.levelDoor != 0 && item) {
 				uint16_t actionId = item->getActionId();
@@ -1928,42 +1928,42 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance,
 	}
 
 	if (it.showCharges) {
-		s << " isso tem " << subType << " cargas" << (subType != 1 ? "s" : "") << " restantes";
+		s << " that has " << subType << " charge" << (subType != 1 ? "s" : "") << " left";
 	}
 
 	if (it.showDuration) {
 		if (item && item->hasAttribute(ITEM_ATTRIBUTE_DURATION)) {
 			uint32_t duration = item->getDuration() / 1000;
-			s << " que expirar� em ";
+			s << " that will expire in ";
 
 			if (duration >= 86400) {
 				uint16_t days = duration / 86400;
 				uint16_t hours = (duration % 86400) / 3600;
-				s << days << " dia" << (days != 1 ? "s" : "");
+				s << days << " day" << (days != 1 ? "s" : "");
 
 				if (hours > 0) {
-					s << " e " << hours << " hora" << (hours != 1 ? "s" : "");
+					s << " and " << hours << " hour" << (hours != 1 ? "s" : "");
 				}
 			} else if (duration >= 3600) {
 				uint16_t hours = duration / 3600;
 				uint16_t minutes = (duration % 3600) / 60;
-				s << hours << " hora" << (hours != 1 ? "s" : "");
+				s << hours << " hour" << (hours != 1 ? "s" : "");
 
 				if (minutes > 0) {
-					s << " e " << minutes << " minuto" << (minutes != 1 ? "s" : "");
+					s << " and " << minutes << " minute" << (minutes != 1 ? "s" : "");
 				}
 			} else if (duration >= 60) {
 				uint16_t minutes = duration / 60;
 				uint16_t seconds = duration % 60;
-				s << minutes << " minuto" << (minutes != 1 ? "s" : "");
+				s << minutes << " minute" << (minutes != 1 ? "s" : "");
 				if (seconds > 0) {
-					s << " e " << seconds << " segundo" << (seconds != 1 ? "s" : "");
+					s << " and " << seconds << " second" << (seconds != 1 ? "s" : "");
 				}
 			} else {
-				s << duration << " segundo" << (duration != 1 ? "s" : "");
+				s << duration << " second" << (duration != 1 ? "s" : "");
 			}
 		} else {
-			s << " isso � novinho em folha";
+			s << " that is brand-new";
 		}
 	}
 
@@ -1980,7 +1980,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance,
 	}
 
 	if (it.wieldInfo != 0) {
-		s << "\nS� pode ser manejado adequadamente por ";
+		s << "\nIt can only be wielded properly by ";
 
 		if (it.wieldInfo & WIELDINFO_PREMIUM) {
 			s << "premium ";
@@ -1993,17 +1993,17 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance,
 		}
 
 		if (it.wieldInfo & WIELDINFO_LEVEL) {
-			s << " de level " << it.minReqLevel << " ou maior";
+			s << " of level " << it.minReqLevel << " or higher";
 		}
 
 		if (it.wieldInfo & WIELDINFO_MAGLV) {
 			if (it.wieldInfo & WIELDINFO_LEVEL) {
-				s << " e";
+				s << " and";
 			} else {
-				s << " do";
+				s << " of";
 			}
 
-			s << " magic level " << it.minReqMagicLevel << " ou maior";
+			s << " magic level " << it.minReqMagicLevel << " or higher";
 		}
 
 		s << '.';
@@ -2076,7 +2076,10 @@ std::string Item::getNameDescription(const ItemType& it, const Item* item /*= nu
 			s << name;
 		}
 	} else {
-		s << "um item do tipo " << it.id;
+		if (addArticle) {
+			s << "an ";
+		}
+		s << "item of type " << it.id;
 	}
 	return s.str();
 }
@@ -2091,9 +2094,9 @@ std::string Item::getWeightDescription(const ItemType& it, uint32_t weight, uint
 {
 	std::ostringstream ss;
 	if (it.stackable && count > 1 && it.showCount != 0) {
-		ss << "Eles pesam ";
+		ss << "They weigh ";
 	} else {
-		ss << "Isso pesa ";
+		ss << "It weighs ";
 	}
 
 	if (weight < 10) {

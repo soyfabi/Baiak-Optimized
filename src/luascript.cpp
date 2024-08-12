@@ -2038,7 +2038,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::STAMINA_TRAINER_DELAY);
 	registerEnumIn("configKeys", ConfigManager::STAMINA_TRAINER_GAIN);
 	
-	// Rates
+	// Rates Configs
 	registerEnumIn("configKeys", ConfigManager::RATE_HEALTH_REGEN);
 	registerEnumIn("configKeys", ConfigManager::RATE_HEALTH_REGEN_SPEED);
 	registerEnumIn("configKeys", ConfigManager::RATE_MANA_REGEN);
