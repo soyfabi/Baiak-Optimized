@@ -66,6 +66,7 @@ class Events
 		int32_t playerOnGainSkillTries = -1;
 		int32_t playerOnSay = -1;
 		int32_t playerOnInventoryUpdate = -1;
+		int32_t playerOnStepTile = -1;
 
 		// Monster
 		int32_t monsterOnDropLoot = -1;
@@ -112,6 +113,7 @@ class Events
 		void eventPlayerOnGainSkillTries(Player* player, skills_t skill, uint64_t& tries);
 		bool eventPlayerOnSay(Player* player, const std::string& message);
 		void eventPlayerOnInventoryUpdate(Player* player, Item* item, slots_t slot, bool equip);
+		bool eventPlayerOnStepTile(Player* player, const Position& fromPosition, const Position& toPosition);
 
 		// Monster
 		void eventMonsterOnDropLoot(Monster* monster, Container* corpse);
