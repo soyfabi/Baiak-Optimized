@@ -20,71 +20,43 @@
 #ifndef FS_VOCATION_H_ADCAA356C0DB44CEBA994A0D678EC92D
 #define FS_VOCATION_H_ADCAA356C0DB44CEBA994A0D678EC92D
 
+#include "configmanager.h"
 #include "enums.h"
 #include "item.h"
+
+extern ConfigManager g_config;
 
 class Vocation
 {
 	public:
 		explicit Vocation(uint16_t id) : id(id) {}
 
-		const std::string& getVocName() const {
-			return name;
-		}
-		const std::string& getVocDescription() const {
-			return description;
-		}
+		const std::string& getVocName() const { return name; }
+		const std::string& getVocDescription() const { return description; }
+		
 		uint64_t getReqSkillTries(uint8_t skill, uint16_t level);
 		uint64_t getReqMana(uint32_t magLevel);
 
-		uint16_t getId() const {
-			return id;
-		}
+		uint16_t getId() const { return id; }
+		uint8_t getClientId() const { return clientId; }
 
-		uint8_t getClientId() const {
-			return clientId;
-		}
+		uint32_t getHPGain() const { return gainHP; }
+		uint32_t getManaGain() const { return gainMana; }
+		uint32_t getCapGain() const { return gainCap; }
+		
+		uint32_t getManaGainTicks() const { return gainManaTicks / g_config.getFloat(ConfigManager::RATE_MANA_REGEN_SPEED); }
+		uint32_t getManaGainAmount() const { return gainManaAmount * g_config.getFloat(ConfigManager::RATE_MANA_REGEN); }
+		
+		uint32_t getHealthGainTicks() const { return gainHealthTicks / g_config.getFloat(ConfigManager::RATE_HEALTH_REGEN_SPEED); }
+		uint32_t getHealthGainAmount() const { return gainHealthAmount * g_config.getFloat(ConfigManager::RATE_HEALTH_REGEN); }
+		
+		uint8_t getSoulMax() const { return soulMax; }
+		uint16_t getSoulGainTicks() const { return gainSoulTicks / g_config.getFloat(ConfigManager::RATE_SOUL_REGEN_SPEED); }
 
-		uint32_t getHPGain() const {
-			return gainHP;
-		}
-		uint32_t getManaGain() const {
-			return gainMana;
-		}
-		uint32_t getCapGain() const {
-			return gainCap;
-		}
+		uint32_t getAttackSpeed() const { return attackSpeed / g_config.getFloat(ConfigManager::RATE_ATTACK_SPEED); }
+		uint32_t getBaseSpeed() const { return baseSpeed; }
 
-		uint32_t getManaGainTicks() const {
-			return gainManaTicks;
-		}
-		uint32_t getManaGainAmount() const {
-			return gainManaAmount;
-		}
-		uint32_t getHealthGainTicks() const {
-			return gainHealthTicks;
-		}
-		uint32_t getHealthGainAmount() const {
-			return gainHealthAmount;
-		}
-
-		uint8_t getSoulMax() const {
-			return soulMax;
-		}
-		uint16_t getSoulGainTicks() const {
-			return gainSoulTicks;
-		}
-
-		uint32_t getAttackSpeed() const {
-			return attackSpeed;
-		}
-		uint32_t getBaseSpeed() const {
-			return baseSpeed;
-		}
-
-		uint32_t getFromVocation() const {
-			return fromVocation;
-		}
+		uint32_t getFromVocation() const { return fromVocation; }
 
 		float meleeDamageMultiplier = 1.0f;
 		float distDamageMultiplier = 1.0f;
