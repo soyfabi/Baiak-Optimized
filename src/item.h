@@ -110,7 +110,8 @@ enum AttrTypes_t {
 	ATTR_CLASSIFICATION = 39,
 	ATTR_TIER = 40,
 	ATTR_REFLECT = 41,
-	ATTR_BOOST = 42
+	ATTR_BOOST = 42,
+	ATTR_DECAYTO = 43
 };
 
 enum Attr_ReadValue {
@@ -806,6 +807,16 @@ class Item : virtual public Thing
 				return DECAYING_FALSE;
 			}
 			return static_cast<ItemDecayState_t>(getIntAttr(ITEM_ATTRIBUTE_DECAYSTATE));
+		}
+		
+		void setDecayTo(int32_t decayTo) {
+			setIntAttr(ITEM_ATTRIBUTE_DECAYTO, decayTo);
+		}
+		int32_t getDecayTo() const {
+			if (hasAttribute(ITEM_ATTRIBUTE_DECAYTO)) {
+				return getIntAttr(ITEM_ATTRIBUTE_DECAYTO);
+			}
+			return items[id].decayTo;
 		}
 
 		static std::vector<std::pair<std::string, std::string>> getDescriptions(const ItemType& it, const Item* item = nullptr);

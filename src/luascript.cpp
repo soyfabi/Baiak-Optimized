@@ -6596,8 +6596,7 @@ int LuaScriptInterface::luaItemDecay(lua_State* L)
 	Item* item = getUserdata<Item>(L, 1);
 	if (item) {
 		if (isNumber(L, 2)) {
-			ItemType& it = Item::items.getItemType(item->getID());
-			it.decayTo = getNumber<int32_t>(L, 2);
+			item->setDecayTo(getNumber<int32_t>(L, 2));
 		}
 
 		item->startDecaying();
