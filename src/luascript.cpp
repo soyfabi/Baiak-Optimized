@@ -826,6 +826,14 @@ InstantSpell* LuaScriptInterface::getInstantSpell(lua_State* L, int32_t arg)
 	return spell;
 }
 
+Reflect LuaScriptInterface::getReflect(lua_State* L, int32_t arg)
+{
+	uint16_t percent = getField<uint16_t>(L, arg, "percent");
+	uint16_t chance  = getField<uint16_t>(L, arg, "chance ");
+	lua_pop(L, 2);
+	return Reflect(percent, chance);
+}
+
 Thing* LuaScriptInterface::getThing(lua_State* L, int32_t arg)
 {
 	Thing* thing;
@@ -971,6 +979,13 @@ void LuaScriptInterface::pushLoot(lua_State* L, const std::vector<LootBlock>& lo
 	}
 }
 
+void LuaScriptInterface::pushReflect(lua_State* L, const Reflect& reflect)
+{
+	lua_createtable(L, 0, 2);
+	setField(L, "percent", reflect.percent);
+	setField(L, "chance", reflect.chance);
+}
+
 #define registerEnum(value) { std::string enumName = #value; registerGlobalVariable(enumName.substr(enumName.find_last_of(':') + 1), value); }
 #define registerEnumIn(tableName, value) { std::string enumName = #value; registerVariable(tableName, enumName.substr(enumName.find_last_of(':') + 1), value); }
 
@@ -995,9 +1010,6 @@ void LuaScriptInterface::registerFunctions()
 
 	//isMovable(uid)
 	lua_register(luaState, "isMovable", LuaScriptInterface::luaIsMoveable);
-
-	//doAddContainerItem(uid, itemid, <optional> count/subtype)
-	lua_register(luaState, "doAddContainerItem", LuaScriptInterface::luaDoAddContainerItem);
 
 	//getDepotId(uid)
 	lua_register(luaState, "getDepotId", LuaScriptInterface::luaGetDepotId);
@@ -1049,6 +1061,9 @@ void LuaScriptInterface::registerFunctions()
 
 	//sendGuildChannelMessage(guildId, type, message)
 	lua_register(luaState, "sendGuildChannelMessage", LuaScriptInterface::luaSendGuildChannelMessage);
+	
+	//isScriptsInterface()
+	lua_register(luaState, "isScriptsInterface", LuaScriptInterface::luaIsScriptsInterface);
 
 #ifndef LUAJIT_VERSION
 	//bit operations for Lua, based on bitlib project release 24
@@ -1077,741 +1092,854 @@ void LuaScriptInterface::registerFunctions()
 	//registerEnumIn(tableName, value)
 
 	// Enums
-	registerEnum(ACCOUNT_TYPE_NORMAL)
-	registerEnum(ACCOUNT_TYPE_TUTOR)
-	registerEnum(ACCOUNT_TYPE_SENIORTUTOR)
-	registerEnum(ACCOUNT_TYPE_GAMEMASTER)
-	registerEnum(ACCOUNT_TYPE_GOD)
+	registerEnum(ACCOUNT_TYPE_NORMAL);
+	registerEnum(ACCOUNT_TYPE_TUTOR);
+	registerEnum(ACCOUNT_TYPE_SENIORTUTOR);
+	registerEnum(ACCOUNT_TYPE_GAMEMASTER);
+	registerEnum(ACCOUNT_TYPE_COMMUNITYMANAGER);
+	registerEnum(ACCOUNT_TYPE_GOD);
 
-	registerEnum(CALLBACK_PARAM_LEVELMAGICVALUE)
-	registerEnum(CALLBACK_PARAM_SKILLVALUE)
-	registerEnum(CALLBACK_PARAM_TARGETTILE)
-	registerEnum(CALLBACK_PARAM_TARGETCREATURE)
+	registerEnum(CALLBACK_PARAM_LEVELMAGICVALUE);
+	registerEnum(CALLBACK_PARAM_SKILLVALUE);
+	registerEnum(CALLBACK_PARAM_TARGETTILE);
+	registerEnum(CALLBACK_PARAM_TARGETCREATURE);
 
-	registerEnum(COMBAT_FORMULA_UNDEFINED)
-	registerEnum(COMBAT_FORMULA_LEVELMAGIC)
-	registerEnum(COMBAT_FORMULA_SKILL)
-	registerEnum(COMBAT_FORMULA_DAMAGE)
+	registerEnum(COMBAT_FORMULA_UNDEFINED);
+	registerEnum(COMBAT_FORMULA_LEVELMAGIC);
+	registerEnum(COMBAT_FORMULA_SKILL);
+	registerEnum(COMBAT_FORMULA_DAMAGE);
 
-	registerEnum(DIRECTION_NORTH)
-	registerEnum(DIRECTION_EAST)
-	registerEnum(DIRECTION_SOUTH)
-	registerEnum(DIRECTION_WEST)
-	registerEnum(DIRECTION_SOUTHWEST)
-	registerEnum(DIRECTION_SOUTHEAST)
-	registerEnum(DIRECTION_NORTHWEST)
-	registerEnum(DIRECTION_NORTHEAST)
+	registerEnum(DIRECTION_NORTH);
+	registerEnum(DIRECTION_EAST);
+	registerEnum(DIRECTION_SOUTH);
+	registerEnum(DIRECTION_WEST);
+	registerEnum(DIRECTION_SOUTHWEST);
+	registerEnum(DIRECTION_SOUTHEAST);
+	registerEnum(DIRECTION_NORTHWEST);
+	registerEnum(DIRECTION_NORTHEAST);
 
-	registerEnum(COMBAT_NONE)
-	registerEnum(COMBAT_PHYSICALDAMAGE)
-	registerEnum(COMBAT_ENERGYDAMAGE)
-	registerEnum(COMBAT_EARTHDAMAGE)
-	registerEnum(COMBAT_FIREDAMAGE)
-	registerEnum(COMBAT_UNDEFINEDDAMAGE)
-	registerEnum(COMBAT_LIFEDRAIN)
-	registerEnum(COMBAT_MANADRAIN)
-	registerEnum(COMBAT_HEALING)
-	registerEnum(COMBAT_DROWNDAMAGE)
-	registerEnum(COMBAT_ICEDAMAGE)
-	registerEnum(COMBAT_HOLYDAMAGE)
-	registerEnum(COMBAT_DEATHDAMAGE)
+	registerEnum(COMBAT_NONE);
+	registerEnum(COMBAT_PHYSICALDAMAGE);
+	registerEnum(COMBAT_ENERGYDAMAGE);
+	registerEnum(COMBAT_EARTHDAMAGE);
+	registerEnum(COMBAT_FIREDAMAGE);
+	registerEnum(COMBAT_UNDEFINEDDAMAGE);
+	registerEnum(COMBAT_LIFEDRAIN);
+	registerEnum(COMBAT_MANADRAIN);
+	registerEnum(COMBAT_HEALING);
+	registerEnum(COMBAT_DROWNDAMAGE);
+	registerEnum(COMBAT_ICEDAMAGE);
+	registerEnum(COMBAT_HOLYDAMAGE);
+	registerEnum(COMBAT_DEATHDAMAGE);
 
-	registerEnum(COMBAT_PARAM_TYPE)
-	registerEnum(COMBAT_PARAM_EFFECT)
-	registerEnum(COMBAT_PARAM_DISTANCEEFFECT)
-	registerEnum(COMBAT_PARAM_BLOCKSHIELD)
-	registerEnum(COMBAT_PARAM_BLOCKARMOR)
-	registerEnum(COMBAT_PARAM_TARGETCASTERORTOPMOST)
-	registerEnum(COMBAT_PARAM_CREATEITEM)
-	registerEnum(COMBAT_PARAM_AGGRESSIVE)
-	registerEnum(COMBAT_PARAM_DISPEL)
-	registerEnum(COMBAT_PARAM_USECHARGES)
+	registerEnum(COMBAT_PARAM_TYPE);
+	registerEnum(COMBAT_PARAM_EFFECT);
+	registerEnum(COMBAT_PARAM_DISTANCEEFFECT);
+	registerEnum(COMBAT_PARAM_BLOCKSHIELD);
+	registerEnum(COMBAT_PARAM_BLOCKARMOR);
+	registerEnum(COMBAT_PARAM_TARGETCASTERORTOPMOST);
+	registerEnum(COMBAT_PARAM_CREATEITEM);
+	registerEnum(COMBAT_PARAM_AGGRESSIVE);
+	registerEnum(COMBAT_PARAM_DISPEL);
+	registerEnum(COMBAT_PARAM_USECHARGES);
+	
+	registerEnum(CONDITION_NONE);
+	registerEnum(CONDITION_POISON);
+	registerEnum(CONDITION_FIRE);
+	registerEnum(CONDITION_ENERGY);
+	registerEnum(CONDITION_BLEEDING);
+	registerEnum(CONDITION_HASTE);
+	registerEnum(CONDITION_PARALYZE);
+	registerEnum(CONDITION_OUTFIT);
+	registerEnum(CONDITION_INVISIBLE);
+	registerEnum(CONDITION_LIGHT);
+	registerEnum(CONDITION_MANASHIELD);
+	registerEnum(CONDITION_INFIGHT);
+	registerEnum(CONDITION_DRUNK);
+	registerEnum(CONDITION_EXHAUST_WEAPON);
+	registerEnum(CONDITION_REGENERATION);
+	registerEnum(CONDITION_SOUL);
+	registerEnum(CONDITION_DROWN);
+	registerEnum(CONDITION_MUTED);
+	registerEnum(CONDITION_CHANNELMUTEDTICKS);
+	registerEnum(CONDITION_YELLTICKS);
+	registerEnum(CONDITION_ATTRIBUTES);
+	registerEnum(CONDITION_FREEZING);
+	registerEnum(CONDITION_DAZZLED);
+	registerEnum(CONDITION_CURSED);
+	registerEnum(CONDITION_ROOTED);
+	registerEnum(CONDITION_EXHAUST_COMBAT);
+	registerEnum(CONDITION_EXHAUST_HEAL);
+	registerEnum(CONDITION_PACIFIED);
+	registerEnum(CONDITION_SPELLCOOLDOWN);
+	registerEnum(CONDITION_SPELLGROUPCOOLDOWN);
 
-	registerEnum(CONDITION_NONE)
-	registerEnum(CONDITION_POISON)
-	registerEnum(CONDITION_FIRE)
-	registerEnum(CONDITION_ENERGY)
-	registerEnum(CONDITION_BLEEDING)
-	registerEnum(CONDITION_HASTE)
-	registerEnum(CONDITION_PARALYZE)
-	registerEnum(CONDITION_OUTFIT)
-	registerEnum(CONDITION_INVISIBLE)
-	registerEnum(CONDITION_LIGHT)
-	registerEnum(CONDITION_MANASHIELD)
-	registerEnum(CONDITION_INFIGHT)
-	registerEnum(CONDITION_DRUNK)
-	registerEnum(CONDITION_EXHAUST_WEAPON)
-	registerEnum(CONDITION_REGENERATION)
-	registerEnum(CONDITION_SOUL)
-	registerEnum(CONDITION_DROWN)
-	registerEnum(CONDITION_MUTED)
-	registerEnum(CONDITION_CHANNELMUTEDTICKS)
-	registerEnum(CONDITION_YELLTICKS)
-	registerEnum(CONDITION_ATTRIBUTES)
-	registerEnum(CONDITION_FREEZING)
-	registerEnum(CONDITION_DAZZLED)
-	registerEnum(CONDITION_CURSED)
-	registerEnum(CONDITION_EXHAUST_COMBAT)
-	registerEnum(CONDITION_EXHAUST_HEAL)
-	registerEnum(CONDITION_PACIFIED)
+	registerEnum(CONDITIONID_DEFAULT);
+	registerEnum(CONDITIONID_COMBAT);
+	registerEnum(CONDITIONID_HEAD);
+	registerEnum(CONDITIONID_NECKLACE);
+	registerEnum(CONDITIONID_BACKPACK);
+	registerEnum(CONDITIONID_ARMOR);
+	registerEnum(CONDITIONID_RIGHT);
+	registerEnum(CONDITIONID_LEFT);
+	registerEnum(CONDITIONID_LEGS);
+	registerEnum(CONDITIONID_FEET);
+	registerEnum(CONDITIONID_RING);
+	registerEnum(CONDITIONID_AMMO);
 
-	registerEnum(CONDITIONID_DEFAULT)
-	registerEnum(CONDITIONID_COMBAT)
-	registerEnum(CONDITIONID_HEAD)
-	registerEnum(CONDITIONID_NECKLACE)
-	registerEnum(CONDITIONID_BACKPACK)
-	registerEnum(CONDITIONID_ARMOR)
-	registerEnum(CONDITIONID_RIGHT)
-	registerEnum(CONDITIONID_LEFT)
-	registerEnum(CONDITIONID_LEGS)
-	registerEnum(CONDITIONID_FEET)
-	registerEnum(CONDITIONID_RING)
-	registerEnum(CONDITIONID_AMMO)
+	registerEnum(CONDITION_PARAM_OWNER);
+	registerEnum(CONDITION_PARAM_TICKS);
+	registerEnum(CONDITION_PARAM_HEALTHGAIN);
+	registerEnum(CONDITION_PARAM_HEALTHTICKS);
+	registerEnum(CONDITION_PARAM_MANAGAIN);
+	registerEnum(CONDITION_PARAM_MANATICKS);
+	registerEnum(CONDITION_PARAM_DELAYED);
+	registerEnum(CONDITION_PARAM_SPEED);
+	registerEnum(CONDITION_PARAM_LIGHT_LEVEL);
+	registerEnum(CONDITION_PARAM_LIGHT_COLOR);
+	registerEnum(CONDITION_PARAM_SOULGAIN);
+	registerEnum(CONDITION_PARAM_SOULTICKS);
+	registerEnum(CONDITION_PARAM_MINVALUE);
+	registerEnum(CONDITION_PARAM_MAXVALUE);
+	registerEnum(CONDITION_PARAM_STARTVALUE);
+	registerEnum(CONDITION_PARAM_TICKINTERVAL);
+	registerEnum(CONDITION_PARAM_FORCEUPDATE);
+	registerEnum(CONDITION_PARAM_SKILL_MELEE);
+	registerEnum(CONDITION_PARAM_SKILL_FIST);
+	registerEnum(CONDITION_PARAM_SKILL_CLUB);
+	registerEnum(CONDITION_PARAM_SKILL_SWORD);
+	registerEnum(CONDITION_PARAM_SKILL_AXE);
+	registerEnum(CONDITION_PARAM_SKILL_DISTANCE);
+	registerEnum(CONDITION_PARAM_SKILL_SHIELD);
+	registerEnum(CONDITION_PARAM_SKILL_FISHING);
+	registerEnum(CONDITION_PARAM_STAT_MAXHITPOINTS);
+	registerEnum(CONDITION_PARAM_STAT_MAXMANAPOINTS);
+	registerEnum(CONDITION_PARAM_STAT_MAGICPOINTS);
+	registerEnum(CONDITION_PARAM_STAT_MAXHITPOINTSPERCENT);
+	registerEnum(CONDITION_PARAM_STAT_MAXMANAPOINTSPERCENT);
+	registerEnum(CONDITION_PARAM_STAT_MAGICPOINTSPERCENT);
+	registerEnum(CONDITION_PARAM_PERIODICDAMAGE);
+	registerEnum(CONDITION_PARAM_SKILL_MELEEPERCENT);
+	registerEnum(CONDITION_PARAM_SKILL_FISTPERCENT);
+	registerEnum(CONDITION_PARAM_SKILL_CLUBPERCENT);
+	registerEnum(CONDITION_PARAM_SKILL_SWORDPERCENT);
+	registerEnum(CONDITION_PARAM_SKILL_AXEPERCENT);
+	registerEnum(CONDITION_PARAM_SKILL_DISTANCEPERCENT);
+	registerEnum(CONDITION_PARAM_SKILL_SHIELDPERCENT);
+	registerEnum(CONDITION_PARAM_SKILL_FISHINGPERCENT);
+	registerEnum(CONDITION_PARAM_BUFF_SPELL);
+	registerEnum(CONDITION_PARAM_SUBID);
+	registerEnum(CONDITION_PARAM_FIELD);
+	registerEnum(CONDITION_PARAM_DISABLE_DEFENSE);
+	registerEnum(CONDITION_PARAM_SPECIALSKILL_CRITICALHITCHANCE);
+	registerEnum(CONDITION_PARAM_SPECIALSKILL_CRITICALHITAMOUNT);
+	registerEnum(CONDITION_PARAM_SPECIALSKILL_LIFELEECHCHANCE);
+	registerEnum(CONDITION_PARAM_SPECIALSKILL_LIFELEECHAMOUNT);
+	registerEnum(CONDITION_PARAM_SPECIALSKILL_MANALEECHCHANCE);
+	registerEnum(CONDITION_PARAM_SPECIALSKILL_MANALEECHAMOUNT);
+	
+	registerEnum(CONST_ME_NONE);
+	registerEnum(CONST_ME_DRAWBLOOD);
+	registerEnum(CONST_ME_LOSEENERGY);
+	registerEnum(CONST_ME_POFF);
+	registerEnum(CONST_ME_BLOCKHIT);
+	registerEnum(CONST_ME_EXPLOSIONAREA);
+	registerEnum(CONST_ME_EXPLOSIONHIT);
+	registerEnum(CONST_ME_FIREAREA);
+	registerEnum(CONST_ME_YELLOW_RINGS);
+	registerEnum(CONST_ME_GREEN_RINGS);
+	registerEnum(CONST_ME_HITAREA);
+	registerEnum(CONST_ME_TELEPORT);
+	registerEnum(CONST_ME_ENERGYHIT);
+	registerEnum(CONST_ME_MAGIC_BLUE);
+	registerEnum(CONST_ME_MAGIC_RED);
+	registerEnum(CONST_ME_MAGIC_GREEN);
+	registerEnum(CONST_ME_HITBYFIRE);
+	registerEnum(CONST_ME_HITBYPOISON);
+	registerEnum(CONST_ME_MORTAREA);
+	registerEnum(CONST_ME_SOUND_GREEN);
+	registerEnum(CONST_ME_SOUND_RED);
+	registerEnum(CONST_ME_POISONAREA);
+	registerEnum(CONST_ME_SOUND_YELLOW);
+	registerEnum(CONST_ME_SOUND_PURPLE);
+	registerEnum(CONST_ME_SOUND_BLUE);
+	registerEnum(CONST_ME_SOUND_WHITE);
+	registerEnum(CONST_ME_BUBBLES);
+	registerEnum(CONST_ME_CRAPS);
+	registerEnum(CONST_ME_GIFT_WRAPS);
+	registerEnum(CONST_ME_FIREWORK_YELLOW);
+	registerEnum(CONST_ME_FIREWORK_RED);
+	registerEnum(CONST_ME_FIREWORK_BLUE);
+	registerEnum(CONST_ME_STUN);
+	registerEnum(CONST_ME_SLEEP);
+	registerEnum(CONST_ME_WATERCREATURE);
+	registerEnum(CONST_ME_GROUNDSHAKER);
+	registerEnum(CONST_ME_HEARTS);
+	registerEnum(CONST_ME_FIREATTACK);
+	registerEnum(CONST_ME_ENERGYAREA);
+	registerEnum(CONST_ME_SMALLCLOUDS);
+	registerEnum(CONST_ME_HOLYDAMAGE);
+	registerEnum(CONST_ME_BIGCLOUDS);
+	registerEnum(CONST_ME_ICEAREA);
+	registerEnum(CONST_ME_ICETORNADO);
+	registerEnum(CONST_ME_ICEATTACK);
+	registerEnum(CONST_ME_STONES);
+	registerEnum(CONST_ME_SMALLPLANTS);
+	registerEnum(CONST_ME_CARNIPHILA);
+	registerEnum(CONST_ME_PURPLEENERGY);
+	registerEnum(CONST_ME_YELLOWENERGY);
+	registerEnum(CONST_ME_HOLYAREA);
+	registerEnum(CONST_ME_BIGPLANTS);
+	registerEnum(CONST_ME_CAKE);
+	registerEnum(CONST_ME_GIANTICE);
+	registerEnum(CONST_ME_WATERSPLASH);
+	registerEnum(CONST_ME_PLANTATTACK);
+	registerEnum(CONST_ME_TUTORIALARROW);
+	registerEnum(CONST_ME_TUTORIALSQUARE);
+	registerEnum(CONST_ME_MIRRORHORIZONTAL);
+	registerEnum(CONST_ME_MIRRORVERTICAL);
+	registerEnum(CONST_ME_SKULLHORIZONTAL);
+	registerEnum(CONST_ME_SKULLVERTICAL);
+	registerEnum(CONST_ME_ASSASSIN);
+	registerEnum(CONST_ME_STEPSHORIZONTAL);
+	registerEnum(CONST_ME_BLOODYSTEPS);
+	registerEnum(CONST_ME_STEPSVERTICAL);
+	registerEnum(CONST_ME_YALAHARIGHOST);
+	registerEnum(CONST_ME_BATS);
+	registerEnum(CONST_ME_SMOKE);
+	registerEnum(CONST_ME_INSECTS);
+	registerEnum(CONST_ME_DRAGONHEAD);
+	registerEnum(CONST_ME_ORCSHAMAN);
+	registerEnum(CONST_ME_ORCSHAMAN_FIRE);
+	registerEnum(CONST_ME_THUNDER);
+	registerEnum(CONST_ME_FERUMBRAS);
+	registerEnum(CONST_ME_CONFETTI_HORIZONTAL);
+	registerEnum(CONST_ME_CONFETTI_VERTICAL);
+	registerEnum(CONST_ME_BLACKSMOKE);
+	registerEnum(CONST_ME_REDSMOKE);
+	registerEnum(CONST_ME_YELLOWSMOKE);
+	registerEnum(CONST_ME_GREENSMOKE);
+	registerEnum(CONST_ME_PURPLESMOKE);
+	registerEnum(CONST_ME_LIGHTNING);
+	registerEnum(CONST_ME_RAGIAZ_BONE_CAPSULE);
+	registerEnum(CONST_ME_CRITICAL_HIT);
+	registerEnum(CONST_ME_PLUNGING_FISH);
+	registerEnum(CONST_ME_BLUE_ENERGY_SPARK);
+	registerEnum(CONST_ME_ORANGE_ENERGY_SPARK)
+	registerEnum(CONST_ME_GREEN_ENERGY_SPARK);
+	registerEnum(CONST_ME_PINK_ENERGY_SPARK);
+	registerEnum(CONST_ME_WHITE_ENERGY_SPARK);
+	registerEnum(CONST_ME_YELLOW_ENERGY_SPARK);
+	registerEnum(CONST_ME_MAGIC_POWDER);
+	registerEnum(CONST_ME_PIXIE_EXPLOSION);
+	registerEnum(CONST_ME_PIXIE_COMING);
+	registerEnum(CONST_ME_PIXIE_GOING);
+	registerEnum(CONST_ME_STORM);
+	registerEnum(CONST_ME_STONE_STORM);
+	registerEnum(CONST_ME_BLUE_GHOST);
+	registerEnum(CONST_ME_PINK_VORTEX);
+	registerEnum(CONST_ME_TREASURE_MAP);
+	registerEnum(CONST_ME_PINK_BEAM);
+	registerEnum(CONST_ME_GREEN_FIREWORKS);
+	registerEnum(CONST_ME_ORANGE_FIREWORKS);
+	registerEnum(CONST_ME_PINK_FIREWORKS);
+	registerEnum(CONST_ME_BLUE_FIREWORKS);
+	registerEnum(CONST_ME_BLACK_BLOOD);
+	registerEnum(CONST_ME_SUPREME_CUBE);
+	registerEnum(CONST_ME_PRISMATIC_SPARK);
+	registerEnum(CONST_ME_THAIAN);
+	registerEnum(CONST_ME_THAIAN_GHOST);
+	registerEnum(CONST_ME_GHOST_SMOKE);
+	registerEnum(CONST_ME_WATER_BLOCK_FLOATING);
+	registerEnum(CONST_ME_WATER_BLOCK);
+	registerEnum(CONST_ME_ROOTS);
+	registerEnum(CONST_ME_GHOSTLY_SCRATCH);
+	registerEnum(CONST_ME_GHOSTLY_BITE);
+	registerEnum(CONST_ME_BIG_SCRATCH);
+	registerEnum(CONST_ME_SLASH);
+	registerEnum(CONST_ME_BITE);
+	registerEnum(CONST_ME_CHIVALRIOUS_CHALLENGE);
+	registerEnum(CONST_ME_DIVINE_DAZZLE);
+	registerEnum(CONST_ME_ELECTRICALSPARK);
+	registerEnum(CONST_ME_PURPLETELEPORT);
+	registerEnum(CONST_ME_REDTELEPORT);
+	registerEnum(CONST_ME_ORANGETELEPORT);
+	registerEnum(CONST_ME_GREYTELEPORT);
+	registerEnum(CONST_ME_LIGHTBLUETELEPORT);
+	registerEnum(CONST_ME_FATAL);
+	registerEnum(CONST_ME_DODGE);
+	registerEnum(CONST_ME_HOURGLASS);
+	registerEnum(CONST_ME_DAZZLING);
+	registerEnum(CONST_ME_FERUMBRAS_1);
+	registerEnum(CONST_ME_GAZHARAGOTH);
+	registerEnum(CONST_ME_MAD_MAGE);
+	registerEnum(CONST_ME_HORESTIS);
+	registerEnum(CONST_ME_DEVOVORGA);
+	registerEnum(CONST_ME_FERUMBRAS_2);
+	registerEnum(CONST_ME_WHITE_SMOKE);
+	registerEnum(CONST_ME_WHITE_SMOKES);
+	registerEnum(CONST_ME_WATER_DROP);
+	registerEnum(CONST_ME_AVATAR_APPEAR);
+	registerEnum(CONST_ME_DIVINE_GRENADE);
+	registerEnum(CONST_ME_DIVINE_EMPOWERMENT);
+	registerEnum(CONST_ME_WATER_FLOATING_THRASH);
+	registerEnum(CONST_ME_AGONY);
+	registerEnum(CONST_ME_LOOT_HIGHLIGHT);
 
-	registerEnum(CONDITION_PARAM_OWNER)
-	registerEnum(CONDITION_PARAM_TICKS)
-	registerEnum(CONDITION_PARAM_HEALTHGAIN)
-	registerEnum(CONDITION_PARAM_HEALTHTICKS)
-	registerEnum(CONDITION_PARAM_MANAGAIN)
-	registerEnum(CONDITION_PARAM_MANATICKS)
-	registerEnum(CONDITION_PARAM_DELAYED)
-	registerEnum(CONDITION_PARAM_SPEED)
-	registerEnum(CONDITION_PARAM_LIGHT_LEVEL)
-	registerEnum(CONDITION_PARAM_LIGHT_COLOR)
-	registerEnum(CONDITION_PARAM_SOULGAIN)
-	registerEnum(CONDITION_PARAM_SOULTICKS)
-	registerEnum(CONDITION_PARAM_MINVALUE)
-	registerEnum(CONDITION_PARAM_MAXVALUE)
-	registerEnum(CONDITION_PARAM_STARTVALUE)
-	registerEnum(CONDITION_PARAM_TICKINTERVAL)
-	registerEnum(CONDITION_PARAM_FORCEUPDATE)
-	registerEnum(CONDITION_PARAM_SKILL_MELEE)
-	registerEnum(CONDITION_PARAM_SKILL_FIST)
-	registerEnum(CONDITION_PARAM_SKILL_CLUB)
-	registerEnum(CONDITION_PARAM_SKILL_SWORD)
-	registerEnum(CONDITION_PARAM_SKILL_AXE)
-	registerEnum(CONDITION_PARAM_SKILL_DISTANCE)
-	registerEnum(CONDITION_PARAM_SKILL_SHIELD)
-	registerEnum(CONDITION_PARAM_SKILL_FISHING)
-	registerEnum(CONDITION_PARAM_STAT_MAXHITPOINTS)
-	registerEnum(CONDITION_PARAM_STAT_MAXMANAPOINTS)
-	registerEnum(CONDITION_PARAM_STAT_MAGICPOINTS)
-	registerEnum(CONDITION_PARAM_STAT_MAXHITPOINTSPERCENT)
-	registerEnum(CONDITION_PARAM_STAT_MAXMANAPOINTSPERCENT)
-	registerEnum(CONDITION_PARAM_STAT_MAGICPOINTSPERCENT)
-	registerEnum(CONDITION_PARAM_PERIODICDAMAGE)
-	registerEnum(CONDITION_PARAM_SKILL_MELEEPERCENT)
-	registerEnum(CONDITION_PARAM_SKILL_FISTPERCENT)
-	registerEnum(CONDITION_PARAM_SKILL_CLUBPERCENT)
-	registerEnum(CONDITION_PARAM_SKILL_SWORDPERCENT)
-	registerEnum(CONDITION_PARAM_SKILL_AXEPERCENT)
-	registerEnum(CONDITION_PARAM_SKILL_DISTANCEPERCENT)
-	registerEnum(CONDITION_PARAM_SKILL_SHIELDPERCENT)
-	registerEnum(CONDITION_PARAM_SKILL_FISHINGPERCENT)
-	registerEnum(CONDITION_PARAM_BUFF_SPELL)
-	registerEnum(CONDITION_PARAM_SUBID)
-	registerEnum(CONDITION_PARAM_FIELD)
-	registerEnum(CONDITION_PARAM_DISABLE_DEFENSE)
-	registerEnum(CONST_ME_NONE)
-	registerEnum(CONST_ME_DRAWBLOOD)
-	registerEnum(CONST_ME_LOSEENERGY)
-	registerEnum(CONST_ME_POFF)
-	registerEnum(CONST_ME_BLOCKHIT)
-	registerEnum(CONST_ME_EXPLOSIONAREA)
-	registerEnum(CONST_ME_EXPLOSIONHIT)
-	registerEnum(CONST_ME_FIREAREA)
-	registerEnum(CONST_ME_YELLOW_RINGS)
-	registerEnum(CONST_ME_GREEN_RINGS)
-	registerEnum(CONST_ME_HITAREA)
-	registerEnum(CONST_ME_TELEPORT)
-	registerEnum(CONST_ME_ENERGYHIT)
-	registerEnum(CONST_ME_MAGIC_BLUE)
-	registerEnum(CONST_ME_MAGIC_RED)
-	registerEnum(CONST_ME_MAGIC_GREEN)
-	registerEnum(CONST_ME_HITBYFIRE)
-	registerEnum(CONST_ME_HITBYPOISON)
-	registerEnum(CONST_ME_MORTAREA)
-	registerEnum(CONST_ME_SOUND_GREEN)
-	registerEnum(CONST_ME_SOUND_RED)
-	registerEnum(CONST_ME_POISONAREA)
-	registerEnum(CONST_ME_SOUND_YELLOW)
-	registerEnum(CONST_ME_SOUND_PURPLE)
-	registerEnum(CONST_ME_SOUND_BLUE)
-	registerEnum(CONST_ME_SOUND_WHITE)
-	registerEnum(CONST_ME_BUBBLES)
-	registerEnum(CONST_ME_CRAPS)
-	registerEnum(CONST_ME_GIFT_WRAPS)
-	registerEnum(CONST_ME_FIREWORK_YELLOW)
-	registerEnum(CONST_ME_FIREWORK_RED)
-	registerEnum(CONST_ME_FIREWORK_BLUE)
-	registerEnum(CONST_ME_STUN)
-	registerEnum(CONST_ME_SLEEP)
-	registerEnum(CONST_ME_WATERCREATURE)
-	registerEnum(CONST_ME_GROUNDSHAKER)
-	registerEnum(CONST_ME_HEARTS)
-	registerEnum(CONST_ME_FIREATTACK)
-	registerEnum(CONST_ME_ENERGYAREA)
-	registerEnum(CONST_ME_SMALLCLOUDS)
-	registerEnum(CONST_ME_HOLYDAMAGE)
-	registerEnum(CONST_ME_BIGCLOUDS)
-	registerEnum(CONST_ME_ICEAREA)
-	registerEnum(CONST_ME_ICETORNADO)
-	registerEnum(CONST_ME_ICEATTACK)
-	registerEnum(CONST_ME_STONES)
-	registerEnum(CONST_ME_SMALLPLANTS)
-	registerEnum(CONST_ME_CARNIPHILA)
-	registerEnum(CONST_ME_PURPLEENERGY)
-	registerEnum(CONST_ME_YELLOWENERGY)
-	registerEnum(CONST_ME_HOLYAREA)
-	registerEnum(CONST_ME_BIGPLANTS)
-	registerEnum(CONST_ME_CAKE)
-	registerEnum(CONST_ME_GIANTICE)
-	registerEnum(CONST_ME_WATERSPLASH)
-	registerEnum(CONST_ME_PLANTATTACK)
-	registerEnum(CONST_ME_TUTORIALARROW)
-	registerEnum(CONST_ME_TUTORIALSQUARE)
-	registerEnum(CONST_ME_MIRRORHORIZONTAL)
-	registerEnum(CONST_ME_MIRRORVERTICAL)
-	registerEnum(CONST_ME_SKULLHORIZONTAL)
-	registerEnum(CONST_ME_SKULLVERTICAL)
-	registerEnum(CONST_ME_ASSASSIN)
-	registerEnum(CONST_ME_STEPSHORIZONTAL)
-	registerEnum(CONST_ME_BLOODYSTEPS)
-	registerEnum(CONST_ME_STEPSVERTICAL)
-	registerEnum(CONST_ME_YALAHARIGHOST)
-	registerEnum(CONST_ME_BATS)
-	registerEnum(CONST_ME_SMOKE)
-	registerEnum(CONST_ME_INSECTS)
-	registerEnum(CONST_ME_DRAGONHEAD)
+	registerEnum(CONST_ANI_NONE);
+	registerEnum(CONST_ANI_SPEAR);
+	registerEnum(CONST_ANI_BOLT);
+	registerEnum(CONST_ANI_ARROW);
+	registerEnum(CONST_ANI_FIRE);
+	registerEnum(CONST_ANI_ENERGY);
+	registerEnum(CONST_ANI_POISONARROW);
+	registerEnum(CONST_ANI_BURSTARROW);
+	registerEnum(CONST_ANI_THROWINGSTAR);
+	registerEnum(CONST_ANI_THROWINGKNIFE);
+	registerEnum(CONST_ANI_SMALLSTONE);
+	registerEnum(CONST_ANI_DEATH);
+	registerEnum(CONST_ANI_LARGEROCK);
+	registerEnum(CONST_ANI_SNOWBALL);
+	registerEnum(CONST_ANI_POWERBOLT);
+	registerEnum(CONST_ANI_POISON);
+	registerEnum(CONST_ANI_INFERNALBOLT);
+	registerEnum(CONST_ANI_HUNTINGSPEAR);
+	registerEnum(CONST_ANI_ENCHANTEDSPEAR);
+	registerEnum(CONST_ANI_REDSTAR);
+	registerEnum(CONST_ANI_GREENSTAR);
+	registerEnum(CONST_ANI_ROYALSPEAR);
+	registerEnum(CONST_ANI_SNIPERARROW);
+	registerEnum(CONST_ANI_ONYXARROW);
+	registerEnum(CONST_ANI_PIERCINGBOLT);
+	registerEnum(CONST_ANI_WHIRLWINDSWORD);
+	registerEnum(CONST_ANI_WHIRLWINDAXE);
+	registerEnum(CONST_ANI_WHIRLWINDCLUB);
+	registerEnum(CONST_ANI_ETHEREALSPEAR);
+	registerEnum(CONST_ANI_ICE);
+	registerEnum(CONST_ANI_EARTH);
+	registerEnum(CONST_ANI_HOLY);
+	registerEnum(CONST_ANI_SUDDENDEATH);
+	registerEnum(CONST_ANI_FLASHARROW);
+	registerEnum(CONST_ANI_FLAMMINGARROW);
+	registerEnum(CONST_ANI_SHIVERARROW);
+	registerEnum(CONST_ANI_ENERGYBALL);
+	registerEnum(CONST_ANI_SMALLICE);
+	registerEnum(CONST_ANI_SMALLHOLY);
+	registerEnum(CONST_ANI_SMALLEARTH);
+	registerEnum(CONST_ANI_EARTHARROW);
+	registerEnum(CONST_ANI_EXPLOSION);
+	registerEnum(CONST_ANI_CAKE);
+	registerEnum(CONST_ANI_ENVENOMEDARROW);
+	registerEnum(CONST_ANI_GLOOTHSPEAR);
+	registerEnum(CONST_ANI_SIMPLEARROW);
+	registerEnum(CONST_ANI_LEAFSTAR);
+	registerEnum(CONST_ANI_PRISMATICBOLT);
+	registerEnum(CONST_ANI_DRILLBOLT);
+	registerEnum(CONST_ANI_VORTEXBOLT);
+	registerEnum(CONST_ANI_TARSALARROW);
+	registerEnum(CONST_ANI_CRYSTALLINEARROW);
+	registerEnum(CONST_ANI_DIAMONDARROW);
+	registerEnum(CONST_ANI_SPECTRALBOLT);
+	registerEnum(CONST_ANI_ROYALSTAR);
+	registerEnum(CONST_ANI_WEAPONTYPE);
 
-	registerEnum(CONST_ANI_NONE)
-	registerEnum(CONST_ANI_SPEAR)
-	registerEnum(CONST_ANI_BOLT)
-	registerEnum(CONST_ANI_ARROW)
-	registerEnum(CONST_ANI_FIRE)
-	registerEnum(CONST_ANI_ENERGY)
-	registerEnum(CONST_ANI_POISONARROW)
-	registerEnum(CONST_ANI_BURSTARROW)
-	registerEnum(CONST_ANI_THROWINGSTAR)
-	registerEnum(CONST_ANI_THROWINGKNIFE)
-	registerEnum(CONST_ANI_SMALLSTONE)
-	registerEnum(CONST_ANI_DEATH)
-	registerEnum(CONST_ANI_LARGEROCK)
-	registerEnum(CONST_ANI_SNOWBALL)
-	registerEnum(CONST_ANI_POWERBOLT)
-	registerEnum(CONST_ANI_POISON)
-	registerEnum(CONST_ANI_INFERNALBOLT)
-	registerEnum(CONST_ANI_HUNTINGSPEAR)
-	registerEnum(CONST_ANI_ENCHANTEDSPEAR)
-	registerEnum(CONST_ANI_REDSTAR)
-	registerEnum(CONST_ANI_GREENSTAR)
-	registerEnum(CONST_ANI_ROYALSPEAR)
-	registerEnum(CONST_ANI_SNIPERARROW)
-	registerEnum(CONST_ANI_ONYXARROW)
-	registerEnum(CONST_ANI_PIERCINGBOLT)
-	registerEnum(CONST_ANI_WHIRLWINDSWORD)
-	registerEnum(CONST_ANI_WHIRLWINDAXE)
-	registerEnum(CONST_ANI_WHIRLWINDCLUB)
-	registerEnum(CONST_ANI_ETHEREALSPEAR)
-	registerEnum(CONST_ANI_ICE)
-	registerEnum(CONST_ANI_EARTH)
-	registerEnum(CONST_ANI_HOLY)
-	registerEnum(CONST_ANI_SUDDENDEATH)
-	registerEnum(CONST_ANI_FLASHARROW)
-	registerEnum(CONST_ANI_FLAMMINGARROW)
-	registerEnum(CONST_ANI_SHIVERARROW)
-	registerEnum(CONST_ANI_ENERGYBALL)
-	registerEnum(CONST_ANI_SMALLICE)
-	registerEnum(CONST_ANI_SMALLHOLY)
-	registerEnum(CONST_ANI_SMALLEARTH)
-	registerEnum(CONST_ANI_EARTHARROW)
-	registerEnum(CONST_ANI_EXPLOSION)
-	registerEnum(CONST_ANI_WEAPONTYPE)
+	registerEnum(CONST_PROP_BLOCKSOLID);
+	registerEnum(CONST_PROP_HASHEIGHT);
+	registerEnum(CONST_PROP_BLOCKPROJECTILE);
+	registerEnum(CONST_PROP_BLOCKPATH);
+	registerEnum(CONST_PROP_ISVERTICAL);
+	registerEnum(CONST_PROP_ISHORIZONTAL);
+	registerEnum(CONST_PROP_MOVEABLE);
+	registerEnum(CONST_PROP_IMMOVABLEBLOCKSOLID);
+	registerEnum(CONST_PROP_IMMOVABLEBLOCKPATH);
+	registerEnum(CONST_PROP_IMMOVABLENOFIELDBLOCKPATH);
+	registerEnum(CONST_PROP_NOFIELDBLOCKPATH);
+	registerEnum(CONST_PROP_SUPPORTHANGABLE);
 
-	registerEnum(CONST_PROP_BLOCKSOLID)
-	registerEnum(CONST_PROP_HASHEIGHT)
-	registerEnum(CONST_PROP_BLOCKPROJECTILE)
-	registerEnum(CONST_PROP_BLOCKPATH)
-	registerEnum(CONST_PROP_ISVERTICAL)
-	registerEnum(CONST_PROP_ISHORIZONTAL)
-	registerEnum(CONST_PROP_MOVEABLE)
-	registerEnum(CONST_PROP_IMMOVABLEBLOCKSOLID)
-	registerEnum(CONST_PROP_IMMOVABLEBLOCKPATH)
-	registerEnum(CONST_PROP_IMMOVABLENOFIELDBLOCKPATH)
-	registerEnum(CONST_PROP_NOFIELDBLOCKPATH)
-	registerEnum(CONST_PROP_SUPPORTHANGABLE)
+	registerEnum(CONST_SLOT_HEAD);
+	registerEnum(CONST_SLOT_NECKLACE);
+	registerEnum(CONST_SLOT_BACKPACK);
+	registerEnum(CONST_SLOT_ARMOR);
+	registerEnum(CONST_SLOT_RIGHT);
+	registerEnum(CONST_SLOT_LEFT);
+	registerEnum(CONST_SLOT_LEGS);
+	registerEnum(CONST_SLOT_FEET);
+	registerEnum(CONST_SLOT_RING);
+	registerEnum(CONST_SLOT_AMMO);
 
-	registerEnum(CONST_SLOT_HEAD)
-	registerEnum(CONST_SLOT_NECKLACE)
-	registerEnum(CONST_SLOT_BACKPACK)
-	registerEnum(CONST_SLOT_ARMOR)
-	registerEnum(CONST_SLOT_RIGHT)
-	registerEnum(CONST_SLOT_LEFT)
-	registerEnum(CONST_SLOT_LEGS)
-	registerEnum(CONST_SLOT_FEET)
-	registerEnum(CONST_SLOT_RING)
-	registerEnum(CONST_SLOT_AMMO)
+	registerEnum(CREATURE_EVENT_NONE);
+	registerEnum(CREATURE_EVENT_LOGIN);
+	registerEnum(CREATURE_EVENT_LOGOUT);
+	registerEnum(CREATURE_EVENT_THINK);
+	registerEnum(CREATURE_EVENT_PREPAREDEATH);
+	registerEnum(CREATURE_EVENT_DEATH);
+	registerEnum(CREATURE_EVENT_KILL);
+	registerEnum(CREATURE_EVENT_ADVANCE);
+	registerEnum(CREATURE_EVENT_TEXTEDIT);
+	registerEnum(CREATURE_EVENT_HEALTHCHANGE);
+	registerEnum(CREATURE_EVENT_MANACHANGE);
+	registerEnum(CREATURE_EVENT_EXTENDED_OPCODE);
 
-	registerEnum(CREATURE_EVENT_NONE)
-	registerEnum(CREATURE_EVENT_LOGIN)
-	registerEnum(CREATURE_EVENT_LOGOUT)
-	registerEnum(CREATURE_EVENT_THINK)
-	registerEnum(CREATURE_EVENT_PREPAREDEATH)
-	registerEnum(CREATURE_EVENT_DEATH)
-	registerEnum(CREATURE_EVENT_KILL)
-	registerEnum(CREATURE_EVENT_ADVANCE)
-	registerEnum(CREATURE_EVENT_TEXTEDIT)
-	registerEnum(CREATURE_EVENT_HEALTHCHANGE)
-	registerEnum(CREATURE_EVENT_MANACHANGE)
-	registerEnum(CREATURE_EVENT_EXTENDED_OPCODE)
+	registerEnum(GAME_STATE_STARTUP);
+	registerEnum(GAME_STATE_INIT);
+	registerEnum(GAME_STATE_NORMAL);
+	registerEnum(GAME_STATE_CLOSED);
+	registerEnum(GAME_STATE_SHUTDOWN);
+	registerEnum(GAME_STATE_CLOSING);
+	registerEnum(GAME_STATE_MAINTAIN);
 
-	registerEnum(GAME_STATE_STARTUP)
-	registerEnum(GAME_STATE_INIT)
-	registerEnum(GAME_STATE_NORMAL)
-	registerEnum(GAME_STATE_CLOSED)
-	registerEnum(GAME_STATE_SHUTDOWN)
-	registerEnum(GAME_STATE_CLOSING)
-	registerEnum(GAME_STATE_MAINTAIN)
+	registerEnum(MESSAGE_STATUS_CONSOLE_BLUE);
+	registerEnum(MESSAGE_STATUS_CONSOLE_RED);
+	registerEnum(MESSAGE_STATUS_BLUE_LIGHT);
+	registerEnum(MESSAGE_STATUS_DEFAULT);
+	registerEnum(MESSAGE_STATUS_WARNING);
+	registerEnum(MESSAGE_EVENT_ADVANCE);
+	registerEnum(MESSAGE_STATUS_SMALL);
+	registerEnum(MESSAGE_INFO_DESCR);
+	registerEnum(MESSAGE_EVENT_DEFAULT);
+	registerEnum(MESSAGE_EVENT_ORANGE);
+	registerEnum(MESSAGE_STATUS_CONSOLE_ORANGE);
 
-	registerEnum(MESSAGE_STATUS_CONSOLE_BLUE)
-	registerEnum(MESSAGE_STATUS_CONSOLE_RED)
-	registerEnum(MESSAGE_STATUS_BLUE_LIGHT)
-	registerEnum(MESSAGE_STATUS_DEFAULT)
-	registerEnum(MESSAGE_STATUS_WARNING)
-	registerEnum(MESSAGE_EVENT_ADVANCE)
-	registerEnum(MESSAGE_STATUS_SMALL)
-	registerEnum(MESSAGE_INFO_DESCR)
-	registerEnum(MESSAGE_EVENT_DEFAULT)
-	registerEnum(MESSAGE_EVENT_ORANGE)
-	registerEnum(MESSAGE_STATUS_CONSOLE_ORANGE)
+	registerEnum(CREATURETYPE_PLAYER);
+	registerEnum(CREATURETYPE_MONSTER);
+	registerEnum(CREATURETYPE_NPC);
+	registerEnum(CREATURETYPE_SUMMON_OWN);
+	registerEnum(CREATURETYPE_SUMMON_OTHERS);
 
-	registerEnum(CREATURETYPE_PLAYER)
-	registerEnum(CREATURETYPE_MONSTER)
-	registerEnum(CREATURETYPE_NPC)
-	registerEnum(CREATURETYPE_SUMMON_OWN)
-	registerEnum(CREATURETYPE_SUMMON_OTHERS)
+	registerEnum(CLIENTOS_LINUX);
+	registerEnum(CLIENTOS_WINDOWS);
+	registerEnum(CLIENTOS_FLASH);
+	registerEnum(CLIENTOS_OTCLIENT_LINUX);
+	registerEnum(CLIENTOS_OTCLIENT_WINDOWS);
+	registerEnum(CLIENTOS_OTCLIENT_MAC);
 
-	registerEnum(CLIENTOS_LINUX)
-	registerEnum(CLIENTOS_WINDOWS)
-	registerEnum(CLIENTOS_FLASH)
-	registerEnum(CLIENTOS_OTCLIENT_LINUX)
-	registerEnum(CLIENTOS_OTCLIENT_WINDOWS)
-	registerEnum(CLIENTOS_OTCLIENT_MAC)
+	registerEnum(FIGHTMODE_ATTACK);
+	registerEnum(FIGHTMODE_BALANCED);
+	registerEnum(FIGHTMODE_DEFENSE);
 
-	registerEnum(FIGHTMODE_ATTACK)
-	registerEnum(FIGHTMODE_BALANCED)
-	registerEnum(FIGHTMODE_DEFENSE)
-
-	registerEnum(ITEM_ATTRIBUTE_NONE)
-	registerEnum(ITEM_ATTRIBUTE_ACTIONID)
-	registerEnum(ITEM_ATTRIBUTE_UNIQUEID)
-	registerEnum(ITEM_ATTRIBUTE_DESCRIPTION)
-	registerEnum(ITEM_ATTRIBUTE_TEXT)
-	registerEnum(ITEM_ATTRIBUTE_DATE)
-	registerEnum(ITEM_ATTRIBUTE_WRITER)
-	registerEnum(ITEM_ATTRIBUTE_NAME)
-	registerEnum(ITEM_ATTRIBUTE_ARTICLE)
-	registerEnum(ITEM_ATTRIBUTE_PLURALNAME)
-	registerEnum(ITEM_ATTRIBUTE_WEIGHT)
-	registerEnum(ITEM_ATTRIBUTE_ATTACK)
-	registerEnum(ITEM_ATTRIBUTE_DEFENSE)
-	registerEnum(ITEM_ATTRIBUTE_EXTRADEFENSE)
-	registerEnum(ITEM_ATTRIBUTE_ARMOR)
-	registerEnum(ITEM_ATTRIBUTE_HITCHANCE)
-	registerEnum(ITEM_ATTRIBUTE_SHOOTRANGE)
-	registerEnum(ITEM_ATTRIBUTE_OWNER)
-	registerEnum(ITEM_ATTRIBUTE_DURATION)
-	registerEnum(ITEM_ATTRIBUTE_DECAYSTATE)
-	registerEnum(ITEM_ATTRIBUTE_CORPSEOWNER)
-	registerEnum(ITEM_ATTRIBUTE_CHARGES)
-	registerEnum(ITEM_ATTRIBUTE_FLUIDTYPE)
-	registerEnum(ITEM_ATTRIBUTE_DOORID)
-	registerEnum(ITEM_ATTRIBUTE_DURATION_TIMESTAMP)
-	registerEnum(ITEM_ATTRIBUTE_SPECIAL)
+	registerEnum(ITEM_ATTRIBUTE_NONE);
+	registerEnum(ITEM_ATTRIBUTE_ACTIONID);
+	registerEnum(ITEM_ATTRIBUTE_UNIQUEID);
+	registerEnum(ITEM_ATTRIBUTE_DESCRIPTION);
+	registerEnum(ITEM_ATTRIBUTE_TEXT);
+	registerEnum(ITEM_ATTRIBUTE_DATE);
+	registerEnum(ITEM_ATTRIBUTE_WRITER);
+	registerEnum(ITEM_ATTRIBUTE_NAME);
+	registerEnum(ITEM_ATTRIBUTE_ARTICLE);
+	registerEnum(ITEM_ATTRIBUTE_PLURALNAME);
+	registerEnum(ITEM_ATTRIBUTE_WEIGHT);
+	registerEnum(ITEM_ATTRIBUTE_ATTACK);
+	registerEnum(ITEM_ATTRIBUTE_DEFENSE);
+	registerEnum(ITEM_ATTRIBUTE_EXTRADEFENSE);
+	registerEnum(ITEM_ATTRIBUTE_ARMOR);
+	registerEnum(ITEM_ATTRIBUTE_HITCHANCE);
+	registerEnum(ITEM_ATTRIBUTE_SHOOTRANGE);
+	registerEnum(ITEM_ATTRIBUTE_OWNER);
+	registerEnum(ITEM_ATTRIBUTE_DURATION);
+	registerEnum(ITEM_ATTRIBUTE_DECAYSTATE);
+	registerEnum(ITEM_ATTRIBUTE_CORPSEOWNER);
+	registerEnum(ITEM_ATTRIBUTE_CHARGES);
+	registerEnum(ITEM_ATTRIBUTE_FLUIDTYPE);
+	registerEnum(ITEM_ATTRIBUTE_DOORID);
+	registerEnum(ITEM_ATTRIBUTE_DURATION_TIMESTAMP);
+	registerEnum(ITEM_ATTRIBUTE_SPECIAL);
 
 	registerEnum(ITEM_ATTRIBUTE_IMBUEMENTSLOTS);
 	registerEnum(ITEM_ATTRIBUTE_CLASSIFICATION);
 	registerEnum(ITEM_ATTRIBUTE_TIER);
 	
-	registerEnum(ITEM_TYPE_DEPOT)
-	registerEnum(ITEM_TYPE_REWARDCHEST)
-	registerEnum(ITEM_TYPE_MAILBOX)
-	registerEnum(ITEM_TYPE_TRASHHOLDER)
-	registerEnum(ITEM_TYPE_CONTAINER)
-	registerEnum(ITEM_TYPE_DOOR)
-	registerEnum(ITEM_TYPE_MAGICFIELD)
-	registerEnum(ITEM_TYPE_TELEPORT)
-	registerEnum(ITEM_TYPE_BED)
-	registerEnum(ITEM_TYPE_KEY)
-	registerEnum(ITEM_TYPE_RUNE)
+	registerEnum(ITEM_TYPE_DEPOT);
+	registerEnum(ITEM_TYPE_REWARDCHEST);
+	registerEnum(ITEM_TYPE_MAILBOX);
+	registerEnum(ITEM_TYPE_TRASHHOLDER);
+	registerEnum(ITEM_TYPE_CONTAINER);
+	registerEnum(ITEM_TYPE_DOOR);
+	registerEnum(ITEM_TYPE_MAGICFIELD);
+	registerEnum(ITEM_TYPE_TELEPORT);
+	registerEnum(ITEM_TYPE_BED);
+	registerEnum(ITEM_TYPE_KEY);
+	registerEnum(ITEM_TYPE_RUNE);
 
-	registerEnum(ITEM_BAG)
-	registerEnum(ITEM_BACKPACK)
-	registerEnum(ITEM_GOLD_COIN)
-	registerEnum(ITEM_PLATINUM_COIN)
-	registerEnum(ITEM_CRYSTAL_COIN)
-	registerEnum(ITEM_GOLD_INGOT)
-	registerEnum(ITEM_REWARD_CHEST)
-	registerEnum(ITEM_REWARD_CONTAINER)
-	registerEnum(ITEM_AMULETOFLOSS)
-	registerEnum(ITEM_PARCEL)
+	registerEnum(ITEM_BAG);
+	registerEnum(ITEM_BACKPACK);
+	registerEnum(ITEM_GOLD_COIN);
+	registerEnum(ITEM_PLATINUM_COIN);
+	registerEnum(ITEM_CRYSTAL_COIN);
+	registerEnum(ITEM_INGOT_DIAMOND);
+	registerEnum(ITEM_INGOT_PLATINUM);
+	registerEnum(ITEM_AMULETOFLOSS);
+	registerEnum(ITEM_PARCEL);
+	registerEnum(ITEM_LETTER);
+	registerEnum(ITEM_LETTER_STAMPED);
 	registerEnum(ITEM_LABEL)
-	registerEnum(ITEM_FIREFIELD_PVP_FULL)
-	registerEnum(ITEM_FIREFIELD_PVP_MEDIUM)
-	registerEnum(ITEM_FIREFIELD_PVP_SMALL)
-	registerEnum(ITEM_FIREFIELD_PERSISTENT_FULL)
-	registerEnum(ITEM_FIREFIELD_PERSISTENT_MEDIUM)
-	registerEnum(ITEM_FIREFIELD_PERSISTENT_SMALL)
-	registerEnum(ITEM_FIREFIELD_NOPVP)
-	registerEnum(ITEM_POISONFIELD_PVP)
-	registerEnum(ITEM_POISONFIELD_PERSISTENT)
-	registerEnum(ITEM_POISONFIELD_NOPVP)
-	registerEnum(ITEM_ENERGYFIELD_PVP)
-	registerEnum(ITEM_ENERGYFIELD_PERSISTENT)
-	registerEnum(ITEM_ENERGYFIELD_NOPVP)
-	registerEnum(ITEM_MAGICWALL)
-	registerEnum(ITEM_MAGICWALL_PERSISTENT)
-	registerEnum(ITEM_MAGICWALL_SAFE)
-	registerEnum(ITEM_WILDGROWTH)
-	registerEnum(ITEM_WILDGROWTH_PERSISTENT)
-	registerEnum(ITEM_WILDGROWTH_SAFE)
+	registerEnum(ITEM_INBOX);
+	registerEnum(ITEM_MARKET);
+	registerEnum(ITEM_LOOT_POUCH);
+	registerEnum(ITEM_SUPPLY_STASH);
+	registerEnum(ITEM_FIREFIELD_PVP_FULL);
+	registerEnum(ITEM_FIREFIELD_PVP_MEDIUM);
+	registerEnum(ITEM_FIREFIELD_PVP_SMALL);
+	registerEnum(ITEM_FIREFIELD_PERSISTENT_FULL);
+	registerEnum(ITEM_FIREFIELD_PERSISTENT_MEDIUM);
+	registerEnum(ITEM_FIREFIELD_PERSISTENT_SMALL);
+	registerEnum(ITEM_FIREFIELD_NOPVP);
+	registerEnum(ITEM_POISONFIELD_PVP);
+	registerEnum(ITEM_POISONFIELD_PERSISTENT);
+	registerEnum(ITEM_POISONFIELD_NOPVP);
+	registerEnum(ITEM_ENERGYFIELD_PVP);
+	registerEnum(ITEM_ENERGYFIELD_PERSISTENT);
+	registerEnum(ITEM_ENERGYFIELD_NOPVP);
+	registerEnum(ITEM_MAGICWALL);
+	registerEnum(ITEM_MAGICWALL_PERSISTENT);
+	registerEnum(ITEM_MAGICWALL_SAFE);
+	registerEnum(ITEM_WILDGROWTH);
+	registerEnum(ITEM_WILDGROWTH_PERSISTENT);
+	registerEnum(ITEM_WILDGROWTH_SAFE);
 
-	registerEnum(PlayerFlag_CannotUseCombat)
-	registerEnum(PlayerFlag_CannotAttackPlayer)
-	registerEnum(PlayerFlag_CannotAttackMonster)
-	registerEnum(PlayerFlag_CannotBeAttacked)
-	registerEnum(PlayerFlag_CanConvinceAll)
-	registerEnum(PlayerFlag_CanSummonAll)
-	registerEnum(PlayerFlag_CanIllusionAll)
-	registerEnum(PlayerFlag_CanSenseInvisibility)
-	registerEnum(PlayerFlag_IgnoredByMonsters)
-	registerEnum(PlayerFlag_NotGainInFight)
-	registerEnum(PlayerFlag_HasInfiniteMana)
-	registerEnum(PlayerFlag_HasInfiniteSoul)
-	registerEnum(PlayerFlag_HasNoExhaustion)
-	registerEnum(PlayerFlag_CannotUseSpells)
-	registerEnum(PlayerFlag_CannotPickupItem)
-	registerEnum(PlayerFlag_CanAlwaysLogin)
-	registerEnum(PlayerFlag_CanBroadcast)
-	registerEnum(PlayerFlag_CanEditHouses)
-	registerEnum(PlayerFlag_CannotBeBanned)
-	registerEnum(PlayerFlag_CannotBePushed)
-	registerEnum(PlayerFlag_HasInfiniteCapacity)
-	registerEnum(PlayerFlag_CanPushAllCreatures)
-	registerEnum(PlayerFlag_CanTalkRedPrivate)
-	registerEnum(PlayerFlag_CanTalkRedChannel)
-	registerEnum(PlayerFlag_TalkOrangeHelpChannel)
-	registerEnum(PlayerFlag_NotGainExperience)
-	registerEnum(PlayerFlag_NotGainMana)
-	registerEnum(PlayerFlag_NotGainHealth)
-	registerEnum(PlayerFlag_NotGainSkill)
-	registerEnum(PlayerFlag_SetMaxSpeed)
-	registerEnum(PlayerFlag_SpecialVIP)
-	registerEnum(PlayerFlag_NotGenerateLoot)
-	registerEnum(PlayerFlag_CanTalkRedChannelAnonymous)
-	registerEnum(PlayerFlag_IgnoreProtectionZone)
-	registerEnum(PlayerFlag_IgnoreSpellCheck)
-	registerEnum(PlayerFlag_IgnoreWeaponCheck)
-	registerEnum(PlayerFlag_CannotBeMuted)
-	registerEnum(PlayerFlag_IsAlwaysPremium)
-  registerEnum(PlayerFlag_CanMoveAllThings)
+	registerEnum(PlayerFlag_CannotUseCombat);
+	registerEnum(PlayerFlag_CannotAttackPlayer);
+	registerEnum(PlayerFlag_CannotAttackMonster);
+	registerEnum(PlayerFlag_CannotBeAttacked);
+	registerEnum(PlayerFlag_CanConvinceAll);
+	registerEnum(PlayerFlag_CanSummonAll);
+	registerEnum(PlayerFlag_CanIllusionAll);
+	registerEnum(PlayerFlag_CanSenseInvisibility);
+	registerEnum(PlayerFlag_IgnoredByMonsters);
+	registerEnum(PlayerFlag_NotGainInFight);
+	registerEnum(PlayerFlag_HasInfiniteMana);
+	registerEnum(PlayerFlag_HasInfiniteSoul);
+	registerEnum(PlayerFlag_HasNoExhaustion);
+	registerEnum(PlayerFlag_CannotUseSpells);
+	registerEnum(PlayerFlag_CannotPickupItem);
+	registerEnum(PlayerFlag_CanAlwaysLogin);
+	registerEnum(PlayerFlag_CanBroadcast);
+	registerEnum(PlayerFlag_CanEditHouses);
+	registerEnum(PlayerFlag_CannotBeBanned);
+	registerEnum(PlayerFlag_CannotBePushed);
+	registerEnum(PlayerFlag_HasInfiniteCapacity);
+	registerEnum(PlayerFlag_CanPushAllCreatures);
+	registerEnum(PlayerFlag_CanTalkRedPrivate);
+	registerEnum(PlayerFlag_CanTalkRedChannel);
+	registerEnum(PlayerFlag_TalkOrangeHelpChannel);
+	registerEnum(PlayerFlag_NotGainExperience);
+	registerEnum(PlayerFlag_NotGainMana);
+	registerEnum(PlayerFlag_NotGainHealth);
+	registerEnum(PlayerFlag_NotGainSkill);
+	registerEnum(PlayerFlag_SetMaxSpeed);
+	registerEnum(PlayerFlag_SpecialVIP);
+	registerEnum(PlayerFlag_NotGenerateLoot);
+	registerEnum(PlayerFlag_CanTalkRedChannelAnonymous);
+	registerEnum(PlayerFlag_IgnoreProtectionZone);
+	registerEnum(PlayerFlag_IgnoreSpellCheck);
+	registerEnum(PlayerFlag_IgnoreWeaponCheck);
+	registerEnum(PlayerFlag_CannotBeMuted);
+	registerEnum(PlayerFlag_IsAlwaysPremium);
+	registerEnum(PlayerFlag_CanMoveAllThings);
 
-	registerEnum(PLAYERSEX_FEMALE)
-	registerEnum(PLAYERSEX_MALE)
+	registerEnum(PLAYERSEX_FEMALE);
+	registerEnum(PLAYERSEX_MALE);
 
-	registerEnum(REPORT_REASON_NAMEINAPPROPRIATE)
-	registerEnum(REPORT_REASON_NAMEPOORFORMATTED)
-	registerEnum(REPORT_REASON_NAMEADVERTISING)
-	registerEnum(REPORT_REASON_NAMEUNFITTING)
-	registerEnum(REPORT_REASON_NAMERULEVIOLATION)
-	registerEnum(REPORT_REASON_INSULTINGSTATEMENT)
-	registerEnum(REPORT_REASON_SPAMMING)
-	registerEnum(REPORT_REASON_ADVERTISINGSTATEMENT)
-	registerEnum(REPORT_REASON_UNFITTINGSTATEMENT)
-	registerEnum(REPORT_REASON_LANGUAGESTATEMENT)
-	registerEnum(REPORT_REASON_DISCLOSURE)
-	registerEnum(REPORT_REASON_RULEVIOLATION)
-	registerEnum(REPORT_REASON_STATEMENT_BUGABUSE)
-	registerEnum(REPORT_REASON_UNOFFICIALSOFTWARE)
-	registerEnum(REPORT_REASON_PRETENDING)
-	registerEnum(REPORT_REASON_HARASSINGOWNERS)
-	registerEnum(REPORT_REASON_FALSEINFO)
-	registerEnum(REPORT_REASON_ACCOUNTSHARING)
-	registerEnum(REPORT_REASON_STEALINGDATA)
-	registerEnum(REPORT_REASON_SERVICEATTACKING)
-	registerEnum(REPORT_REASON_SERVICEAGREEMENT)
+	registerEnum(REPORT_REASON_NAMEINAPPROPRIATE);
+	registerEnum(REPORT_REASON_NAMEPOORFORMATTED);
+	registerEnum(REPORT_REASON_NAMEADVERTISING);
+	registerEnum(REPORT_REASON_NAMEUNFITTING);
+	registerEnum(REPORT_REASON_NAMERULEVIOLATION);
+	registerEnum(REPORT_REASON_INSULTINGSTATEMENT);
+	registerEnum(REPORT_REASON_SPAMMING);
+	registerEnum(REPORT_REASON_ADVERTISINGSTATEMENT);
+	registerEnum(REPORT_REASON_UNFITTINGSTATEMENT);
+	registerEnum(REPORT_REASON_LANGUAGESTATEMENT);
+	registerEnum(REPORT_REASON_DISCLOSURE);
+	registerEnum(REPORT_REASON_RULEVIOLATION);
+	registerEnum(REPORT_REASON_STATEMENT_BUGABUSE);
+	registerEnum(REPORT_REASON_UNOFFICIALSOFTWARE);
+	registerEnum(REPORT_REASON_PRETENDING);
+	registerEnum(REPORT_REASON_HARASSINGOWNERS);
+	registerEnum(REPORT_REASON_FALSEINFO);
+	registerEnum(REPORT_REASON_ACCOUNTSHARING);
+	registerEnum(REPORT_REASON_STEALINGDATA);
+	registerEnum(REPORT_REASON_SERVICEATTACKING);
+	registerEnum(REPORT_REASON_SERVICEAGREEMENT);
+	
+	registerEnum(REPORT_TYPE_NAME);
+	registerEnum(REPORT_TYPE_STATEMENT);
+	registerEnum(REPORT_TYPE_BOT);
 
-	registerEnum(REPORT_TYPE_NAME)
-	registerEnum(REPORT_TYPE_STATEMENT)
-	registerEnum(REPORT_TYPE_BOT)
+	registerEnum(VOCATION_NONE);
 
-	registerEnum(VOCATION_NONE)
+	registerEnum(SKILL_FIST);
+	registerEnum(SKILL_CLUB);
+	registerEnum(SKILL_SWORD);
+	registerEnum(SKILL_AXE);
+	registerEnum(SKILL_DISTANCE);
+	registerEnum(SKILL_SHIELD);
+	registerEnum(SKILL_FISHING);
+	registerEnum(SKILL_MAGLEVEL);
+	registerEnum(SKILL_LEVEL);
+	
+	registerEnum(SPECIALSKILL_CRITICALHITCHANCE);
+	registerEnum(SPECIALSKILL_CRITICALHITAMOUNT);
+	registerEnum(SPECIALSKILL_LIFELEECHCHANCE);
+	registerEnum(SPECIALSKILL_LIFELEECHAMOUNT);
+	registerEnum(SPECIALSKILL_MANALEECHCHANCE);
+	registerEnum(SPECIALSKILL_MANALEECHAMOUNT);
 
-	registerEnum(SKILL_FIST)
-	registerEnum(SKILL_CLUB)
-	registerEnum(SKILL_SWORD)
-	registerEnum(SKILL_AXE)
-	registerEnum(SKILL_DISTANCE)
-	registerEnum(SKILL_SHIELD)
-	registerEnum(SKILL_FISHING)
-	registerEnum(SKILL_MAGLEVEL)
-	registerEnum(SKILL_LEVEL)
+	registerEnum(SKULL_NONE);
+	registerEnum(SKULL_YELLOW);
+	registerEnum(SKULL_GREEN);
+	registerEnum(SKULL_WHITE);
+	registerEnum(SKULL_RED);
+	registerEnum(SKULL_BLACK);
 
-	registerEnum(SKULL_NONE)
-	registerEnum(SKULL_YELLOW)
-	registerEnum(SKULL_GREEN)
-	registerEnum(SKULL_WHITE)
-	registerEnum(SKULL_RED)
-	registerEnum(SKULL_BLACK)
+	registerEnum(GUILDEMBLEM_NONE);
+	registerEnum(GUILDEMBLEM_ALLY);
+	registerEnum(GUILDEMBLEM_ENEMY);
+	registerEnum(GUILDEMBLEM_NEUTRAL);
 
-	registerEnum(GUILDEMBLEM_NONE)
-	registerEnum(GUILDEMBLEM_ALLY)
-	registerEnum(GUILDEMBLEM_ENEMY)
-	registerEnum(GUILDEMBLEM_NEUTRAL)
+	registerEnum(TALKTYPE_SAY);
+	registerEnum(TALKTYPE_WHISPER);
+	registerEnum(TALKTYPE_YELL);
+	registerEnum(TALKTYPE_CHANNEL_Y);
+	registerEnum(TALKTYPE_CHANNEL_O);
+	registerEnum(TALKTYPE_PRIVATE_NP);
+	registerEnum(TALKTYPE_PRIVATE_PN);
+	registerEnum(TALKTYPE_BROADCAST);
+	registerEnum(TALKTYPE_CHANNEL_R1);
+	registerEnum(TALKTYPE_MONSTER_SAY);
+	registerEnum(TALKTYPE_MONSTER_YELL);
+	registerEnum(TALKTYPE_CHANNEL_R2);
 
-	registerEnum(TALKTYPE_SAY)
-	registerEnum(TALKTYPE_WHISPER)
-	registerEnum(TALKTYPE_YELL)
-	registerEnum(TALKTYPE_CHANNEL_Y)
-	registerEnum(TALKTYPE_CHANNEL_O)
-	registerEnum(TALKTYPE_PRIVATE_NP)
-	registerEnum(TALKTYPE_PRIVATE_PN)
-	registerEnum(TALKTYPE_BROADCAST)
-	registerEnum(TALKTYPE_CHANNEL_R1)
-	registerEnum(TALKTYPE_MONSTER_SAY)
-	registerEnum(TALKTYPE_MONSTER_YELL)
-	registerEnum(TALKTYPE_CHANNEL_R2)
+	registerEnum(TEXTCOLOR_BLACK);
+	registerEnum(TEXTCOLOR_BLUE);
+	registerEnum(TEXTCOLOR_GREEN);
+	registerEnum(TEXTCOLOR_LIGHTGREEN);
+	registerEnum(TEXTCOLOR_DARKBROWN);
+	registerEnum(TEXTCOLOR_LIGHTBLUE);
+	registerEnum(TEXTCOLOR_MAYABLUE);
+	registerEnum(TEXTCOLOR_DARKRED);
+	registerEnum(TEXTCOLOR_DARKPURPLE);
+	registerEnum(TEXTCOLOR_BROWN);
+	registerEnum(TEXTCOLOR_GREY);
+	registerEnum(TEXTCOLOR_TEAL);
+	registerEnum(TEXTCOLOR_DARKPINK);
+	registerEnum(TEXTCOLOR_PURPLE);
+	registerEnum(TEXTCOLOR_DARKORANGE);
+	registerEnum(TEXTCOLOR_RED);
+	registerEnum(TEXTCOLOR_PINK);
+	registerEnum(TEXTCOLOR_ORANGE);
+	registerEnum(TEXTCOLOR_DARKYELLOW);
+	registerEnum(TEXTCOLOR_YELLOW);
+	registerEnum(TEXTCOLOR_WHITE);
+	registerEnum(TEXTCOLOR_NONE);
 
-	registerEnum(TEXTCOLOR_BLACK)
-	registerEnum(TEXTCOLOR_BLUE)
-	registerEnum(TEXTCOLOR_GREEN)
-	registerEnum(TEXTCOLOR_LIGHTGREEN)
-	registerEnum(TEXTCOLOR_DARKBROWN)
-	registerEnum(TEXTCOLOR_LIGHTBLUE)
-	registerEnum(TEXTCOLOR_MAYABLUE)
-	registerEnum(TEXTCOLOR_DARKRED)
-	registerEnum(TEXTCOLOR_DARKPURPLE)
-	registerEnum(TEXTCOLOR_BROWN)
-	registerEnum(TEXTCOLOR_GREY)
-	registerEnum(TEXTCOLOR_TEAL)
-	registerEnum(TEXTCOLOR_DARKPINK)
-	registerEnum(TEXTCOLOR_PURPLE)
-	registerEnum(TEXTCOLOR_DARKORANGE)
-	registerEnum(TEXTCOLOR_RED)
-	registerEnum(TEXTCOLOR_PINK)
-	registerEnum(TEXTCOLOR_ORANGE)
-	registerEnum(TEXTCOLOR_DARKYELLOW)
-	registerEnum(TEXTCOLOR_YELLOW)
-	registerEnum(TEXTCOLOR_WHITE)
-	registerEnum(TEXTCOLOR_NONE)
+	registerEnum(TILESTATE_NONE);
+	registerEnum(TILESTATE_PROTECTIONZONE);
+	registerEnum(TILESTATE_NOPVPZONE);
+	registerEnum(TILESTATE_NOLOGOUT);
+	registerEnum(TILESTATE_PVPZONE);
+	registerEnum(TILESTATE_FLOORCHANGE);
+	registerEnum(TILESTATE_FLOORCHANGE_DOWN);
+	registerEnum(TILESTATE_FLOORCHANGE_NORTH);
+	registerEnum(TILESTATE_FLOORCHANGE_SOUTH);
+	registerEnum(TILESTATE_FLOORCHANGE_EAST);
+	registerEnum(TILESTATE_FLOORCHANGE_WEST);
+	registerEnum(TILESTATE_TELEPORT);
+	registerEnum(TILESTATE_MAGICFIELD);
+	registerEnum(TILESTATE_MAILBOX);
+	registerEnum(TILESTATE_TRASHHOLDER);
+	registerEnum(TILESTATE_BED);
+	registerEnum(TILESTATE_DEPOT);
+	registerEnum(TILESTATE_BLOCKSOLID);
+	registerEnum(TILESTATE_BLOCKPATH);
+	registerEnum(TILESTATE_IMMOVABLEBLOCKSOLID);
+	registerEnum(TILESTATE_IMMOVABLEBLOCKPATH);
+	registerEnum(TILESTATE_IMMOVABLENOFIELDBLOCKPATH);
+	registerEnum(TILESTATE_NOFIELDBLOCKPATH);
+	registerEnum(TILESTATE_FLOORCHANGE_SOUTH_ALT);
+	registerEnum(TILESTATE_FLOORCHANGE_EAST_ALT);
+	registerEnum(TILESTATE_SUPPORTS_HANGABLE);
 
-	registerEnum(TILESTATE_NONE)
-	registerEnum(TILESTATE_PROTECTIONZONE)
-	registerEnum(TILESTATE_NOPVPZONE)
-	registerEnum(TILESTATE_NOLOGOUT)
-	registerEnum(TILESTATE_PVPZONE)
-	registerEnum(TILESTATE_FLOORCHANGE)
-	registerEnum(TILESTATE_FLOORCHANGE_DOWN)
-	registerEnum(TILESTATE_FLOORCHANGE_NORTH)
-	registerEnum(TILESTATE_FLOORCHANGE_SOUTH)
-	registerEnum(TILESTATE_FLOORCHANGE_EAST)
-	registerEnum(TILESTATE_FLOORCHANGE_WEST)
-	registerEnum(TILESTATE_TELEPORT)
-	registerEnum(TILESTATE_MAGICFIELD)
-	registerEnum(TILESTATE_MAILBOX)
-	registerEnum(TILESTATE_TRASHHOLDER)
-	registerEnum(TILESTATE_BED)
-	registerEnum(TILESTATE_DEPOT)
-	registerEnum(TILESTATE_BLOCKSOLID)
-	registerEnum(TILESTATE_BLOCKPATH)
-	registerEnum(TILESTATE_IMMOVABLEBLOCKSOLID)
-	registerEnum(TILESTATE_IMMOVABLEBLOCKPATH)
-	registerEnum(TILESTATE_IMMOVABLENOFIELDBLOCKPATH)
-	registerEnum(TILESTATE_NOFIELDBLOCKPATH)
-	registerEnum(TILESTATE_FLOORCHANGE_SOUTH_ALT)
-	registerEnum(TILESTATE_FLOORCHANGE_EAST_ALT)
-	registerEnum(TILESTATE_SUPPORTS_HANGABLE)
+	registerEnum(WEAPON_NONE);
+	registerEnum(WEAPON_SWORD);
+	registerEnum(WEAPON_CLUB);
+	registerEnum(WEAPON_AXE);
+	registerEnum(WEAPON_SHIELD);
+	registerEnum(WEAPON_DISTANCE);
+	registerEnum(WEAPON_WAND);
+	registerEnum(WEAPON_AMMO);
+	registerEnum(WEAPON_QUIVER);
 
-	registerEnum(WEAPON_NONE)
-	registerEnum(WEAPON_SWORD)
-	registerEnum(WEAPON_CLUB)
-	registerEnum(WEAPON_AXE)
-	registerEnum(WEAPON_SHIELD)
-	registerEnum(WEAPON_DISTANCE)
-	registerEnum(WEAPON_WAND)
-	registerEnum(WEAPON_AMMO)
-
-	registerEnum(WORLD_TYPE_NO_PVP)
-	registerEnum(WORLD_TYPE_PVP)
-	registerEnum(WORLD_TYPE_PVP_ENFORCED)
+	registerEnum(WORLD_TYPE_NO_PVP);
+	registerEnum(WORLD_TYPE_PVP);
+	registerEnum(WORLD_TYPE_PVP_ENFORCED);
 
 	// Use with container:addItem, container:addItemEx and possibly other functions.
-	registerEnum(FLAG_NOLIMIT)
-	registerEnum(FLAG_IGNOREBLOCKITEM)
-	registerEnum(FLAG_IGNOREBLOCKCREATURE)
-	registerEnum(FLAG_CHILDISOWNER)
-	registerEnum(FLAG_PATHFINDING)
-	registerEnum(FLAG_IGNOREFIELDDAMAGE)
-	registerEnum(FLAG_IGNORENOTMOVEABLE)
-	registerEnum(FLAG_IGNOREAUTOSTACK)
+	registerEnum(FLAG_NOLIMIT);
+	registerEnum(FLAG_IGNOREBLOCKITEM);
+	registerEnum(FLAG_IGNOREBLOCKCREATURE);
+	registerEnum(FLAG_CHILDISOWNER);
+	registerEnum(FLAG_PATHFINDING);
+	registerEnum(FLAG_IGNOREFIELDDAMAGE);
+	registerEnum(FLAG_IGNORENOTMOVEABLE);
+	registerEnum(FLAG_IGNOREAUTOSTACK);
 
 	// Use with itemType:getSlotPosition
-	registerEnum(SLOTP_WHEREEVER)
-	registerEnum(SLOTP_HEAD)
-	registerEnum(SLOTP_NECKLACE)
-	registerEnum(SLOTP_BACKPACK)
-	registerEnum(SLOTP_ARMOR)
-	registerEnum(SLOTP_RIGHT)
-	registerEnum(SLOTP_LEFT)
-	registerEnum(SLOTP_LEGS)
-	registerEnum(SLOTP_FEET)
-	registerEnum(SLOTP_RING)
-	registerEnum(SLOTP_AMMO)
-	registerEnum(SLOTP_DEPOT)
-	registerEnum(SLOTP_TWO_HAND)
+	registerEnum(SLOTP_WHEREEVER);
+	registerEnum(SLOTP_HEAD);
+	registerEnum(SLOTP_NECKLACE);
+	registerEnum(SLOTP_BACKPACK);
+	registerEnum(SLOTP_ARMOR);
+	registerEnum(SLOTP_RIGHT);
+	registerEnum(SLOTP_LEFT);
+	registerEnum(SLOTP_LEGS);
+	registerEnum(SLOTP_FEET);
+	registerEnum(SLOTP_RING);
+	registerEnum(SLOTP_AMMO);
+	registerEnum(SLOTP_DEPOT);
+	registerEnum(SLOTP_TWO_HAND);
 
 	// Use with combat functions
-	registerEnum(ORIGIN_NONE)
-	registerEnum(ORIGIN_CONDITION)
-	registerEnum(ORIGIN_SPELL)
-	registerEnum(ORIGIN_MELEE)
-	registerEnum(ORIGIN_RANGED)
-	registerEnum(ORIGIN_WAND)
+	registerEnum(ORIGIN_NONE);
+	registerEnum(ORIGIN_CONDITION);
+	registerEnum(ORIGIN_SPELL);
+	registerEnum(ORIGIN_MELEE);
+	registerEnum(ORIGIN_RANGED);
+	registerEnum(ORIGIN_WAND);
 
 	// Use with house:getAccessList, house:setAccessList
-	registerEnum(GUEST_LIST)
-	registerEnum(SUBOWNER_LIST)
+	registerEnum(GUEST_LIST);
+	registerEnum(SUBOWNER_LIST);
 
 	// Use with player:addMapMark
-	registerEnum(MAPMARK_TICK)
-	registerEnum(MAPMARK_QUESTION)
-	registerEnum(MAPMARK_EXCLAMATION)
-	registerEnum(MAPMARK_STAR)
-	registerEnum(MAPMARK_CROSS)
-	registerEnum(MAPMARK_TEMPLE)
-	registerEnum(MAPMARK_KISS)
-	registerEnum(MAPMARK_SHOVEL)
-	registerEnum(MAPMARK_SWORD)
-	registerEnum(MAPMARK_FLAG)
-	registerEnum(MAPMARK_LOCK)
-	registerEnum(MAPMARK_BAG)
-	registerEnum(MAPMARK_SKULL)
-	registerEnum(MAPMARK_DOLLAR)
-	registerEnum(MAPMARK_REDNORTH)
-	registerEnum(MAPMARK_REDSOUTH)
-	registerEnum(MAPMARK_REDEAST)
-	registerEnum(MAPMARK_REDWEST)
-	registerEnum(MAPMARK_GREENNORTH)
-	registerEnum(MAPMARK_GREENSOUTH)
+	registerEnum(MAPMARK_TICK);
+	registerEnum(MAPMARK_QUESTION);
+	registerEnum(MAPMARK_EXCLAMATION);
+	registerEnum(MAPMARK_STAR);
+	registerEnum(MAPMARK_CROSS);
+	registerEnum(MAPMARK_TEMPLE);
+	registerEnum(MAPMARK_KISS);
+	registerEnum(MAPMARK_SHOVEL);
+	registerEnum(MAPMARK_SWORD);
+	registerEnum(MAPMARK_FLAG);
+	registerEnum(MAPMARK_LOCK);
+	registerEnum(MAPMARK_BAG);
+	registerEnum(MAPMARK_SKULL);
+	registerEnum(MAPMARK_DOLLAR);
+	registerEnum(MAPMARK_REDNORTH);
+	registerEnum(MAPMARK_REDSOUTH);
+	registerEnum(MAPMARK_REDEAST);
+	registerEnum(MAPMARK_REDWEST);
+	registerEnum(MAPMARK_GREENNORTH);
+	registerEnum(MAPMARK_GREENSOUTH);
 
 	// Use with Game.getReturnMessage
-	registerEnum(RETURNVALUE_NOERROR)
-	registerEnum(RETURNVALUE_NOTPOSSIBLE)
-	registerEnum(RETURNVALUE_NOTENOUGHROOM)
-	registerEnum(RETURNVALUE_PLAYERISPZLOCKED)
-	registerEnum(RETURNVALUE_PLAYERISNOTINVITED)
-	registerEnum(RETURNVALUE_CANNOTTHROW)
-	registerEnum(RETURNVALUE_THEREISNOWAY)
-	registerEnum(RETURNVALUE_DESTINATIONOUTOFREACH)
-	registerEnum(RETURNVALUE_CREATUREBLOCK)
-	registerEnum(RETURNVALUE_NOTMOVEABLE)
-	registerEnum(RETURNVALUE_DROPTWOHANDEDITEM)
-	registerEnum(RETURNVALUE_BOTHHANDSNEEDTOBEFREE)
-	registerEnum(RETURNVALUE_CANONLYUSEONEWEAPON)
-	registerEnum(RETURNVALUE_NEEDEXCHANGE)
-	registerEnum(RETURNVALUE_CANNOTBEDRESSED)
-	registerEnum(RETURNVALUE_PUTTHISOBJECTINYOURHAND)
-	registerEnum(RETURNVALUE_PUTTHISOBJECTINBOTHHANDS)
-	registerEnum(RETURNVALUE_TOOFARAWAY)
-	registerEnum(RETURNVALUE_FIRSTGODOWNSTAIRS)
-	registerEnum(RETURNVALUE_FIRSTGOUPSTAIRS)
-	registerEnum(RETURNVALUE_CONTAINERNOTENOUGHROOM)
-	registerEnum(RETURNVALUE_NOTENOUGHCAPACITY)
-	registerEnum(RETURNVALUE_CANNOTPICKUP)
-	registerEnum(RETURNVALUE_THISISIMPOSSIBLE)
-	registerEnum(RETURNVALUE_DEPOTISFULL)
-	registerEnum(RETURNVALUE_CREATUREDOESNOTEXIST)
-	registerEnum(RETURNVALUE_CANNOTUSETHISOBJECT)
-	registerEnum(RETURNVALUE_PLAYERWITHTHISNAMEISNOTONLINE)
-	registerEnum(RETURNVALUE_NOTREQUIREDLEVELTOUSERUNE)
-	registerEnum(RETURNVALUE_YOUAREALREADYTRADING)
-	registerEnum(RETURNVALUE_THISPLAYERISALREADYTRADING)
-	registerEnum(RETURNVALUE_YOUMAYNOTLOGOUTDURINGAFIGHT)
-	registerEnum(RETURNVALUE_DIRECTPLAYERSHOOT)
-	registerEnum(RETURNVALUE_NOTENOUGHLEVEL)
-	registerEnum(RETURNVALUE_NOTENOUGHMAGICLEVEL)
-	registerEnum(RETURNVALUE_NOTENOUGHMANA)
-	registerEnum(RETURNVALUE_NOTENOUGHSOUL)
-	registerEnum(RETURNVALUE_YOUAREEXHAUSTED)
-	registerEnum(RETURNVALUE_YOUCANNOTUSEOBJECTSTHATFAST)
-	registerEnum(RETURNVALUE_PLAYERISNOTREACHABLE)
-	registerEnum(RETURNVALUE_CANONLYUSETHISRUNEONCREATURES)
-	registerEnum(RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE)
-	registerEnum(RETURNVALUE_YOUMAYNOTATTACKTHISPLAYER)
-	registerEnum(RETURNVALUE_YOUMAYNOTATTACKAPERSONINPROTECTIONZONE)
-	registerEnum(RETURNVALUE_YOUMAYNOTATTACKAPERSONWHILEINPROTECTIONZONE)
-	registerEnum(RETURNVALUE_YOUMAYNOTATTACKTHISCREATURE)
-	registerEnum(RETURNVALUE_YOUCANONLYUSEITONCREATURES)
-	registerEnum(RETURNVALUE_CREATUREISNOTREACHABLE)
-	registerEnum(RETURNVALUE_TURNSECUREMODETOATTACKUNMARKEDPLAYERS)
-	registerEnum(RETURNVALUE_YOUNEEDPREMIUMACCOUNT)
-	registerEnum(RETURNVALUE_YOUNEEDTOLEARNTHISSPELL)
-	registerEnum(RETURNVALUE_YOURVOCATIONCANNOTUSETHISSPELL)
-	registerEnum(RETURNVALUE_YOUNEEDAWEAPONTOUSETHISSPELL)
-	registerEnum(RETURNVALUE_PLAYERISPZLOCKEDLEAVEPVPZONE)
-	registerEnum(RETURNVALUE_PLAYERISPZLOCKEDENTERPVPZONE)
-	registerEnum(RETURNVALUE_ACTIONNOTPERMITTEDINANOPVPZONE)
-	registerEnum(RETURNVALUE_YOUCANNOTLOGOUTHERE)
-	registerEnum(RETURNVALUE_YOUNEEDAMAGICITEMTOCASTSPELL)
-	registerEnum(RETURNVALUE_CANNOTCONJUREITEMHERE)
-	registerEnum(RETURNVALUE_YOUNEEDTOSPLITYOURSPEARS)
-	registerEnum(RETURNVALUE_NAMEISTOOAMBIGUOUS)
-	registerEnum(RETURNVALUE_CANONLYUSEONESHIELD)
-	registerEnum(RETURNVALUE_NOPARTYMEMBERSINRANGE)
-	registerEnum(RETURNVALUE_YOUARENOTTHEOWNER)
-	registerEnum(RETURNVALUE_TRADEPLAYERFARAWAY)
-	registerEnum(RETURNVALUE_YOUDONTOWNTHISHOUSE)
-	registerEnum(RETURNVALUE_TRADEPLAYERALREADYOWNSAHOUSE)
-	registerEnum(RETURNVALUE_TRADEPLAYERHIGHESTBIDDER)
-	registerEnum(RETURNVALUE_YOUCANNOTTRADETHISHOUSE)
-	registerEnum(RETURNVALUE_YOUDONTHAVEREQUIREDPROFESSION)
+	registerEnum(RETURNVALUE_NOERROR);
+	registerEnum(RETURNVALUE_NOTPOSSIBLE);
+	registerEnum(RETURNVALUE_NOTENOUGHROOM);
+	registerEnum(RETURNVALUE_PLAYERISPZLOCKED);
+	registerEnum(RETURNVALUE_PLAYERISNOTINVITED);
+	registerEnum(RETURNVALUE_CANNOTTHROW);
+	registerEnum(RETURNVALUE_THEREISNOWAY);
+	registerEnum(RETURNVALUE_DESTINATIONOUTOFREACH);
+	registerEnum(RETURNVALUE_CREATUREBLOCK);
+	registerEnum(RETURNVALUE_NOTMOVEABLE);
+	registerEnum(RETURNVALUE_DROPTWOHANDEDITEM);
+	registerEnum(RETURNVALUE_BOTHHANDSNEEDTOBEFREE);
+	registerEnum(RETURNVALUE_CANONLYUSEONEWEAPON);
+	registerEnum(RETURNVALUE_NEEDEXCHANGE);
+	registerEnum(RETURNVALUE_CANNOTBEDRESSED);
+	registerEnum(RETURNVALUE_PUTTHISOBJECTINYOURHAND);
+	registerEnum(RETURNVALUE_PUTTHISOBJECTINBOTHHANDS);
+	registerEnum(RETURNVALUE_TOOFARAWAY);
+	registerEnum(RETURNVALUE_FIRSTGODOWNSTAIRS);
+	registerEnum(RETURNVALUE_FIRSTGOUPSTAIRS);
+	registerEnum(RETURNVALUE_CONTAINERNOTENOUGHROOM);
+	registerEnum(RETURNVALUE_NOTENOUGHCAPACITY);
+	registerEnum(RETURNVALUE_CANNOTPICKUP);
+	registerEnum(RETURNVALUE_THISISIMPOSSIBLE);
+	registerEnum(RETURNVALUE_DEPOTISFULL);
+	registerEnum(RETURNVALUE_CREATUREDOESNOTEXIST);
+	registerEnum(RETURNVALUE_CANNOTUSETHISOBJECT);
+	registerEnum(RETURNVALUE_PLAYERWITHTHISNAMEISNOTONLINE);
+	registerEnum(RETURNVALUE_NOTREQUIREDLEVELTOUSERUNE);
+	registerEnum(RETURNVALUE_YOUAREALREADYTRADING);
+	registerEnum(RETURNVALUE_THISPLAYERISALREADYTRADING);
+	registerEnum(RETURNVALUE_YOUMAYNOTLOGOUTDURINGAFIGHT);
+	registerEnum(RETURNVALUE_DIRECTPLAYERSHOOT);
+	registerEnum(RETURNVALUE_NOTENOUGHLEVEL);
+	registerEnum(RETURNVALUE_NOTENOUGHMAGICLEVEL);
+	registerEnum(RETURNVALUE_NOTENOUGHMANA);
+	registerEnum(RETURNVALUE_NOTENOUGHSOUL);
+	registerEnum(RETURNVALUE_YOUAREEXHAUSTED);
+	registerEnum(RETURNVALUE_YOUCANNOTUSEOBJECTSTHATFAST);
+	registerEnum(RETURNVALUE_PLAYERISNOTREACHABLE);
+	registerEnum(RETURNVALUE_CANONLYUSETHISRUNEONCREATURES);
+	registerEnum(RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE);
+	registerEnum(RETURNVALUE_YOUMAYNOTATTACKTHISPLAYER);
+	registerEnum(RETURNVALUE_YOUMAYNOTATTACKAPERSONINPROTECTIONZONE);
+	registerEnum(RETURNVALUE_YOUMAYNOTATTACKAPERSONWHILEINPROTECTIONZONE);
+	registerEnum(RETURNVALUE_YOUMAYNOTATTACKTHISCREATURE);
+	registerEnum(RETURNVALUE_YOUCANONLYUSEITONCREATURES);
+	registerEnum(RETURNVALUE_CREATUREISNOTREACHABLE);
+	registerEnum(RETURNVALUE_TURNSECUREMODETOATTACKUNMARKEDPLAYERS);
+	registerEnum(RETURNVALUE_YOUNEEDPREMIUMACCOUNT);
+	registerEnum(RETURNVALUE_YOUNEEDTOLEARNTHISSPELL);
+	registerEnum(RETURNVALUE_YOURVOCATIONCANNOTUSETHISSPELL);
+	registerEnum(RETURNVALUE_YOUNEEDAWEAPONTOUSETHISSPELL);
+	registerEnum(RETURNVALUE_PLAYERISPZLOCKEDLEAVEPVPZONE);
+	registerEnum(RETURNVALUE_PLAYERISPZLOCKEDENTERPVPZONE);
+	registerEnum(RETURNVALUE_ACTIONNOTPERMITTEDINANOPVPZONE);
+	registerEnum(RETURNVALUE_YOUCANNOTLOGOUTHERE);
+	registerEnum(RETURNVALUE_YOUNEEDAMAGICITEMTOCASTSPELL);
+	registerEnum(RETURNVALUE_CANNOTCONJUREITEMHERE);
+	registerEnum(RETURNVALUE_YOUNEEDTOSPLITYOURSPEARS);
+	registerEnum(RETURNVALUE_NAMEISTOOAMBIGUOUS);
+	registerEnum(RETURNVALUE_CANONLYUSEONESHIELD);
+	registerEnum(RETURNVALUE_NOPARTYMEMBERSINRANGE);
+	registerEnum(RETURNVALUE_YOUARENOTTHEOWNER);
+	registerEnum(RETURNVALUE_TRADEPLAYERFARAWAY);
+	registerEnum(RETURNVALUE_YOUDONTOWNTHISHOUSE);
+	registerEnum(RETURNVALUE_TRADEPLAYERALREADYOWNSAHOUSE);
+	registerEnum(RETURNVALUE_TRADEPLAYERHIGHESTBIDDER);
+	registerEnum(RETURNVALUE_YOUCANNOTTRADETHISHOUSE);
+	registerEnum(RETURNVALUE_YOUDONTHAVEREQUIREDPROFESSION);
 
-	registerEnum(RELOAD_TYPE_ALL)
-	registerEnum(RELOAD_TYPE_ACTIONS)
-	registerEnum(RELOAD_TYPE_CHAT)
-	registerEnum(RELOAD_TYPE_CONFIG)
-	registerEnum(RELOAD_TYPE_CREATURESCRIPTS)
-	registerEnum(RELOAD_TYPE_EVENTS)
-	registerEnum(RELOAD_TYPE_GLOBAL)
-	registerEnum(RELOAD_TYPE_GLOBALEVENTS)
-	registerEnum(RELOAD_TYPE_ITEMS)
-	registerEnum(RELOAD_TYPE_MONSTERS)
-	registerEnum(RELOAD_TYPE_MOUNTS)
-	registerEnum(RELOAD_TYPE_MOVEMENTS)
-	registerEnum(RELOAD_TYPE_NPCS)
-	registerEnum(RELOAD_TYPE_QUESTS)
-	registerEnum(RELOAD_TYPE_RAIDS)
-	registerEnum(RELOAD_TYPE_SCRIPTS)
-	registerEnum(RELOAD_TYPE_SPELLS)
-	registerEnum(RELOAD_TYPE_TALKACTIONS)
-	registerEnum(RELOAD_TYPE_WEAPONS)
+	registerEnum(RELOAD_TYPE_ALL);
+	registerEnum(RELOAD_TYPE_ACTIONS);
+	registerEnum(RELOAD_TYPE_CHAT);
+	registerEnum(RELOAD_TYPE_CONFIG);
+	registerEnum(RELOAD_TYPE_CREATURESCRIPTS);
+	registerEnum(RELOAD_TYPE_EVENTS);
+	registerEnum(RELOAD_TYPE_GLOBAL);
+	registerEnum(RELOAD_TYPE_GLOBALEVENTS);
+	registerEnum(RELOAD_TYPE_ITEMS);
+	registerEnum(RELOAD_TYPE_MONSTERS);
+	registerEnum(RELOAD_TYPE_MOUNTS);
+	registerEnum(RELOAD_TYPE_MOVEMENTS);
+	registerEnum(RELOAD_TYPE_NPCS);
+	registerEnum(RELOAD_TYPE_QUESTS);
+	registerEnum(RELOAD_TYPE_RAIDS);
+	registerEnum(RELOAD_TYPE_SCRIPTS);
+	registerEnum(RELOAD_TYPE_SPELLS);
+	registerEnum(RELOAD_TYPE_TALKACTIONS);
+	registerEnum(RELOAD_TYPE_WEAPONS);
 
-	registerEnum(ZONE_PROTECTION)
-	registerEnum(ZONE_NOPVP)
-	registerEnum(ZONE_PVP)
-	registerEnum(ZONE_NOLOGOUT)
-	registerEnum(ZONE_NORMAL)
+	registerEnum(ZONE_PROTECTION);
+	registerEnum(ZONE_NOPVP);
+	registerEnum(ZONE_PVP);
+	registerEnum(ZONE_NOLOGOUT);
+	registerEnum(ZONE_NORMAL);
 
-	registerEnum(MAX_LOOTCHANCE)
+	registerEnum(MAX_LOOTCHANCE);
 
-	registerEnum(SPELL_INSTANT)
-	registerEnum(SPELL_RUNE)
+	registerEnum(SPELL_INSTANT);
+	registerEnum(SPELL_RUNE);
 
-	registerEnum(MONSTERS_EVENT_THINK)
-	registerEnum(MONSTERS_EVENT_APPEAR)
-	registerEnum(MONSTERS_EVENT_DISAPPEAR)
-	registerEnum(MONSTERS_EVENT_MOVE)
-	registerEnum(MONSTERS_EVENT_SAY)
+	registerEnum(MONSTERS_EVENT_THINK);
+	registerEnum(MONSTERS_EVENT_APPEAR);
+	registerEnum(MONSTERS_EVENT_DISAPPEAR);
+	registerEnum(MONSTERS_EVENT_MOVE);
+	registerEnum(MONSTERS_EVENT_SAY);
 
 	// _G
 	registerGlobalVariable("INDEX_WHEREEVER", INDEX_WHEREEVER);
@@ -1823,98 +1951,125 @@ void LuaScriptInterface::registerFunctions()
 	// configKeys
 	registerTable("configKeys");
 
-	registerEnumIn("configKeys", ConfigManager::ALLOW_CHANGEOUTFIT)
-	registerEnumIn("configKeys", ConfigManager::ONE_PLAYER_ON_ACCOUNT)
-	registerEnumIn("configKeys", ConfigManager::AIMBOT_HOTKEY_ENABLED)
-	registerEnumIn("configKeys", ConfigManager::REMOVE_RUNE_CHARGES)
-	registerEnumIn("configKeys", ConfigManager::REMOVE_WEAPON_AMMO)
-	registerEnumIn("configKeys", ConfigManager::REMOVE_WEAPON_CHARGES)
-	registerEnumIn("configKeys", ConfigManager::REMOVE_POTION_CHARGES)
-	registerEnumIn("configKeys", ConfigManager::EXPERIENCE_FROM_PLAYERS)
-	registerEnumIn("configKeys", ConfigManager::FREE_PREMIUM)
-	registerEnumIn("configKeys", ConfigManager::REPLACE_KICK_ON_LOGIN)
-	registerEnumIn("configKeys", ConfigManager::ALLOW_CLONES)
-	registerEnumIn("configKeys", ConfigManager::BIND_ONLY_GLOBAL_ADDRESS)
-	registerEnumIn("configKeys", ConfigManager::OPTIMIZE_DATABASE)
-	registerEnumIn("configKeys", ConfigManager::EMOTE_SPELLS)
-	registerEnumIn("configKeys", ConfigManager::STAMINA_SYSTEM)
-	registerEnumIn("configKeys", ConfigManager::WARN_UNSAFE_SCRIPTS)
-	registerEnumIn("configKeys", ConfigManager::CONVERT_UNSAFE_SCRIPTS)
-	registerEnumIn("configKeys", ConfigManager::CLASSIC_EQUIPMENT_SLOTS)
-	registerEnumIn("configKeys", ConfigManager::CLASSIC_ATTACK_SPEED)
-	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_NOTIFY_MESSAGE)
-	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_NOTIFY_DURATION)
-	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_CLEAN_MAP)
-	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_CLOSE)
-	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_SHUTDOWN)
-	registerEnumIn("configKeys", ConfigManager::ONLINE_OFFLINE_CHARLIST)
+	registerEnumIn("configKeys", ConfigManager::ALLOW_CHANGEOUTFIT);
+	registerEnumIn("configKeys", ConfigManager::ONE_PLAYER_ON_ACCOUNT);
+	registerEnumIn("configKeys", ConfigManager::AIMBOT_HOTKEY_ENABLED);
+	registerEnumIn("configKeys", ConfigManager::REMOVE_RUNE_CHARGES);
+	registerEnumIn("configKeys", ConfigManager::REMOVE_WEAPON_AMMO);
+	registerEnumIn("configKeys", ConfigManager::REMOVE_WEAPON_CHARGES);
+	registerEnumIn("configKeys", ConfigManager::REMOVE_POTION_CHARGES);
+	registerEnumIn("configKeys", ConfigManager::EXPERIENCE_FROM_PLAYERS);
+	registerEnumIn("configKeys", ConfigManager::FREE_PREMIUM);
+	registerEnumIn("configKeys", ConfigManager::REPLACE_KICK_ON_LOGIN);
+	registerEnumIn("configKeys", ConfigManager::ALLOW_CLONES);
+	registerEnumIn("configKeys", ConfigManager::BIND_ONLY_GLOBAL_ADDRESS);
+	registerEnumIn("configKeys", ConfigManager::OPTIMIZE_DATABASE);
+	registerEnumIn("configKeys", ConfigManager::EMOTE_SPELLS);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_SYSTEM);
+	registerEnumIn("configKeys", ConfigManager::WARN_UNSAFE_SCRIPTS);
+	registerEnumIn("configKeys", ConfigManager::CONVERT_UNSAFE_SCRIPTS);
+	registerEnumIn("configKeys", ConfigManager::CLASSIC_EQUIPMENT_SLOTS);
+	registerEnumIn("configKeys", ConfigManager::CLASSIC_ATTACK_SPEED);
+	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_NOTIFY_MESSAGE);
+	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_NOTIFY_DURATION);
+	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_CLEAN_MAP);
+	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_CLOSE);
+	registerEnumIn("configKeys", ConfigManager::SERVER_SAVE_SHUTDOWN);
+	registerEnumIn("configKeys", ConfigManager::ONLINE_OFFLINE_CHARLIST);
+	registerEnumIn("configKeys", ConfigManager::HOUSE_DOOR_SHOW_PRICE);
 
-	registerEnumIn("configKeys", ConfigManager::MAP_NAME)
-	registerEnumIn("configKeys", ConfigManager::HOUSE_RENT_PERIOD)
-	registerEnumIn("configKeys", ConfigManager::SERVER_NAME)
-	registerEnumIn("configKeys", ConfigManager::OWNER_NAME)
-	registerEnumIn("configKeys", ConfigManager::OWNER_EMAIL)
-	registerEnumIn("configKeys", ConfigManager::URL)
-	registerEnumIn("configKeys", ConfigManager::LOCATION)
-	registerEnumIn("configKeys", ConfigManager::IP)
-	registerEnumIn("configKeys", ConfigManager::MOTD)
-	registerEnumIn("configKeys", ConfigManager::WORLD_TYPE)
-	registerEnumIn("configKeys", ConfigManager::MYSQL_HOST)
-	registerEnumIn("configKeys", ConfigManager::MYSQL_USER)
-	registerEnumIn("configKeys", ConfigManager::MYSQL_PASS)
-	registerEnumIn("configKeys", ConfigManager::MYSQL_DB)
-	registerEnumIn("configKeys", ConfigManager::MYSQL_SOCK)
-	registerEnumIn("configKeys", ConfigManager::DEFAULT_PRIORITY)
-	registerEnumIn("configKeys", ConfigManager::MAP_AUTHOR)
+	registerEnumIn("configKeys", ConfigManager::MAP_NAME);
+	registerEnumIn("configKeys", ConfigManager::HOUSE_RENT_PERIOD);
+	registerEnumIn("configKeys", ConfigManager::SERVER_NAME);
+	registerEnumIn("configKeys", ConfigManager::OWNER_NAME);
+	registerEnumIn("configKeys", ConfigManager::OWNER_EMAIL);
+	registerEnumIn("configKeys", ConfigManager::URL);
+	registerEnumIn("configKeys", ConfigManager::LOCATION);
+	registerEnumIn("configKeys", ConfigManager::IP);
+	registerEnumIn("configKeys", ConfigManager::MOTD);
+	registerEnumIn("configKeys", ConfigManager::WORLD_TYPE);
+	registerEnumIn("configKeys", ConfigManager::MYSQL_HOST);
+	registerEnumIn("configKeys", ConfigManager::MYSQL_USER);
+	registerEnumIn("configKeys", ConfigManager::MYSQL_PASS);
+	registerEnumIn("configKeys", ConfigManager::MYSQL_DB);
+	registerEnumIn("configKeys", ConfigManager::MYSQL_SOCK);
+	registerEnumIn("configKeys", ConfigManager::DEFAULT_PRIORITY);
+	registerEnumIn("configKeys", ConfigManager::MAP_AUTHOR);
 
-	registerEnumIn("configKeys", ConfigManager::SQL_PORT)
-	registerEnumIn("configKeys", ConfigManager::MAX_PLAYERS)
-	registerEnumIn("configKeys", ConfigManager::PZ_LOCKED)
-	registerEnumIn("configKeys", ConfigManager::DEFAULT_DESPAWNRANGE)
-	registerEnumIn("configKeys", ConfigManager::DEFAULT_DESPAWNRADIUS)
-	registerEnumIn("configKeys", ConfigManager::REMOVE_ON_DESPAWN)
-	registerEnumIn("configKeys", ConfigManager::RATE_EXPERIENCE)
-	registerEnumIn("configKeys", ConfigManager::RATE_SKILL)
-	registerEnumIn("configKeys", ConfigManager::RATE_LOOT)
-	registerEnumIn("configKeys", ConfigManager::RATE_MAGIC)
-	registerEnumIn("configKeys", ConfigManager::RATE_SPAWN)
-	registerEnumIn("configKeys", ConfigManager::HOUSE_PRICE)
-	registerEnumIn("configKeys", ConfigManager::KILLS_TO_RED)
-	registerEnumIn("configKeys", ConfigManager::KILLS_TO_BLACK)
-	registerEnumIn("configKeys", ConfigManager::MAX_MESSAGEBUFFER)
-	registerEnumIn("configKeys", ConfigManager::ACTIONS_DELAY_INTERVAL)
-	registerEnumIn("configKeys", ConfigManager::EX_ACTIONS_DELAY_INTERVAL)
-	registerEnumIn("configKeys", ConfigManager::KICK_AFTER_MINUTES)
-	registerEnumIn("configKeys", ConfigManager::PROTECTION_LEVEL)
-	registerEnumIn("configKeys", ConfigManager::DEATH_LOSE_PERCENT)
-	registerEnumIn("configKeys", ConfigManager::STATUSQUERY_TIMEOUT)
-	registerEnumIn("configKeys", ConfigManager::FRAG_TIME)
-	registerEnumIn("configKeys", ConfigManager::WHITE_SKULL_TIME)
-	registerEnumIn("configKeys", ConfigManager::GAME_PORT)
-	registerEnumIn("configKeys", ConfigManager::LOGIN_PORT)
-	registerEnumIn("configKeys", ConfigManager::STATUS_PORT)
-	registerEnumIn("configKeys", ConfigManager::STAIRHOP_DELAY)
-	registerEnumIn("configKeys", ConfigManager::EXP_FROM_PLAYERS_LEVEL_RANGE)
-	registerEnumIn("configKeys", ConfigManager::MAX_PACKETS_PER_SECOND)
-
-	registerEnumIn("configKeys", ConfigManager::CLOSED_WORLD)
-	registerEnumIn("configKeys", ConfigManager::SHOW_MONSTER_EXIVA)
-	registerEnumIn("configKeys", ConfigManager::ANTI_BOT)
-	registerEnumIn("configKeys", ConfigManager::GUILD_LEADER_SQUARE)
-	registerEnumIn("configKeys", ConfigManager::PVP_BALANCE)
+	registerEnumIn("configKeys", ConfigManager::SQL_PORT);
+	registerEnumIn("configKeys", ConfigManager::MAX_PLAYERS);
+	registerEnumIn("configKeys", ConfigManager::PZ_LOCKED);
+	registerEnumIn("configKeys", ConfigManager::DEFAULT_DESPAWNRANGE);
+	registerEnumIn("configKeys", ConfigManager::DEFAULT_DESPAWNRADIUS);
+	registerEnumIn("configKeys", ConfigManager::REMOVE_ON_DESPAWN);
+	registerEnumIn("configKeys", ConfigManager::NPCS_USING_BANK_MONEY);
+	registerEnumIn("configKeys", ConfigManager::RATE_EXPERIENCE);
+	registerEnumIn("configKeys", ConfigManager::RATE_SKILL);
+	registerEnumIn("configKeys", ConfigManager::RATE_LOOT);
+	registerEnumIn("configKeys", ConfigManager::RATE_MAGIC);
+	registerEnumIn("configKeys", ConfigManager::RATE_SPAWN);
+	registerEnumIn("configKeys", ConfigManager::HOUSE_PRICE);
+	registerEnumIn("configKeys", ConfigManager::KILLS_TO_RED);
+	registerEnumIn("configKeys", ConfigManager::KILLS_TO_BLACK);
+	registerEnumIn("configKeys", ConfigManager::MAX_MESSAGEBUFFER);
+	registerEnumIn("configKeys", ConfigManager::PROTECTION_LEVEL);
+	registerEnumIn("configKeys", ConfigManager::DEATH_LOSE_PERCENT);
+	registerEnumIn("configKeys", ConfigManager::STATUSQUERY_TIMEOUT);
+	registerEnumIn("configKeys", ConfigManager::FRAG_TIME);
+	registerEnumIn("configKeys", ConfigManager::WHITE_SKULL_TIME);
+	registerEnumIn("configKeys", ConfigManager::GAME_PORT);
+	registerEnumIn("configKeys", ConfigManager::LOGIN_PORT);
+	registerEnumIn("configKeys", ConfigManager::STATUS_PORT);
+	registerEnumIn("configKeys", ConfigManager::STAIRHOP_DELAY);
+	registerEnumIn("configKeys", ConfigManager::EXP_FROM_PLAYERS_LEVEL_RANGE);
+	registerEnumIn("configKeys", ConfigManager::MAX_PACKETS_PER_SECOND);
+	registerEnumIn("configKeys", ConfigManager::SORT_LOOT_BY_CHANCE);
+	registerEnumIn("configKeys", ConfigManager::MAX_ALLOWED_ON_A_DUMMY);
+	registerEnumIn("configKeys", ConfigManager::NPCS_SHOP_DELAY);
+	registerEnumIn("configKeys", ConfigManager::PROTECTION_TIME);
+	registerEnumIn("configKeys", ConfigManager::CLOSED_WORLD);
+	
+	// Stamina Configs
+	registerEnumIn("configKeys", ConfigManager::STAMINA_REGEN_MINUTE);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_REGEN_PREMIUM);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_TRAINER);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_PZ);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_PZ_GAIN);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_ORANGE_DELAY);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_GREEN_DELAY);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_TRAINER_DELAY);
+	registerEnumIn("configKeys", ConfigManager::STAMINA_TRAINER_GAIN);
+	
+	// Rates Configs
+	registerEnumIn("configKeys", ConfigManager::RATE_HEALTH_REGEN);
+	registerEnumIn("configKeys", ConfigManager::RATE_HEALTH_REGEN_SPEED);
+	registerEnumIn("configKeys", ConfigManager::RATE_MANA_REGEN);
+	registerEnumIn("configKeys", ConfigManager::RATE_MANA_REGEN_SPEED);
+	registerEnumIn("configKeys", ConfigManager::RATE_SOUL_REGEN);
+	registerEnumIn("configKeys", ConfigManager::RATE_SOUL_REGEN_SPEED);
+	registerEnumIn("configKeys", ConfigManager::RATE_ATTACK_SPEED);
+	registerEnumIn("configKeys", ConfigManager::RATE_SPELL_COOLDOWN);
+	registerEnumIn("configKeys", ConfigManager::RATE_EXERCISE_TRAINING_SPEED);
+	
+	// Login Text when Server is Closed and Packets
+	registerEnumIn("configKeys", ConfigManager::BLOCK_LOGIN);
+	registerEnumIn("configKeys", ConfigManager::BLOCK_LOGIN_TEXT);
+	registerEnumIn("configKeys", ConfigManager::SHOW_PACKETS);
 
 	// os
 	registerMethod("os", "mtime", LuaScriptInterface::luaSystemTime);
 
 	// table
 	registerMethod("table", "create", LuaScriptInterface::luaTableCreate);
+	registerMethod("table", "pack", LuaScriptInterface::luaTablePack);
 
 	// Game
 	registerTable("Game");
 
 	registerMethod("Game", "getSpectators", LuaScriptInterface::luaGameGetSpectators);
 	registerMethod("Game", "getPlayers", LuaScriptInterface::luaGameGetPlayers);
-  registerMethod("Game", "getSpawnRate", LuaScriptInterface::luaGameGetSpawnRate);
+	registerMethod("Game", "getNpcs", LuaScriptInterface::luaGameGetNpcs);
+	registerMethod("Game", "getSpawnRate", LuaScriptInterface::luaGameGetSpawnRate);
 	registerMethod("Game", "loadMap", LuaScriptInterface::luaGameLoadMap);
 
 	registerMethod("Game", "getExperienceStage", LuaScriptInterface::luaGameGetExperienceStage);
@@ -1922,6 +2077,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Game", "getPlayerCount", LuaScriptInterface::luaGameGetPlayerCount);
 	registerMethod("Game", "getNpcCount", LuaScriptInterface::luaGameGetNpcCount);
 	registerMethod("Game", "getMonsterTypes", LuaScriptInterface::luaGameGetMonsterTypes);
+	registerMethod("Game", "getCurrencyItems", LuaScriptInterface::luaGameGetCurrencyItems);
 
 	registerMethod("Game", "getTowns", LuaScriptInterface::luaGameGetTowns);
 	registerMethod("Game", "getHouses", LuaScriptInterface::luaGameGetHouses);
@@ -2092,6 +2248,12 @@ void LuaScriptInterface::registerFunctions()
 
 	registerMethod("Item", "hasProperty", LuaScriptInterface::luaItemHasProperty);
 	registerMethod("Item", "isLoadedFromMap", LuaScriptInterface::luaItemIsLoadedFromMap);
+	
+	registerMethod("Item", "setReflect", LuaScriptInterface::luaItemSetReflect);
+	registerMethod("Item", "getReflect", LuaScriptInterface::luaItemGetReflect);
+
+	registerMethod("Item", "setBoostPercent", LuaScriptInterface::luaItemSetBoostPercent);
+	registerMethod("Item", "getBoostPercent", LuaScriptInterface::luaItemGetBoostPercent);
 
 	// Container
 	registerClass("Container", "Item", LuaScriptInterface::luaContainerCreate);
@@ -2156,6 +2318,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Creature", "getSpeed", LuaScriptInterface::luaCreatureGetSpeed);
 	registerMethod("Creature", "getBaseSpeed", LuaScriptInterface::luaCreatureGetBaseSpeed);
 	registerMethod("Creature", "changeSpeed", LuaScriptInterface::luaCreatureChangeSpeed);
+	registerMethod("Creature", "setSpeed", LuaScriptInterface::luaCreatureSetSpeed);
 
 	registerMethod("Creature", "setDropLoot", LuaScriptInterface::luaCreatureSetDropLoot);
 	registerMethod("Creature", "setSkillLoss", LuaScriptInterface::luaCreatureSetSkillLoss);
@@ -2233,6 +2396,9 @@ void LuaScriptInterface::registerFunctions()
 
 	registerMethod("Player", "getDepotChest", LuaScriptInterface::luaPlayerGetDepotChest);
 	registerMethod("Player", "getInbox", LuaScriptInterface::luaPlayerGetInbox);
+	
+	registerMethod("Player", "getProtectionTime", LuaScriptInterface::luaPlayerGetProtectionTime);
+	registerMethod("Player", "setProtectionTime", LuaScriptInterface::luaPlayerSetProtectionTime);
 
 	registerMethod("Player", "getSkullTime", LuaScriptInterface::luaPlayerGetSkullTime);
 	registerMethod("Player", "setSkullTime", LuaScriptInterface::luaPlayerSetSkullTime);
@@ -2260,6 +2426,8 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Player", "getSkillPercent", LuaScriptInterface::luaPlayerGetSkillPercent);
 	registerMethod("Player", "getSkillTries", LuaScriptInterface::luaPlayerGetSkillTries);
 	registerMethod("Player", "addSkillTries", LuaScriptInterface::luaPlayerAddSkillTries);
+	registerMethod("Player", "getSpecialSkill", LuaScriptInterface::luaPlayerGetSpecialSkill);
+	registerMethod("Player", "addSpecialSkill", LuaScriptInterface::luaPlayerAddSpecialSkill);
 
 	registerMethod("Player", "getItemCount", LuaScriptInterface::luaPlayerGetItemCount);
 	registerMethod("Player", "getItemById", LuaScriptInterface::luaPlayerGetItemById);
@@ -2313,6 +2481,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Player", "sendPrivateMessage", LuaScriptInterface::luaPlayerSendPrivateMessage);
 	registerMethod("Player", "channelSay", LuaScriptInterface::luaPlayerChannelSay);
 	registerMethod("Player", "openChannel", LuaScriptInterface::luaPlayerOpenChannel);
+	registerMethod("Player", "closeChannel", LuaScriptInterface::luaPlayerCloseChannel);
 
 	registerMethod("Player", "getSlotItem", LuaScriptInterface::luaPlayerGetSlotItem);
 
@@ -2325,9 +2494,8 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Player", "hasOutfit", LuaScriptInterface::luaPlayerHasOutfit);
 	registerMethod("Player", "sendOutfitWindow", LuaScriptInterface::luaPlayerSendOutfitWindow);
 
-	registerMethod("Player", "getPremiumDays", LuaScriptInterface::luaPlayerGetPremiumDays);
-	registerMethod("Player", "addPremiumDays", LuaScriptInterface::luaPlayerAddPremiumDays);
-	registerMethod("Player", "removePremiumDays", LuaScriptInterface::luaPlayerRemovePremiumDays);
+	registerMethod("Player", "getPremiumEndsAt", LuaScriptInterface::luaPlayerGetPremiumEndsAt);
+	registerMethod("Player", "setPremiumEndsAt", LuaScriptInterface::luaPlayerSetPremiumEndsAt);
 
 	registerMethod("Player", "hasBlessing", LuaScriptInterface::luaPlayerHasBlessing);
 	registerMethod("Player", "addBlessing", LuaScriptInterface::luaPlayerAddBlessing);
@@ -2346,6 +2514,7 @@ void LuaScriptInterface::registerFunctions()
 
 	registerMethod("Player", "isPzLocked", LuaScriptInterface::luaPlayerIsPzLocked);
 
+	registerMethod("Player", "hasClient", LuaScriptInterface::luaPlayerHasClient);
 	registerMethod("Player", "getClient", LuaScriptInterface::luaPlayerGetClient);
 
 	registerMethod("Player", "getHouse", LuaScriptInterface::luaPlayerGetHouse);
@@ -2364,14 +2533,18 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Player", "hasChaseMode", LuaScriptInterface::luaPlayerHasChaseMode);
 	registerMethod("Player", "hasSecureMode", LuaScriptInterface::luaPlayerHasSecureMode);
 	registerMethod("Player", "getFightMode", LuaScriptInterface::luaPlayerGetFightMode);
+	
 	registerMethod("Player", "getAttackSpeed", LuaScriptInterface::luaPlayerGetAttackSpeed);
 	registerMethod("Player", "setAttackSpeed", LuaScriptInterface::luaPlayerSetAttackSpeed);
+	
+	registerMethod("Player", "isNearDepotBox", LuaScriptInterface::luaPlayerIsNearDepotBox);
 
-	// AutoLoot
-	registerMethod("Player", "addAutoLootItem", LuaScriptInterface::luaAddAutoLootItem);
-	registerMethod("Player", "removeAutoLootItem", LuaScriptInterface::luaRemoveAutoLootItem);
-	registerMethod("Player", "getAutoLootList", LuaScriptInterface::luaPlayerGetAutoLootList);
+	registerMethod("Player", "getIdleTime", LuaScriptInterface::luaPlayerGetIdleTime);
+	registerMethod("Player", "setIdleTime", LuaScriptInterface::luaPlayerSetIdleTime);
+	registerMethod("Player", "resetIdleTime", LuaScriptInterface::luaPlayerResetIdleTime);
 
+	registerMethod("Player", "sendCreatureSquare", LuaScriptInterface::luaPlayerSendCreatureSquare);
+	
 	// Monster
 	registerClass("Monster", "Creature", LuaScriptInterface::luaMonsterCreate);
 	registerMetaMethod("Monster", "__eq", LuaScriptInterface::luaUserdataCompare);
@@ -2379,6 +2552,8 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Monster", "isMonster", LuaScriptInterface::luaMonsterIsMonster);
 
 	registerMethod("Monster", "getType", LuaScriptInterface::luaMonsterGetType);
+	
+	registerMethod("Monster", "rename", LuaScriptInterface::luaMonsterRename);
 
 	registerMethod("Monster", "getSpawnPosition", LuaScriptInterface::luaMonsterGetSpawnPosition);
 	registerMethod("Monster", "isInSpawnRange", LuaScriptInterface::luaMonsterIsInSpawnRange);
@@ -2543,6 +2718,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("ItemType", "getFluidSource", LuaScriptInterface::luaItemTypeGetFluidSource);
 	registerMethod("ItemType", "getCapacity", LuaScriptInterface::luaItemTypeGetCapacity);
 	registerMethod("ItemType", "getWeight", LuaScriptInterface::luaItemTypeGetWeight);
+	registerMethod("ItemType", "getWorth", LuaScriptInterface::luaItemTypeGetWorth);
 
 	registerMethod("ItemType", "getHitChance", LuaScriptInterface::luaItemTypeGetHitChance);
 	registerMethod("ItemType", "getShootRange", LuaScriptInterface::luaItemTypeGetShootRange);
@@ -2577,6 +2753,8 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Combat", "delete", LuaScriptInterface::luaCombatDelete);
 
 	registerMethod("Combat", "setParameter", LuaScriptInterface::luaCombatSetParameter);
+	registerMethod("Combat", "getParameter", LuaScriptInterface::luaCombatGetParameter);
+	
 	registerMethod("Combat", "setFormula", LuaScriptInterface::luaCombatSetFormula);
 
 	registerMethod("Combat", "setArea", LuaScriptInterface::luaCombatSetArea);
@@ -2604,6 +2782,8 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Condition", "setTicks", LuaScriptInterface::luaConditionSetTicks);
 
 	registerMethod("Condition", "setParameter", LuaScriptInterface::luaConditionSetParameter);
+	registerMethod("Condition", "getParameter", LuaScriptInterface::luaConditionGetParameter);
+	
 	registerMethod("Condition", "setFormula", LuaScriptInterface::luaConditionSetFormula);
 	registerMethod("Condition", "setOutfit", LuaScriptInterface::luaConditionSetOutfit);
 
@@ -2616,6 +2796,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("MonsterType", "isAttackable", LuaScriptInterface::luaMonsterTypeIsAttackable);
 	registerMethod("MonsterType", "isConvinceable", LuaScriptInterface::luaMonsterTypeIsConvinceable);
 	registerMethod("MonsterType", "isSummonable", LuaScriptInterface::luaMonsterTypeIsSummonable);
+	registerMethod("MonsterType", "isIgnoringSpawnBlock", LuaScriptInterface::luaMonsterTypeIsIgnoringSpawnBlock);
 	registerMethod("MonsterType", "isIllusionable", LuaScriptInterface::luaMonsterTypeIsIllusionable);
 	registerMethod("MonsterType", "isHostile", LuaScriptInterface::luaMonsterTypeIsHostile);
 	registerMethod("MonsterType", "isPushable", LuaScriptInterface::luaMonsterTypeIsPushable);
@@ -2625,6 +2806,10 @@ void LuaScriptInterface::registerFunctions()
 
 	registerMethod("MonsterType", "canPushItems", LuaScriptInterface::luaMonsterTypeCanPushItems);
 	registerMethod("MonsterType", "canPushCreatures", LuaScriptInterface::luaMonsterTypeCanPushCreatures);
+	
+	registerMethod("MonsterType", "canWalkOnEnergy", LuaScriptInterface::luaMonsterTypeCanWalkOnEnergy);
+	registerMethod("MonsterType", "canWalkOnFire", LuaScriptInterface::luaMonsterTypeCanWalkOnFire);
+	registerMethod("MonsterType", "canWalkOnPoison", LuaScriptInterface::luaMonsterTypeCanWalkOnPoison);
 
 	registerMethod("MonsterType", "name", LuaScriptInterface::luaMonsterTypeName);
 
@@ -2691,6 +2876,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Loot", "delete", LuaScriptInterface::luaDeleteLoot);
 
 	registerMethod("Loot", "setId", LuaScriptInterface::luaLootSetId);
+	registerMethod("Loot", "setIdFromName", LuaScriptInterface::luaLootSetIdFromName);
 	registerMethod("Loot", "setMaxCount", LuaScriptInterface::luaLootSetMaxCount);
 	registerMethod("Loot", "setSubType", LuaScriptInterface::luaLootSetSubType);
 	registerMethod("Loot", "setChance", LuaScriptInterface::luaLootSetChance);
@@ -2757,7 +2943,9 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Spell", "register", LuaScriptInterface::luaSpellRegister);
 	registerMethod("Spell", "name", LuaScriptInterface::luaSpellName);
 	registerMethod("Spell", "id", LuaScriptInterface::luaSpellId);
+	registerMethod("Spell", "group", LuaScriptInterface::luaSpellGroup);
 	registerMethod("Spell", "cooldown", LuaScriptInterface::luaSpellCooldown);
+	registerMethod("Spell", "groupCooldown", LuaScriptInterface::luaSpellGroupCooldown);
 	registerMethod("Spell", "level", LuaScriptInterface::luaSpellLevel);
 	registerMethod("Spell", "magicLevel", LuaScriptInterface::luaSpellMagicLevel);
 	registerMethod("Spell", "mana", LuaScriptInterface::luaSpellMana);
@@ -2772,6 +2960,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Spell", "isSelfTarget", LuaScriptInterface::luaSpellSelfTarget);
 	registerMethod("Spell", "isBlocking", LuaScriptInterface::luaSpellBlocking);
 	registerMethod("Spell", "isAggressive", LuaScriptInterface::luaSpellAggressive);
+	registerMethod("Spell", "isPzLock", LuaScriptInterface::luaSpellPzLock);
 	registerMethod("Spell", "vocation", LuaScriptInterface::luaSpellVocation);
 
 	// only for InstantSpell
@@ -2836,6 +3025,7 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("MoveEvent", "position", LuaScriptInterface::luaMoveEventPosition);
 	registerMethod("MoveEvent", "premium", LuaScriptInterface::luaMoveEventPremium);
 	registerMethod("MoveEvent", "vocation", LuaScriptInterface::luaMoveEventVocation);
+	registerMethod("MoveEvent", "tileItem", LuaScriptInterface::luaMoveEventTileItem);
 	registerMethod("MoveEvent", "onEquip", LuaScriptInterface::luaMoveEventOnCallback);
 	registerMethod("MoveEvent", "onDeEquip", LuaScriptInterface::luaMoveEventOnCallback);
 	registerMethod("MoveEvent", "onStepIn", LuaScriptInterface::luaMoveEventOnCallback);
@@ -3317,7 +3507,7 @@ int LuaScriptInterface::luaDoAreaCombat(lua_State* L)
 		CombatDamage damage;
 		damage.origin = getNumber<CombatOrigin>(L, 8, ORIGIN_SPELL);
 		damage.primary.type = combatType;
-		damage.primary.value = normal_random(getNumber<int32_t>(L, 6), getNumber<int32_t>(L, 5));
+		damage.primary.value = normal_random(getNumber<int32_t>(L, 5), getNumber<int32_t>(L, 6));
 
 		Combat::doAreaCombat(creature, getPosition(L, 3), area, damage, params);
 		pushBoolean(L, true);
@@ -3399,71 +3589,6 @@ int LuaScriptInterface::luaIsMoveable(lua_State* L)
 	//isMovable(uid)
 	Thing* thing = getScriptEnv()->getThingByUID(getNumber<uint32_t>(L, -1));
 	pushBoolean(L, thing && thing->isPushable());
-	return 1;
-}
-
-int LuaScriptInterface::luaDoAddContainerItem(lua_State* L)
-{
-	//doAddContainerItem(uid, itemid, <optional> count/subtype)
-	uint32_t uid = getNumber<uint32_t>(L, 1);
-
-	ScriptEnvironment* env = getScriptEnv();
-	Container* container = env->getContainerByUID(uid);
-	if (!container) {
-		reportErrorFunc(getErrorDesc(LUA_ERROR_CONTAINER_NOT_FOUND));
-		pushBoolean(L, false);
-		return 1;
-	}
-
-	uint16_t itemId = getNumber<uint16_t>(L, 2);
-	const ItemType& it = Item::items[itemId];
-
-	int32_t itemCount = 1;
-	int32_t subType = 1;
-	uint32_t count = getNumber<uint32_t>(L, 3, 1);
-
-	if (it.hasSubType()) {
-		if (it.stackable) {
-			itemCount = static_cast<int32_t>(std::ceil(static_cast<float>(count) / 100));
-		}
-
-		subType = count;
-	} else {
-		itemCount = std::max<int32_t>(1, count);
-	}
-
-	while (itemCount > 0) {
-		int32_t stackCount = std::min<int32_t>(100, subType);
-		Item* newItem = Item::CreateItem(itemId, stackCount);
-		if (!newItem) {
-			reportErrorFunc(getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-			pushBoolean(L, false);
-			return 1;
-		}
-
-		if (it.stackable) {
-			subType -= stackCount;
-		}
-
-		ReturnValue ret = g_game.internalAddItem(container, newItem);
-		if (ret != RETURNVALUE_NOERROR) {
-			delete newItem;
-			pushBoolean(L, false);
-			return 1;
-		}
-
-		if (--itemCount == 0) {
-			if (newItem->getParent()) {
-				lua_pushnumber(L, env->addThing(newItem));
-			} else {
-				//stackable item stacked with existing object, newItem will be released
-				pushBoolean(L, false);
-			}
-			return 1;
-		}
-	}
-
-	pushBoolean(L, false);
 	return 1;
 }
 
@@ -3630,9 +3755,7 @@ int LuaScriptInterface::luaAddEvent(lua_State* L)
 	eventDesc.scriptId = getScriptEnv()->getScriptId();
 
 	auto& lastTimerEventId = g_luaEnvironment.lastEventTimerId;
-	eventDesc.eventId = g_scheduler.addEvent(createSchedulerTask(
-		delay, std::bind(&LuaEnvironment::executeTimerEvent, &g_luaEnvironment, lastTimerEventId)
-	));
+	eventDesc.eventId = g_scheduler.addEvent(createSchedulerTask(delay, std::bind(&LuaEnvironment::executeTimerEvent, &g_luaEnvironment, lastTimerEventId)));
 
 	g_luaEnvironment.timerEvents.emplace(lastTimerEventId, std::move(eventDesc));
 	lua_pushnumber(L, lastTimerEventId++);
@@ -3751,6 +3874,18 @@ int LuaScriptInterface::luaSendGuildChannelMessage(lua_State* L)
 	std::string message = getString(L, 3);
 	channel->sendToAll(message, type);
 	pushBoolean(L, true);
+	return 1;
+}
+
+int LuaScriptInterface::luaIsScriptsInterface(lua_State* L)
+{
+	//isScriptsInterface()
+	if (getScriptEnv()->getScriptInterface() == &g_scripts->getScriptInterface()) {
+		pushBoolean(L, true);
+	} else {
+		reportErrorFunc("Event: can only be called inside (data/scripts/)");
+		pushBoolean(L, false);
+	}
 	return 1;
 }
 
@@ -4082,6 +4217,24 @@ int LuaScriptInterface::luaTableCreate(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaTablePack(lua_State* L)
+{
+	// table.pack(...)
+	int i;
+	int n = lua_gettop(L); /* number of elements to pack */
+	lua_createtable(L, n, 1); /* create result table */
+	lua_insert(L, 1); /* put it at index 1 */
+	for (i = n; i >= 1; i--) { /* assign elements */
+		lua_rawseti(L, 1, i);
+	}
+	if (luaL_callmeta(L, -1, "__index") != 0) {
+		lua_replace(L, -2);
+	}	
+	lua_pushinteger(L, n);
+	lua_setfield(L, 1, "n"); /* t.n = number of elements */
+	return 1; /* return table */
+}
+
 // Game
 int LuaScriptInterface::luaGameGetSpectators(lua_State* L)
 {
@@ -4122,6 +4275,20 @@ int LuaScriptInterface::luaGameGetPlayers(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaGameGetNpcs(lua_State* L)
+{
+	// Game.getNpcs()
+	lua_createtable(L, g_game.getNpcsOnline(), 0);
+
+	int index = 0;
+	for (const auto& npcEntry : g_game.getNpcs()) {
+		pushUserdata<Npc>(L, npcEntry.second);
+		setMetatable(L, -1, "Npc");
+		lua_rawseti(L, -2, ++index);
+	}
+	return 1;
+}
+
 int LuaScriptInterface::luaGameGetSpawnRate(lua_State* L)
 {
 	// Game.getSpawnRate()
@@ -4135,7 +4302,7 @@ int LuaScriptInterface::luaGameLoadMap(lua_State* L)
 	const std::string& path = getString(L, 1);
 	g_dispatcher.addTask(createTask([path]() {
 		try {
-			g_game.loadMap(path);
+			g_game.loadMap(path, true);
 		} catch (const std::exception& e) {
 			// FIXME: Should only catch some exceptions
 			std::cout << "[Error - LuaScriptInterface::luaGameLoadMap] Failed to load map: "
@@ -4184,6 +4351,22 @@ int LuaScriptInterface::luaGameGetMonsterTypes(lua_State* L)
 		pushUserdata<MonsterType>(L, &mType.second);
 		setMetatable(L, -1, "MonsterType");
 		lua_setfield(L, -2, mType.first.c_str());
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaGameGetCurrencyItems(lua_State* L)
+{
+	// Game.getCurrencyItems()
+	const auto& currencyItems = Item::items.currencyItems;
+	size_t size = currencyItems.size();
+	lua_createtable(L, size, 0);
+
+	for (const auto& it : currencyItems) {
+		const ItemType& itemType = Item::items[it.second];
+		pushUserdata<const ItemType>(L, &itemType);
+		setMetatable(L, -1, "ItemType");
+		lua_rawseti(L, -2, size--);
 	}
 	return 1;
 }
@@ -4435,25 +4618,31 @@ int LuaScriptInterface::luaGameCreateMonsterType(lua_State* L)
 		return 1;
 	}
 
-	MonsterType* monsterType = g_monsters.getMonsterType(getString(L, 1));
-	if (monsterType) {
+	const std::string& name = getString(L, 1);
+	if (name.length() == 0) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	MonsterType* monsterType = g_monsters.getMonsterType(name, false);
+	if (!monsterType) {
+		monsterType = &g_monsters.monsters[asLowerCaseString(name)];
+		monsterType->name = name;
+		monsterType->nameDescription = "a " + name;
+	} else {
 		monsterType->info.lootItems.clear();
 		monsterType->info.attackSpells.clear();
 		monsterType->info.defenseSpells.clear();
-		pushUserdata<MonsterType>(L, monsterType);
-		setMetatable(L, -1, "MonsterType");
-	} else if (isString(L, 1)) {
-		monsterType = new MonsterType();
-		std::string name = getString(L, 1);
-		g_monsters.addMonsterType(name, monsterType);
-		monsterType = g_monsters.getMonsterType(getString(L, 1));
-		monsterType->name = name;
-		monsterType->nameDescription = "a " + name;
-		pushUserdata<MonsterType>(L, monsterType);
-		setMetatable(L, -1, "MonsterType");
-	} else {
-		lua_pushnil(L);
+		monsterType->info.scripts.clear();
+		monsterType->info.thinkEvent = -1;
+		monsterType->info.creatureAppearEvent = -1;
+		monsterType->info.creatureDisappearEvent = -1;
+		monsterType->info.creatureMoveEvent = -1;
+		monsterType->info.creatureSayEvent = -1;
 	}
+	
+	pushUserdata<MonsterType>(L, monsterType);
+	setMetatable(L, -1, "MonsterType");
 	return 1;
 }
 
@@ -4520,8 +4709,10 @@ int LuaScriptInterface::luaGameReload(lua_State* L)
 		pushBoolean(L, g_luaEnvironment.loadFile("data/global.lua") == 0);
 		pushBoolean(L, g_scripts->loadScripts("scripts/lib", true, true));
 	} else {
-		pushBoolean(L, g_game.reload(reloadType));
+		lua_gc(g_luaEnvironment.getLuaState(), LUA_GCCOLLECT, 0);
+		return 2;
 	}
+	pushBoolean(L, g_game.reload(reloadType));
 	lua_gc(g_luaEnvironment.getLuaState(), LUA_GCCOLLECT, 0);
 	return 1;
 }
@@ -5973,81 +6164,6 @@ int LuaScriptInterface::luaItemGetWorth(lua_State* L)
 	return 1;
 }
 
-// AutoLoot
-int LuaScriptInterface::luaAddAutoLootItem(lua_State* L)
-{
-	//player:addAutoLootItem(name/id)
-	Player* player = getUserdata<Player>(L, 1);
-	if (!player){
-		lua_pushnil(L);
-		return 1;
-	}
-
-	uint16_t itemId;
-	if(isNumber(L, 2)){
-		itemId = getNumber<uint16_t>(L, 2);
-	}else{
-		itemId = Item::items.getItemIdByName(getString(L, 2));
-		if (itemId == 0){
-			lua_pushnil(L);
-			return 1;
-		}
-	}
-	std::cout << itemId << std::endl;
-	player->addAutoLootItem(itemId);
-	pushBoolean(L, true);
-	return 1;
-}
-
-int LuaScriptInterface::luaRemoveAutoLootItem(lua_State* L)
-{
-	//player:removeAutoLootItem(name/id)
-	Player* player = getUserdata<Player>(L, 1);
-	if (!player){
-		lua_pushnil(L);
-		return 1;
-	}
-
-	uint16_t itemId;
-	if(isNumber(L, 2)){
-		itemId = getNumber<uint16_t>(L, 2);
-	}else{
-		itemId = Item::items.getItemIdByName(getString(L, 2));
-		if (itemId == 0){
-			lua_pushnil(L);
-			return 1;
-		}
-	}
-	player->removeAutoLootItem(itemId);
-	pushBoolean(L, true);
-	return 1;
-}
-
-int LuaScriptInterface::luaPlayerGetAutoLootList(lua_State* L)
-{
-	// player:getAutoLootList()
-	Player* player = getUserdata<Player>(L, 1);
-	if (!player){
-		lua_pushnil(L);
-		return 1;
-	}
-
-	auto autoLootList = player->autoLootList;
-
-	if (autoLootList.size() == 0){
-		lua_pushnil(L);
-		return 1;
-	}
-
-	int index = 0;
-	lua_createtable(L, autoLootList.size(), 0);
-	for (auto i: autoLootList){
-		lua_pushnumber(L, i);
-		lua_rawseti(L, -2, ++index);
-	}
-	return 1;
-}
-
 int LuaScriptInterface::luaItemGetSubType(lua_State* L)
 {
 	// item:getSubType()
@@ -6480,8 +6596,7 @@ int LuaScriptInterface::luaItemDecay(lua_State* L)
 	Item* item = getUserdata<Item>(L, 1);
 	if (item) {
 		if (isNumber(L, 2)) {
-			ItemType& it = Item::items.getItemType(item->getID());
-			it.decayTo = getNumber<int32_t>(L, 2);
+			item->setDecayTo(getNumber<int32_t>(L, 2));
 		}
 
 		item->startDecaying();
@@ -6524,6 +6639,58 @@ int LuaScriptInterface::luaItemIsLoadedFromMap(lua_State* L)
 	Item* item = getUserdata<Item>(L, 1);
 	if (item) {
 		pushBoolean(L, item->isLoadedFromMap());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaItemSetReflect(lua_State* L)
+{
+	// item:setReflect(combatType, reflect)
+	Item* item = getUserdata<Item>(L, 1);
+	if (!item) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	item->setReflect(getNumber<CombatType_t>(L, 2), getReflect(L, 3));
+	pushBoolean(L, true);
+	return 1;
+}
+
+int LuaScriptInterface::luaItemGetReflect(lua_State* L)
+{
+	// item:getReflect(combatType[, total = true])
+	Item* item = getUserdata<Item>(L, 1);
+	if (item) {
+		pushReflect(L, item->getReflect(getNumber<CombatType_t>(L, 2), getBoolean(L, 3, true)));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaItemSetBoostPercent(lua_State* L)
+{
+	// item:setBoostPercent(combatType, percent)
+	Item* item = getUserdata<Item>(L, 1);
+	if (!item) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	item->setBoostPercent(getNumber<CombatType_t>(L, 2), getNumber<uint16_t>(L, 3));
+	pushBoolean(L, true);
+	return 1;
+}
+
+int LuaScriptInterface::luaItemGetBoostPercent(lua_State* L)
+{
+	// item:getBoostPercent(combatType[, total = true])
+	Item* item = getUserdata<Item>(L, 1);
+	if (item) {
+		lua_pushnumber(L, item->getBoostPercent(getNumber<CombatType_t>(L, 2), getBoolean(L, 3, true)));
 	} else {
 		lua_pushnil(L);
 	}
@@ -6671,14 +6838,25 @@ int LuaScriptInterface::luaContainerAddItem(lua_State* L)
 		}
 	}
 
-	uint32_t count = getNumber<uint32_t>(L, 3, 1);
 	const ItemType& it = Item::items[itemId];
-	if (it.stackable) {
-		count = std::min<uint16_t>(count, 100);
+	int32_t itemCount = 1;
+	int32_t subType = 1;
+	uint32_t count = getNumber<uint32_t>(L, 3, 1);
+
+	if (it.hasSubType()) {
+		if (it.stackable) {
+			itemCount = std::ceil(count / 100.f);
+		}
+
+		subType = count;
+	} else {
+		itemCount = std::max<int32_t>(1, count);
 	}
 
-	Item* item = Item::CreateItem(itemId, count);
-	if (!item) {
+	bool hasTable = itemCount > 1;
+	if (hasTable) {
+		lua_newtable(L);
+	} else if (itemCount == 0) {
 		lua_pushnil(L);
 		return 1;
 	}
@@ -6686,13 +6864,39 @@ int LuaScriptInterface::luaContainerAddItem(lua_State* L)
 	int32_t index = getNumber<int32_t>(L, 4, INDEX_WHEREEVER);
 	uint32_t flags = getNumber<uint32_t>(L, 5, 0);
 
-	ReturnValue ret = g_game.internalAddItem(container, item, index, flags);
-	if (ret == RETURNVALUE_NOERROR) {
-		pushUserdata<Item>(L, item);
-		setItemMetatable(L, -1, item);
-	} else {
-		delete item;
-		lua_pushnil(L);
+	for (int32_t i = 1; i <= itemCount; ++i) {
+		int32_t stackCount = std::min<int32_t>(subType, 100);
+		Item* item = Item::CreateItem(itemId, stackCount);
+		if (!item) {
+			reportErrorFunc(getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
+			if (!hasTable) {
+				lua_pushnil(L);
+			}
+			return 1;
+		}
+
+		if (it.stackable) {
+			subType -= stackCount;
+		}
+
+		ReturnValue ret = g_game.internalAddItem(container, item, index, flags);
+		if (ret != RETURNVALUE_NOERROR) {
+			delete item;
+			if (!hasTable) {
+				lua_pushnil(L);
+			}
+			return 1;
+		}
+
+		if (hasTable) {
+			lua_pushnumber(L, i);
+			pushUserdata<Item>(L, item);
+			setItemMetatable(L, -1, item);
+			lua_settable(L, -3);
+		} else {
+			pushUserdata<Item>(L, item);
+			setItemMetatable(L, -1, item);
+		}
 	}
 	return 1;
 }
@@ -7136,6 +7340,15 @@ int LuaScriptInterface::luaCreatureSetMaster(lua_State* L)
 	}
 
 	pushBoolean(L, creature->setMaster(getCreature(L, 2)));
+	
+	// update summon icon
+	SpectatorVector spectators;
+	g_game.map.getSpectators(spectators, creature->getPosition(), true, true);
+
+	for (Creature* spectator : spectators) {
+		assert(dynamic_cast<Player*>(spectator) != nullptr);
+		static_cast<Player*>(spectator)->sendUpdateTileCreature(creature);
+	}
 	return 1;
 }
 
@@ -7208,6 +7421,22 @@ int LuaScriptInterface::luaCreatureChangeSpeed(lua_State* L)
 
 	int32_t delta = getNumber<int32_t>(L, 2);
 	g_game.changeSpeed(creature, delta);
+	pushBoolean(L, true);
+	return 1;
+}
+
+int LuaScriptInterface::luaCreatureSetSpeed(lua_State* L)
+{
+	// creature:setSpeed(speed)
+	Creature* creature = getCreature(L, 1);
+	if (!creature) {
+		reportErrorFunc(getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
+		pushBoolean(L, false);
+		return 1;
+	}
+
+	int32_t speed = getNumber<int32_t>(L, 2);
+	g_game.setCreatureSpeed(creature, speed);
 	pushBoolean(L, true);
 	return 1;
 }
@@ -7705,7 +7934,7 @@ int LuaScriptInterface::luaCreatureGetDamageMap(lua_State* L)
 	}
 
 	lua_createtable(L, creature->damageMap.size(), 0);
-	for (auto damageEntry : creature->damageMap) {
+	for (const auto& damageEntry : creature->damageMap) {
 		lua_createtable(L, 0, 2);
 		setField(L, "total", damageEntry.second.total);
 		setField(L, "ticks", damageEntry.second.ticks);
@@ -8167,6 +8396,33 @@ int LuaScriptInterface::luaPlayerGetInbox(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaPlayerGetProtectionTime(lua_State* L)
+{
+    // player:getProtectionTime()
+    Player* player = getUserdata<Player>(L, 1);
+    if (player) {
+        lua_pushnumber(L, player->getProtectionTime());
+    } else {
+        lua_pushnil(L);
+    }
+    return 1;
+}
+
+int LuaScriptInterface::luaPlayerSetProtectionTime(lua_State* L)
+{
+    // player:setProtectionTime(time)
+    Player* player = getUserdata<Player>(L, 1);
+    if (!player) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    uint16_t time = getNumber<uint16_t>(L, 2);
+    player->setProtectionTime(time);
+    pushBoolean(L, true);
+    return 1;
+}
+
 int LuaScriptInterface::luaPlayerGetSkullTime(lua_State* L)
 {
 	// player:getSkullTime()
@@ -8457,6 +8713,39 @@ int LuaScriptInterface::luaPlayerAddSkillTries(lua_State* L)
 	} else {
 		lua_pushnil(L);
 	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerGetSpecialSkill(lua_State* L)
+{
+	// player:getSpecialSkill(specialSkillType)
+	SpecialSkills_t specialSkillType = getNumber<SpecialSkills_t>(L, 2);
+	Player* player = getUserdata<Player>(L, 1);
+	if (player && specialSkillType <= SPECIALSKILL_LAST) {
+		lua_pushnumber(L, player->getSpecialSkill(specialSkillType));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerAddSpecialSkill(lua_State* L)
+{
+	// player:addSpecialSkill(specialSkillType, value)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	SpecialSkills_t specialSkillType = getNumber<SpecialSkills_t>(L, 2);
+	if (specialSkillType > SPECIALSKILL_LAST) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	player->setVarSpecialSkill(specialSkillType, getNumber<int32_t>(L, 3));
+	pushBoolean(L, true);
 	return 1;
 }
 
@@ -9244,6 +9533,20 @@ int LuaScriptInterface::luaPlayerOpenChannel(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaPlayerCloseChannel(lua_State* L)
+{
+	// player:closeChannel(channelId)
+	uint16_t channelId = getNumber<uint16_t>(L, 2);
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		g_game.playerCloseChannel(player->getID(), channelId);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int LuaScriptInterface::luaPlayerGetSlotItem(lua_State* L)
 {
 	// player:getSlotItem(slot)
@@ -9371,56 +9674,31 @@ int LuaScriptInterface::luaPlayerSendOutfitWindow(lua_State* L)
 	return 1;
 }
 
-int LuaScriptInterface::luaPlayerGetPremiumDays(lua_State* L)
+int LuaScriptInterface::luaPlayerGetPremiumEndsAt(lua_State* L)
 {
-	// player:getPremiumDays()
+	// player:getPremiumEndsAt()
 	Player* player = getUserdata<Player>(L, 1);
 	if (player) {
-		lua_pushnumber(L, player->premiumDays);
+		lua_pushnumber(L, player->premiumEndsAt);
 	} else {
 		lua_pushnil(L);
 	}
 	return 1;
 }
 
-int LuaScriptInterface::luaPlayerAddPremiumDays(lua_State* L)
+int LuaScriptInterface::luaPlayerSetPremiumEndsAt(lua_State* L)
 {
-	// player:addPremiumDays(days)
+	// player:setPremiumEndsAt(timestamp)
 	Player* player = getUserdata<Player>(L, 1);
 	if (!player) {
 		lua_pushnil(L);
 		return 1;
 	}
 
-	if (player->premiumDays != std::numeric_limits<uint16_t>::max()) {
-		uint16_t days = getNumber<uint16_t>(L, 2);
-		int32_t addDays = std::min<int32_t>(0xFFFE - player->premiumDays, days);
-		if (addDays > 0) {
-			player->setPremiumDays(player->premiumDays + addDays);
-			IOLoginData::addPremiumDays(player->getAccount(), addDays);
-		}
-	}
-	pushBoolean(L, true);
-	return 1;
-}
+	time_t timestamp = getNumber<time_t>(L, 2);
 
-int LuaScriptInterface::luaPlayerRemovePremiumDays(lua_State* L)
-{
-	// player:removePremiumDays(days)
-	Player* player = getUserdata<Player>(L, 1);
-	if (!player) {
-		lua_pushnil(L);
-		return 1;
-	}
-
-	if (player->premiumDays != std::numeric_limits<uint16_t>::max()) {
-		uint16_t days = getNumber<uint16_t>(L, 2);
-		int32_t removeDays = std::min<int32_t>(player->premiumDays, days);
-		if (removeDays > 0) {
-			player->setPremiumDays(player->premiumDays - removeDays);
-			IOLoginData::removePremiumDays(player->getAccount(), removeDays);
-		}
-	}
+	player->setPremiumTime(timestamp);
+	IOLoginData::updatePremiumTime(player->getAccount(), timestamp);
 	pushBoolean(L, true);
 	return 1;
 }
@@ -9623,6 +9901,18 @@ int LuaScriptInterface::luaPlayerIsPzLocked(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaPlayerHasClient(lua_State* L)
+{
+	// player:hasClient()
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushboolean(L, player->hasClient());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int LuaScriptInterface::luaPlayerGetClient(lua_State* L)
 {
 	// player:getClient()
@@ -9727,19 +10017,21 @@ int LuaScriptInterface::luaPlayerSetGhostMode(lua_State* L)
 	SpectatorVector spectators;
 	g_game.map.getSpectators(spectators, position, true, true);
 	for (Creature* spectator : spectators) {
-		Player* tmpPlayer = spectator->getPlayer();
-		if (tmpPlayer != player && !tmpPlayer->isAccessPlayer()) {
+		assert(dynamic_cast<Player*>(spectator) != nullptr);
+
+		Player* spectatorPlayer = static_cast<Player*>(spectator);
+		if (spectatorPlayer != player && !spectatorPlayer->isAccessPlayer()) {
 			if (enabled) {
-				tmpPlayer->sendRemoveTileThing(position, tile->getStackposOfCreature(tmpPlayer, player));
+				spectatorPlayer->sendRemoveTileThing(position, tile->getStackposOfCreature(spectatorPlayer, player));
 			} else {
-				tmpPlayer->sendCreatureAppear(player, position, showEffect);
+				spectatorPlayer->sendCreatureAppear(player, position, showEffect);
 			}
 		} else {
 			if (isInvisible) {
 				continue;
 			}
 			
-			tmpPlayer->sendCreatureChangeVisible(player, !enabled);
+			spectatorPlayer->sendCreatureChangeVisible(player, !enabled);
 		}
 	}
 
@@ -9874,16 +10166,13 @@ int LuaScriptInterface::luaPlayerHasSecureMode(lua_State* L)
 	return 1;
 }
 
-int LuaScriptInterface::luaPlayerSetAttackSpeed(lua_State* L)
+int LuaScriptInterface::luaPlayerGetFightMode(lua_State* L)
 {
-	// player:setAttackSpeed(ms)
+	// player:getFightMode()
 	Player* player = getUserdata<Player>(L, 1);
-	uint32_t ms = getNumber<uint32_t>(L, 2);
 	if (player) {
-		player->setAttackSpeed(ms);
-		pushBoolean(L, true);
-	}
-	else {
+		lua_pushnumber(L, player->fightMode);
+	} else {
 		lua_pushnil(L);
 	}
 	return 1;
@@ -9902,15 +10191,87 @@ int LuaScriptInterface::luaPlayerGetAttackSpeed(lua_State* L)
 	return 1;
 }
 
-int LuaScriptInterface::luaPlayerGetFightMode(lua_State* L)
+int LuaScriptInterface::luaPlayerSetAttackSpeed(lua_State* L)
 {
-	// player:getFightMode()
+	// player:setAttackSpeed(ms)
+	Player* player = getUserdata<Player>(L, 1);
+	uint32_t ms = getNumber<uint32_t>(L, 2);
+	if (player) {
+		player->setAttackSpeed(ms);
+		pushBoolean(L, true);
+	}
+	else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerIsNearDepotBox(lua_State* L)
+{
+	// player:isNearDepotBox()
+	const Player* const player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+	pushBoolean(L, player->isNearDepotBox());
+	return 1;
+}
+int LuaScriptInterface::luaPlayerGetIdleTime(lua_State* L)
+{
+	// player:getIdleTime()
+	const Player* const player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+	lua_pushnumber(L, player->getIdleTime());
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerSetIdleTime(lua_State* L)
+{
+	// player:setIdleTime(time)
 	Player* player = getUserdata<Player>(L, 1);
 	if (player) {
-		lua_pushnumber(L, player->fightMode);
+		player->setIdleTime(getNumber<int32_t>(L, 2));
+		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
 	}
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerResetIdleTime(lua_State* L)
+{
+	// player:resetIdleTime()
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	player->resetIdleTime();
+	pushBoolean(L, true);
+	return 1;
+}
+
+int LuaScriptInterface::luaPlayerSendCreatureSquare(lua_State* L)
+{
+	// player:sendCreatureSquare(creature, color)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+	auto creature = getCreature(L, 2);
+	if (!creature) {
+		reportErrorFunc(getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
+		pushBoolean(L, false);
+		return 1;
+	}
+	player->sendCreatureSquare(creature, getNumber<SquareColor_t>(L, 3));
+	pushBoolean(L, true);
 	return 1;
 }
 
@@ -9957,6 +10318,24 @@ int LuaScriptInterface::luaMonsterGetType(lua_State* L)
 	} else {
 		lua_pushnil(L);
 	}
+	return 1;
+}
+
+int LuaScriptInterface::luaMonsterRename(lua_State* L)
+{
+	// monster:rename(name[, nameDescription])
+	Monster* monster = getUserdata<Monster>(L, 1);
+	if (!monster) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	monster->setName(getString(L, 2));
+	if (lua_gettop(L) >= 3) {
+		monster->setNameDescription(getString(L, 3));
+	}
+
+	pushBoolean(L, true);
 	return 1;
 }
 
@@ -11608,6 +11987,19 @@ int LuaScriptInterface::luaItemTypeGetWeight(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaItemTypeGetWorth(lua_State* L)
+{
+	// itemType:getWorth()
+	const ItemType* itemType = getUserdata<const ItemType>(L, 1);
+	if (!itemType) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushnumber(L, itemType->worth);
+	return 1;
+}
+
 int LuaScriptInterface::luaItemTypeGetHitChance(lua_State* L)
 {
 	// itemType:getHitChance()
@@ -11900,6 +12292,25 @@ int LuaScriptInterface::luaCombatSetParameter(lua_State* L)
 	}
 	combat->setParam(key, value);
 	pushBoolean(L, true);
+	return 1;
+}
+
+int LuaScriptInterface::luaCombatGetParameter(lua_State* L)
+{
+	// combat:getParameter(key)
+	Combat* combat = getUserdata<Combat>(L, 1);
+	if (!combat) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	int32_t value = combat->getParam(getNumber<CombatParam_t>(L, 2));
+	if (value == std::numeric_limits<int32_t>().max()) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushnumber(L, value);
 	return 1;
 }
 
@@ -12239,6 +12650,25 @@ int LuaScriptInterface::luaConditionSetParameter(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaConditionGetParameter(lua_State* L)
+{
+	// condition:getParameter(key)
+	Condition* condition = getUserdata<Condition>(L, 1);
+	if (!condition) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	int32_t value = condition->getParam(getNumber<ConditionParam_t>(L, 2));
+	if (value == std::numeric_limits<int32_t>().max()) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushnumber(L, value);
+	return 1;
+}
+
 int LuaScriptInterface::luaConditionSetFormula(lua_State* L)
 {
 	// condition:setFormula(mina, minb, maxa, maxb)
@@ -12363,6 +12793,23 @@ int LuaScriptInterface::luaMonsterTypeIsSummonable(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaMonsterTypeIsIgnoringSpawnBlock(lua_State* L)
+{
+	// get: monsterType:isIgnoringSpawnBlock() set: monsterType:isIgnoringSpawnBlock(bool)
+	MonsterType* monsterType = getUserdata<MonsterType>(L, 1);
+	if (monsterType) {
+		if (lua_gettop(L) == 1) {
+			pushBoolean(L, monsterType->info.isIgnoringSpawnBlock);
+		} else {
+			monsterType->info.isIgnoringSpawnBlock = getBoolean(L, 2);
+			pushBoolean(L, true);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int LuaScriptInterface::luaMonsterTypeIsIllusionable(lua_State* L)
 {
 	// get: monsterType:isIllusionable() set: monsterType:isIllusionable(bool)
@@ -12474,6 +12921,57 @@ int LuaScriptInterface::luaMonsterTypeCanPushCreatures(lua_State* L)
 			pushBoolean(L, monsterType->info.canPushCreatures);
 		} else {
 			monsterType->info.canPushCreatures = getBoolean(L, 2);
+			pushBoolean(L, true);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaMonsterTypeCanWalkOnEnergy(lua_State* L)
+{
+	// get: monsterType:canWalkOnEnergy() set: monsterType:canWalkOnEnergy(bool)
+	MonsterType* monsterType = getUserdata<MonsterType>(L, 1);
+	if (monsterType) {
+		if (lua_gettop(L) == 1) {
+			pushBoolean(L, monsterType->info.canWalkOnEnergy);
+		} else {
+			monsterType->info.canWalkOnEnergy = getBoolean(L, 2);
+			pushBoolean(L, true);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaMonsterTypeCanWalkOnFire(lua_State* L)
+{
+	// get: monsterType:canWalkOnFire() set: monsterType:canWalkOnFire(bool)
+	MonsterType* monsterType = getUserdata<MonsterType>(L, 1);
+	if (monsterType) {
+		if (lua_gettop(L) == 1) {
+			pushBoolean(L, monsterType->info.canWalkOnFire);
+		} else {
+			monsterType->info.canWalkOnFire = getBoolean(L, 2);
+			pushBoolean(L, true);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaMonsterTypeCanWalkOnPoison(lua_State* L)
+{
+	// get: monsterType:canWalkOnPoison() set: monsterType:canWalkOnPoison(bool)
+	MonsterType* monsterType = getUserdata<MonsterType>(L, 1);
+	if (monsterType) {
+		if (lua_gettop(L) == 1) {
+			pushBoolean(L, monsterType->info.canWalkOnPoison);
+		} else {
+			monsterType->info.canWalkOnPoison = getBoolean(L, 2);
 			pushBoolean(L, true);
 		}
 	} else {
@@ -13353,6 +13851,33 @@ int LuaScriptInterface::luaLootSetId(lua_State* L)
 	return 1;
 }
 
+int LuaScriptInterface::luaLootSetIdFromName(lua_State* L) {
+	// loot:setIdFromName(name)
+	Loot* loot = getUserdata<Loot>(L, 1);
+	if (loot && isString(L, 2)) {
+		auto name = getString(L, 2);
+		auto ids = Item::items.nameToItems.equal_range(asLowerCaseString(name));
+
+		if (ids.first == Item::items.nameToItems.cend()) {
+			std::cout << "[Warning - Loot:setId] Unknown loot item \"" << name << "\". " << std::endl;
+			lua_pushnil(L);
+			return 1;
+		}
+
+		if (std::next(ids.first) != ids.second) {
+			std::cout << "[Warning - Loot:setId] Non-unique loot item \"" << name << "\". " << std::endl;
+			lua_pushnil(L);
+			return 1;
+		}
+
+		loot->lootBlock.id = ids.first->second;
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int LuaScriptInterface::luaLootSetSubType(lua_State* L)
 {
 	// loot:setSubType(type)
@@ -13769,7 +14294,7 @@ int LuaScriptInterface::luaPartySetLeader(lua_State* L)
 	Player* player = getPlayer(L, 2);
 	Party* party = getUserdata<Party>(L, 1);
 	if (party && player) {
-		pushBoolean(L, party->passPartyLeadership(player));
+		pushBoolean(L, party->passPartyLeadership(player, true));
 	} else {
 		lua_pushnil(L);
 	}
@@ -14149,7 +14674,7 @@ int LuaScriptInterface::luaSpellGroup(lua_State* L)
 			}
 		} else {
 			SpellGroup_t primaryGroup = getNumber<SpellGroup_t>(L, 2);
-			SpellGroup_t secondaryGroup = getNumber<SpellGroup_t>(L, 2);
+			SpellGroup_t secondaryGroup = getNumber<SpellGroup_t>(L, 3);
 			if (primaryGroup && secondaryGroup) {
 				spell->setGroup(primaryGroup);
 				spell->setSecondaryGroup(secondaryGroup);
@@ -14457,6 +14982,23 @@ int LuaScriptInterface::luaSpellAggressive(lua_State* L)
 			pushBoolean(L, spell->getAggressive());
 		} else {
 			spell->setAggressive(getBoolean(L, 2));
+			pushBoolean(L, true);
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaSpellPzLock(lua_State* L)
+{
+	// spell:isPzLock(bool)
+	Spell* spell = getUserdata<Spell>(L, 1);
+	if (spell) {
+		if (lua_gettop(L) == 1) {
+			pushBoolean(L, spell->getPzLock());
+		} else {
+			spell->setPzLock(getBoolean(L, 2));
 			pushBoolean(L, true);
 		}
 	} else {
@@ -15075,11 +15617,7 @@ int LuaScriptInterface::luaCreatureEventOnCallback(lua_State* L)
 	// creatureevent:onLogin / logout / etc. (callback)
 	CreatureEvent* creature = getUserdata<CreatureEvent>(L, 1);
 	if (creature) {
-		if (!creature->loadCallback()) {
-			pushBoolean(L, false);
-			return 1;
-		}
-		pushBoolean(L, true);
+		pushBoolean(L, creature->loadCallback());
 	} else {
 		lua_pushnil(L);
 	}
@@ -15297,6 +15835,19 @@ int LuaScriptInterface::luaMoveEventVocation(lua_State* L)
 				moveevent->setVocationString(tmp);
 			}
 		}
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaMoveEventTileItem(lua_State* L)
+{
+	// moveevent:tileItem(bool)
+	MoveEvent* moveevent = getUserdata<MoveEvent>(L, 1);
+	if (moveevent) {
+		moveevent->setTileItem(getBoolean(L, 2));
 		pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);
@@ -15950,7 +16501,7 @@ int LuaScriptInterface::luaWeaponCharges(lua_State* L)
 		uint16_t id = weapon->getID();
 		ItemType& it = Item::items.getItemType(id);
 
-		it.charges = getNumber<uint8_t>(L, 2);
+		it.charges = getNumber<uint32_t>(L, 2);
 		it.showCharges = showCharges;
 		pushBoolean(L, true);
 	} else {

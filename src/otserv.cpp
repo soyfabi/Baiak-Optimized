@@ -106,9 +106,9 @@ void mainLoader(int, char*[], ServiceManager* services)
 #ifdef _WIN32
 	SetConsoleTitle(STATUS_SERVER_NAME);
 #endif
-	std::cout << STATUS_SERVER_NAME << " - Versao " << STATUS_SERVER_VERSION << std::endl;
-	std::cout << "Compilado com " << BOOST_COMPILER << std::endl;
-	std::cout << "Compilado em " << __DATE__ << ' ' << __TIME__ << " pela plataforma ";
+	std::cout << STATUS_SERVER_NAME << " - Version " << STATUS_SERVER_VERSION << std::endl;
+	std::cout << "Compiled with " << BOOST_COMPILER << std::endl;
+	std::cout << "Compiled on " << __DATE__ << ' ' << __TIME__ << " for platform ";
 
 #if defined(__amd64__) || defined(_M_X64)
 	std::cout << "x64" << std::endl;
@@ -121,8 +121,8 @@ void mainLoader(int, char*[], ServiceManager* services)
 #endif
 	std::cout << std::endl;
 
-	std::cout << "Servidor desenvolvido por " << STATUS_SERVER_DEVELOPERS << std::endl;
-	std::cout << "Protocolo do client: " << CLIENT_VERSION_STR << std::endl;
+	std::cout << "A server developed by " << STATUS_SERVER_DEVELOPERS << std::endl;
+	std::cout << "Downgraded and further developed by Fabian" << std::endl;
 	std::cout << std::endl;
 
 	// check if config.lua or config.lua.dist exist
@@ -141,7 +141,7 @@ void mainLoader(int, char*[], ServiceManager* services)
 	}
 
 	// read global config
-	std::cout << ">> Carregando configuracoes" << std::endl;
+	std::cout << ">> Loading config" << std::endl;
 	if (!g_config.load()) {
 		startupErrorMessage("Unable to load config.lua!");
 		return;
@@ -164,7 +164,7 @@ void mainLoader(int, char*[], ServiceManager* services)
 		return;
 	}
 
-	std::cout << ">> Estabelendo conexao com a database..." << std::flush;
+	std::cout << ">> Establishing database connection..." << std::flush;
 
 	if (!Database::getInstance().connect()) {
 		startupErrorMessage("Failed to connect to database.");
@@ -174,7 +174,7 @@ void mainLoader(int, char*[], ServiceManager* services)
 	std::cout << " MySQL " << Database::getClientVersion() << std::endl;
 
 	// run database manager
-	std::cout << ">> Iniciando gerenciador de banco de dados" << std::endl;
+	std::cout << ">> Running database manager" << std::endl;
 
 	if (!DatabaseManager::isDatabaseSetup()) {
 		startupErrorMessage("The database you have specified in config.lua is empty, please import the schema.sql to your database.");
@@ -185,18 +185,18 @@ void mainLoader(int, char*[], ServiceManager* services)
 	DatabaseManager::updateDatabase();
 
 	if (g_config.getBoolean(ConfigManager::OPTIMIZE_DATABASE) && !DatabaseManager::optimizeTables()) {
-		std::cout << ">> Nenhuma tabela foi otimizada." << std::endl;
+		std::cout << ">> No tables were optimized." << std::endl;
 	}
 
 	//load vocations
-	std::cout << ">> Carregando vocacoes" << std::endl;
+	std::cout << ">> Loading vocations" << std::endl;
 	if (!g_vocations.loadFromXml()) {
 		startupErrorMessage("Unable to load vocations!");
 		return;
 	}
 
 	// load item data
-	std::cout << ">> Carregando itens" << std::endl;
+	std::cout << ">> Loading items" << std::endl;
 	if (!Item::items.loadFromOtb("data/items/items.otb")) {
 		startupErrorMessage("Unable to load items (OTB)!");
 		return;
@@ -207,19 +207,19 @@ void mainLoader(int, char*[], ServiceManager* services)
 		return;
 	}
 
-	std::cout << ">> Carregando sistema de scripts" << std::endl;
+	std::cout << ">> Loading script systems" << std::endl;
 	if (!ScriptingManager::getInstance().loadScriptSystems()) {
 		startupErrorMessage("Failed to load script systems");
 		return;
 	}
 
-	std::cout << ">> Carregando scripts de lua" << std::endl;
+	std::cout << ">> Loading lua scripts" << std::endl;
 	if (!g_scripts->loadScripts("scripts", false, false)) {
 		startupErrorMessage("Failed to load lua scripts");
 		return;
 	}
 
-	std::cout << ">> Carregando monstros" << std::endl;
+	std::cout << ">> Loading monsters" << std::endl;
 	if (!g_monsters.loadFromXml()) {
 		startupErrorMessage("Unable to load monsters!");
 		return;
@@ -231,13 +231,13 @@ void mainLoader(int, char*[], ServiceManager* services)
 		return;
 	}
 
-	std::cout << ">> Carregando outfits" << std::endl;
+	std::cout << ">> Loading outfits" << std::endl;
 	if (!Outfits::getInstance().loadFromXml()) {
 		startupErrorMessage("Unable to load outfits!");
 		return;
 	}
 
-	std::cout << ">> Checando tipo de mundo... " << std::flush;
+	std::cout << ">> Checking world type... " << std::flush;
 	std::string worldType = asLowerCaseString(g_config.getString(ConfigManager::WORLD_TYPE));
 	if (worldType == "pvp") {
 		g_game.setWorldType(WORLD_TYPE_PVP);
@@ -255,13 +255,13 @@ void mainLoader(int, char*[], ServiceManager* services)
 	}
 	std::cout << asUpperCaseString(worldType) << std::endl;
 
-	std::cout << ">> Carregando mapa" << std::endl;
+	std::cout << ">> Loading map" << std::endl;
 	if (!g_game.loadMainMap(g_config.getString(ConfigManager::MAP_NAME))) {
 		startupErrorMessage("Failed to load map");
 		return;
 	}
 
-	std::cout << ">> Iniciando o gamestate" << std::endl;
+	std::cout << ">> Initializing gamestate" << std::endl;
 	g_game.setGameState(GAME_STATE_INIT);
 
 	// Game client protocols
@@ -291,7 +291,7 @@ void mainLoader(int, char*[], ServiceManager* services)
 
 	g_game.map.houses.payHouses(rentPeriod);
 
-	std::cout << ">> Tudo pronto, iniciando jogo..." << std::endl;
+	std::cout << ">> Loaded all modules, server starting up..." << std::endl;
 /*
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0) {

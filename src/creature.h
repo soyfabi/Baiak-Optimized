@@ -230,6 +230,8 @@ class Creature : virtual public Thing
 		virtual int32_t getMaxHealth() const {
 			return healthMax;
 		}
+		
+		bool isDead() const { return health <= 0; }
 
 		const Outfit_t getCurrentOutfit() const {
 			return currentOutfit;

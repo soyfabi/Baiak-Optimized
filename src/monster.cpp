@@ -46,7 +46,7 @@ Monster* Monster::createMonster(const std::string& name)
 
 Monster::Monster(MonsterType* mType) :
 	Creature(),
-	strDescription(mType->nameDescription),
+	nameDescription(mType->nameDescription),
 	mType(mType)
 {
 	defaultOutfit = mType->info.outfit;
@@ -93,6 +93,40 @@ void Monster::addList()
 void Monster::removeList()
 {
 	g_game.removeMonster(this);
+}
+
+const std::string& Monster::getName() const
+{
+	if (name.empty()) {
+		return mType->name;
+	}
+	return name;
+}
+
+void Monster::setName(const std::string& name)
+{
+	if (getName() == name) {
+		return;
+	}
+
+	this->name = name;
+
+	// NOTE: Due to how client caches known creatures,
+	// it is not feasible to send creature update to everyone that has ever met it
+	SpectatorVector spectators;
+	g_game.map.getSpectators(spectators, position, true, true);
+	for (Creature* spectator : spectators) {
+		assert(dynamic_cast<Player*>(spectator) != nullptr);
+		static_cast<Player*>(spectator)->sendUpdateTileCreature(this);
+	}
+}
+
+const std::string& Monster::getNameDescription() const
+{
+	if (nameDescription.empty()) {
+		return mType->nameDescription;
+	}
+	return nameDescription;
 }
 
 bool Monster::canSee(const Position& pos) const
@@ -644,6 +678,13 @@ bool Monster::isTarget(const Creature* creature) const
 
 bool Monster::selectTarget(Creature* creature)
 {
+	//Protection Time
+	if (creature->getPlayer()) {
+		if (creature->getPlayer()->getProtectionTime() > 0) {
+			return false;
+		}
+	}
+	
 	if (!isTarget(creature)) {
 		return false;
 	}
@@ -793,7 +834,7 @@ void Monster::doAttacking(uint32_t interval)
 		return;
 	}
 
-	bool updateLook = true;
+	bool lookUpdated = false;
 	bool resetTicks = interval != 0;
 	attackTicks += interval;
 
@@ -809,9 +850,9 @@ void Monster::doAttacking(uint32_t interval)
 
 		if (canUseSpell(myPos, targetPos, spellBlock, interval, inRange, resetTicks)) {
 			if (spellBlock.chance >= static_cast<uint32_t>(uniform_random(1, 100))) {
-				if (updateLook) {
+				if (!lookUpdated) {
 					updateLookDirection();
-					updateLook = false;
+					lookUpdated = true;
 				}
 
 				minCombatValue = spellBlock.minCombatValue;
@@ -830,7 +871,8 @@ void Monster::doAttacking(uint32_t interval)
 		}
 	}
 
-	if (updateLook) {
+	// ensure ranged creatures turn to player
+	if (!lookUpdated && lastMeleeAttack == 0) {
 		updateLookDirection();
 	}
 
@@ -885,6 +927,13 @@ bool Monster::canUseSpell(const Position& pos, const Position& targetPos,
 void Monster::onThinkTarget(uint32_t interval)
 {
 	if (!isSummon()) {
+		// protection time
+		if (getAttackedCreature() && getAttackedCreature()->getPlayer() && getAttackedCreature()->getPlayer()->getProtectionTime() > 0) {
+			setAttackedCreature(nullptr);
+			updateTargetList();
+			followCreature = false;
+		}
+		
 		if (mType->info.changeTargetSpeed != 0) {
 			bool canChangeTarget = true;
 
@@ -1898,41 +1947,18 @@ void Monster::updateLookDirection()
 			} else {
 				newDir = DIRECTION_SOUTH;
 			}
+		} else if (offsetx < 0 && offsety < 0) {
+			// target to north-west
+			newDir = DIRECTION_WEST;
+		} else if (offsetx < 0 && offsety > 0) {
+			// target to south-west
+			newDir = DIRECTION_WEST;
+		}else if (offsetx > 0 && offsety < 0) {
+			// target to north-east
+			newDir = DIRECTION_EAST;
 		} else {
-			Direction dir = getDirection();
-			if (offsetx < 0 && offsety < 0) {
-				if (dir == DIRECTION_SOUTH) {
-					newDir = DIRECTION_WEST;
-				} else if (dir == DIRECTION_NORTH) {
-					newDir = DIRECTION_WEST;
-				} else if (dir == DIRECTION_EAST) {
-					newDir = DIRECTION_NORTH;
-				}
-			} else if (offsetx < 0 && offsety > 0) {
-				if (dir == DIRECTION_NORTH) {
-					newDir = DIRECTION_WEST;
-				} else if (dir == DIRECTION_SOUTH) {
-					newDir = DIRECTION_WEST;
-				} else if (dir == DIRECTION_EAST) {
-					newDir = DIRECTION_SOUTH;
-				}
-			} else if (offsetx > 0 && offsety < 0) {
-				if (dir == DIRECTION_SOUTH) {
-					newDir = DIRECTION_EAST;
-				} else if (dir == DIRECTION_NORTH) {
-					newDir = DIRECTION_EAST;
-				} else if (dir == DIRECTION_WEST) {
-					newDir = DIRECTION_NORTH;
-				}
-			} else {
-				if (dir == DIRECTION_NORTH) {
-					newDir = DIRECTION_EAST;
-				} else if (dir == DIRECTION_SOUTH) {
-					newDir = DIRECTION_EAST;
-				} else if (dir == DIRECTION_WEST) {
-					newDir = DIRECTION_SOUTH;
-				}
-			}
+			// target to south-east
+			newDir = DIRECTION_EAST;
 		}
 	}
 

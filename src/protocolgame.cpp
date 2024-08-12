@@ -19,8 +19,6 @@
 
 #include "otpch.h"
 
-#include <boost/range/adaptor/reversed.hpp>
-
 #include "protocolgame.h"
 
 #include "outputmessage.h"
@@ -35,6 +33,8 @@
 #include "ban.h"
 #include "scheduler.h"
 #include "monster.h"
+
+#include <fmt/format.h>
 
 extern ConfigManager g_config;
 extern Actions actions;
@@ -75,30 +75,29 @@ void ProtocolGame::login(const std::string& name, uint32_t accountId, OperatingS
 		player->setName(name);
 
 		player->incrementReferenceCounter();
-
+		
 		if (!IOLoginData::preloadPlayer(player, name)) {
-			disconnectClient("N�o foi poss�vel carregar seu personagem.");
+			disconnectClient("Your character could not be loaded.");
 			return;
 		}
 
-		player->setID();
 		if (IOBan::isPlayerNamelocked(player->getGUID())) {
-			disconnectClient("Seu personagem foi bloqueado pelo nome.");
+			disconnectClient("Your character has been namelocked.");
 			return;
 		}
 
 		if (g_game.getGameState() == GAME_STATE_CLOSING && !player->hasFlag(PlayerFlag_CanAlwaysLogin)) {
-			disconnectClient("O jogo est� desligando.\nPor favor, tente novamente mais tarde.");
+			disconnectClient("The game is just going down.\nPlease try again later.");
 			return;
 		}
 
 		if (g_game.getGameState() == GAME_STATE_CLOSED && !player->hasFlag(PlayerFlag_CanAlwaysLogin)) {
-			disconnectClient("O servidor est� fechado no momento.\nPor favor, tente novamente mais tarde.");
+			disconnectClient("Server is currently closed.\nPlease try again later.");
 			return;
 		}
 
 		if (g_config.getBoolean(ConfigManager::ONE_PLAYER_ON_ACCOUNT) && player->getAccountType() < ACCOUNT_TYPE_GAMEMASTER && g_game.getPlayerByAccount(player->getAccount())) {
-			disconnectClient("Voc� pode fazer login apenas com um jogador\n na sua conta ao mesmo tempo.");
+			disconnectClient("You may only login with one character\nof your account at the same time.");
 			return;
 		}
 
@@ -109,13 +108,11 @@ void ProtocolGame::login(const std::string& name, uint32_t accountId, OperatingS
 					banInfo.reason = "(none)";
 				}
 
-				std::ostringstream ss;
 				if (banInfo.expiresAt > 0) {
-					ss << "Sua conta foi banida at� " << formatDateShort(banInfo.expiresAt) << ".\n\nRaz�o:\n" << banInfo.reason;
+					disconnectClient(fmt::format("Your account has been banned until {:s} by {:s}.\n\nReason specified:\n{:s}", formatDateShort(banInfo.expiresAt), banInfo.bannedBy, banInfo.reason));
 				} else {
-					ss << "Sua conta foi permanentemente banida.\n\nRaz�o:\n" << banInfo.reason;
+					disconnectClient(fmt::format("Your account has been permanently banned by {:s}.\n\nReason specified:\n{:s}", banInfo.bannedBy, banInfo.reason));
 				}
-				disconnectClient(ss.str());
 				return;
 			}
 		}
@@ -123,22 +120,17 @@ void ProtocolGame::login(const std::string& name, uint32_t accountId, OperatingS
 		std::size_t currentSlot;
 		if (!WaitingList::getInstance().clientLogin(player, currentSlot)) {
 			int64_t retryTime = WaitingList::getTime(currentSlot);
-			std::ostringstream ss;
-
-			ss << "Muitos jogadores online.\nVoc� est� no lugar "
-			   << currentSlot << " na lista de espera.";
-
 			auto output = OutputMessagePool::getOutputMessage();
 			output->addByte(0x16);
-			output->addString(ss.str());
+			output->addString(fmt::format("Too many players online.\nYou are at place {:d} on the waiting list.", currentSlot));
 			output->addByte(static_cast<uint8_t>(retryTime));
 			send(output);
 			disconnect();
 			return;
 		}
-
+		
 		if (!IOLoginData::loadPlayerById(player, player->getGUID())) {
-			disconnectClient("N�o foi poss�vel carregar seu personagem.");
+			disconnectClient("Your character could not be loaded.");
 			return;
 		}
 
@@ -146,10 +138,11 @@ void ProtocolGame::login(const std::string& name, uint32_t accountId, OperatingS
 
 		if (!g_game.placeCreature(player, player->getLoginPosition())) {
 			if (!g_game.placeCreature(player, player->getTemplePosition(), false, true)) {
-				disconnectClient("A posi��o do templo est� errada.");
+				disconnectClient("Temple position is wrong. Contact the administrator.");
 				return;
 			}
 		}
+		
 		player->autoOpenContainers();
 
 		if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
@@ -162,7 +155,7 @@ void ProtocolGame::login(const std::string& name, uint32_t accountId, OperatingS
 	} else {
 		if (eventConnect != 0 || !g_config.getBoolean(ConfigManager::REPLACE_KICK_ON_LOGIN)) {
 			//Already trying to connect
-			disconnectClient("Voc� j� est� logado.");
+			disconnectClient("You are already logged in.");
 			return;
 		}
 
@@ -184,7 +177,7 @@ void ProtocolGame::connect(uint32_t playerId, OperatingSystem_t operatingSystem)
 
 	Player* foundPlayer = g_game.getPlayerByID(playerId);
 	if (!foundPlayer || foundPlayer->client) {
-		disconnectClient("Voc� j� est� logado.");
+		disconnectClient("You are already logged in.");
 		return;
 	}
 
@@ -198,6 +191,7 @@ void ProtocolGame::connect(uint32_t playerId, OperatingSystem_t operatingSystem)
 	player->incrementReferenceCounter();
 
 	g_chat->removeUserFromAllChannels(*player);
+	//player->clearModalWindows();
 	player->setOperatingSystem(operatingSystem);
 	player->isConnecting = false;
 
@@ -277,7 +271,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	std::string password = msg.getString();
 
 	if (accountName.empty()) {
-		disconnectClient("Voc� deve inserir o nome da sua conta.");
+		disconnectClient("Account name or password is not correct.");
 		return;
 	}
 
@@ -295,19 +289,17 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
-		std::ostringstream ss;
-		ss << "Somente clients com protocolo " << CLIENT_VERSION_STR << " s�o permitidos!";
-		disconnectClient(ss.str());
+		disconnectClient(fmt::format("Only clients with protocol {:s} allowed!", CLIENT_VERSION_STR));
 		return;
 	}
 
 	if (g_game.getGameState() == GAME_STATE_STARTUP) {
-		disconnectClient("Gameworld est� iniciando. Por favor, espere.");
+		disconnectClient("Gameworld is starting up. Please wait.");
 		return;
 	}
 
 	if (g_game.getGameState() == GAME_STATE_MAINTAIN) {
-		disconnectClient("O Gameworld est� em manuten��o. Reconecte-se daqui a pouco.");
+		disconnectClient("Gameworld is under maintenance. Please re-connect in a while.");
 		return;
 	}
 
@@ -317,15 +309,13 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 			banInfo.reason = "(none)";
 		}
 
-		std::ostringstream ss;
-		ss << "Seu IP foi banido at� " << formatDateShort(banInfo.expiresAt) << ".\n\nRaz�o:\n" << banInfo.reason;
-		disconnectClient(ss.str());
+		disconnectClient(fmt::format("Your IP has been banned until {:s} by {:s}.\n\nReason specified:\n{:s}", formatDateShort(banInfo.expiresAt), banInfo.bannedBy, banInfo.reason));
 		return;
 	}
 
 	uint32_t accountId = IOLoginData::gameworldAuthentication(accountName, password, characterName);
 	if (accountId == 0) {
-		disconnectClient("O nome ou a senha da conta n�o est�o corretos.");
+		disconnectClient("Account name or password is not correct.");
 		return;
 	}
 
@@ -513,7 +503,8 @@ void ProtocolGame::GetTileDescription(const Tile* tile, NetworkMessage& msg)
 	const CreatureVector* creatures = tile->getCreatures();
 	if (creatures) {
 		bool playerAdded = false;
-		for (const Creature* creature : boost::adaptors::reverse(*creatures)) {
+		for (auto it = creatures->rbegin(), end = creatures->rend(); it != end; ++it) {
+			const Creature* creature = (*it);
 			if (!player->canSeeCreature(creature)) {
 				continue;
 			}
@@ -1317,12 +1308,20 @@ void ProtocolGame::sendSaleItemList(const std::list<ShopInfo>& shop)
 	NetworkMessage msg;
 	msg.addByte(0x7B);
 
-  uint16_t moneyType = player->shopOwner ? player->shopOwner->getMoneyType() : 0;
-  if (moneyType == 0) {
-	   msg.add<uint32_t>(player->getMoney() + player->getBankBalance());
-  } else {
-     msg.add<uint32_t>(player->getItemTypeCount(moneyType));
-  }
+	uint16_t moneyType = player->shopOwner ? player->shopOwner->getMoneyType() : 0;
+  
+	if (moneyType == 0) {
+		uint32_t playerMoney = player->getMoney();
+		if (g_config.getBoolean(ConfigManager::NPCS_USING_BANK_MONEY)) {
+			uint32_t playerBank = player->getBankBalance();
+			msg.add<uint32_t>(playerBank + playerMoney); // deprecated and ignored by QT client. OTClient still uses it.
+		} else {
+			msg.add<uint32_t>(playerMoney);
+		}
+	} else {
+		msg.add<uint32_t>(player->getItemTypeCount(moneyType));
+	}
+	
 	std::map<uint16_t, uint32_t> saleMap;
 
 	if (shop.size() <= 5) {
@@ -1711,6 +1710,25 @@ void ProtocolGame::sendRemoveTileThing(const Position& pos, uint32_t stackpos)
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolGame::sendUpdateTileCreature(const Position& pos, uint32_t stackpos, const Creature* creature)
+{
+	if (!canSee(pos)) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0x6B);
+	msg.addPosition(pos);
+	msg.addByte(stackpos);
+
+	bool known;
+	uint32_t removedKnown;
+	checkCreatureAsKnown(creature->getID(), known, removedKnown);
+	AddCreature(msg, creature, false, removedKnown);
+
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolGame::sendUpdateTile(const Tile* tile, const Position& pos)
 {
 	if (!canSee(pos)) {
@@ -1973,20 +1991,30 @@ void ProtocolGame::sendHouseWindow(uint32_t windowTextId, const std::string& tex
 
 void ProtocolGame::sendOutfitWindow()
 {
+	const auto& outfits = Outfits::getInstance().getOutfits(player->getSex());
+	if (outfits.size() == 0) {
+		return;
+	}
+	
 	NetworkMessage msg;
 	msg.addByte(0xC8);
-
+	
 	Outfit_t currentOutfit = player->getDefaultOutfit();
+	if (currentOutfit.lookType == 0) {
+		Outfit_t newOutfit;
+		newOutfit.lookType = outfits.front().lookType;
+		currentOutfit = newOutfit;
+	}
+	
 	AddOutfit(msg, currentOutfit);
 
 	std::vector<ProtocolOutfit> protocolOutfits;
+	protocolOutfits.reserve(outfits.size());
 	if (player->isAccessPlayer()) {
 		static const std::string gamemasterOutfitName = "Gamemaster";
 		protocolOutfits.emplace_back(gamemasterOutfitName, 75, 0);
 	}
-
-	const auto& outfits = Outfits::getInstance().getOutfits(player->getSex());
-	protocolOutfits.reserve(outfits.size());
+	
 	for (const Outfit& outfit : outfits) {
 		uint8_t addons;
 		if (!player->getOutfitAddons(outfit, addons)) {
@@ -1994,7 +2022,7 @@ void ProtocolGame::sendOutfitWindow()
 		}
 
 		protocolOutfits.emplace_back(outfit.name, outfit.lookType, addons);
-		if (protocolOutfits.size() == 50) { // Game client doesn't allow more than 50 outfits
+		if (protocolOutfits.size() == 255) { // Game client doesn't allow more than 255 outfits
 			break;
 		}
 	}
@@ -2076,10 +2104,7 @@ void ProtocolGame::AddCreature(NetworkMessage& msg, const Creature* creature, bo
 	}
 
 	LightInfo lightInfo = creature->getCreatureLight();
-	if(g_config.getBoolean(ConfigManager::GM_FULL_LIGHT_ON_EQUIP_ITEM))
-		msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
-	else
-		msg.addByte(lightInfo.level);
+	msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
 	msg.addByte(lightInfo.color);
 
 	msg.add<uint16_t>(creature->getStepSpeed());
@@ -2185,10 +2210,7 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 void ProtocolGame::AddWorldLight(NetworkMessage& msg, LightInfo lightInfo)
 {
 	msg.addByte(0x82);
-	if(g_config.getBoolean(ConfigManager::GM_FULL_LIGHT_ON_EQUIP_ITEM))
-		msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
-	else
-		msg.addByte(lightInfo.level);
+	msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
 	msg.addByte(lightInfo.color);
 }
 
@@ -2198,10 +2220,7 @@ void ProtocolGame::AddCreatureLight(NetworkMessage& msg, const Creature* creatur
 
 	msg.addByte(0x8D);
 	msg.add<uint32_t>(creature->getID());
-	if(g_config.getBoolean(ConfigManager::GM_FULL_LIGHT_ON_EQUIP_ITEM))
-		msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
-	else
-		msg.addByte(lightInfo.level);
+	msg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
 	msg.addByte(lightInfo.color);
 }
 

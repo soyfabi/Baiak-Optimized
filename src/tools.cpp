@@ -812,6 +812,82 @@ MagicEffectNames magicEffectNames = {
 	{"smoke",		CONST_ME_SMOKE},
 	{"insects",		CONST_ME_INSECTS},
 	{"dragonhead",		CONST_ME_DRAGONHEAD},
+	{"orcshaman",		CONST_ME_ORCSHAMAN},
+	{"orcshamanfire",		CONST_ME_ORCSHAMAN_FIRE},
+	{"thunder",		CONST_ME_THUNDER},
+	{"ferumbras",		CONST_ME_FERUMBRAS},
+	{"confettihorizontal",		CONST_ME_CONFETTI_HORIZONTAL},
+	{"confettivertical",		CONST_ME_CONFETTI_VERTICAL},
+	{"blacksmoke",		CONST_ME_BLACKSMOKE},
+	{"redsmoke",		CONST_ME_REDSMOKE},
+	{"yellowsmoke",		CONST_ME_YELLOWSMOKE},
+	{"greensmoke",		CONST_ME_GREENSMOKE},
+	{"purplesmoke",		CONST_ME_PURPLESMOKE},
+	{"lightning",		CONST_ME_LIGHTNING},
+	{"ragiazbonecapsule",		CONST_ME_RAGIAZ_BONE_CAPSULE},
+	{"criticalhit",		CONST_ME_CRITICAL_HIT},
+	{"plungingfish",		CONST_ME_PLUNGING_FISH},
+	{"blueenergyspark",		CONST_ME_BLUE_ENERGY_SPARK},
+	{"orangeenergyspark",		CONST_ME_ORANGE_ENERGY_SPARK},
+	{"greenenergyspark",		CONST_ME_GREEN_ENERGY_SPARK},
+	{"pinkenergyspark",		CONST_ME_PINK_ENERGY_SPARK},
+	{"whiteenergyspark",		CONST_ME_WHITE_ENERGY_SPARK},
+	{"yellowenergyspark",		CONST_ME_YELLOW_ENERGY_SPARK},
+	{"magicpowder",		CONST_ME_MAGIC_POWDER},
+	{"pixieexplosion",		CONST_ME_PIXIE_EXPLOSION},
+	{"pixiecoming",		CONST_ME_PIXIE_COMING},
+	{"pixiegoing",		CONST_ME_PIXIE_GOING},
+	{"storm",		CONST_ME_STORM},
+	{"stonestorm",		CONST_ME_STONE_STORM},
+	{"blueghost",		CONST_ME_BLUE_GHOST},
+	{"pinkvortex",		CONST_ME_PINK_VORTEX},
+	{"tresauremap",		CONST_ME_TREASURE_MAP},
+	{"pinkbeam",		CONST_ME_PINK_BEAM},
+	{"greenfireworks",		CONST_ME_GREEN_FIREWORKS},
+	{"orangefireworks",		CONST_ME_ORANGE_FIREWORKS},
+	{"pinkfireworks",		CONST_ME_PINK_FIREWORKS},
+	{"bluefireworks",		CONST_ME_BLUE_FIREWORKS},
+	{"blackblood", CONST_ME_BLACK_BLOOD},
+	{"supremecube", CONST_ME_SUPREME_CUBE},
+	{"prismaticspark", CONST_ME_PRISMATIC_SPARK},
+	{"thaian", CONST_ME_THAIAN},
+	{"thaianghost", CONST_ME_THAIAN_GHOST},
+	{"ghostsmoke", CONST_ME_GHOST_SMOKE},
+	{"waterblockfloating", CONST_ME_WATER_BLOCK_FLOATING},
+	{"waterblock", CONST_ME_WATER_BLOCK},
+	{"roots", CONST_ME_ROOTS},
+	{"ghostlyscratch", CONST_ME_GHOSTLY_SCRATCH},
+	{"ghostlybite", CONST_ME_GHOSTLY_BITE},
+	{"bigscratch", CONST_ME_BIG_SCRATCH},
+	{"slash", CONST_ME_SLASH},
+	{"bite", CONST_ME_BITE},
+	{"chivalriouschallenge", CONST_ME_CHIVALRIOUS_CHALLENGE},
+	{"divinedazzle", CONST_ME_DIVINE_DAZZLE},
+	{"eletricalspark", CONST_ME_ELECTRICALSPARK},
+	{"purpleteleport", CONST_ME_PURPLETELEPORT},
+	{"redteleport", CONST_ME_REDTELEPORT},
+	{"orangeteleport", CONST_ME_ORANGETELEPORT},
+	{"greyteleport", CONST_ME_GREYTELEPORT},
+	{"lightblueteleport", CONST_ME_LIGHTBLUETELEPORT},
+	{"fatal", CONST_ME_FATAL},
+	{"dodge", CONST_ME_DODGE},
+	{"hourglass", CONST_ME_HOURGLASS},
+	{"dazzling", CONST_ME_DAZZLING},
+	{"ferumbras1", CONST_ME_FERUMBRAS_1},
+	{"gazharagoth", CONST_ME_GAZHARAGOTH},
+	{"madmage", CONST_ME_MAD_MAGE},
+	{"horestis", CONST_ME_HORESTIS},
+	{"devovorga", CONST_ME_DEVOVORGA},
+	{"ferumbras2", CONST_ME_FERUMBRAS_2},
+	{"whitesmoke", CONST_ME_WHITE_SMOKE},
+	{"whitesmokes", CONST_ME_WHITE_SMOKES},
+	{"waterdrop", CONST_ME_WATER_DROP},
+	{"avatarappear", CONST_ME_AVATAR_APPEAR},
+	{"divinegrenade", CONST_ME_DIVINE_GRENADE},
+	{"divineempowerment", CONST_ME_DIVINE_EMPOWERMENT},
+	{"waterfloatingthrash", CONST_ME_WATER_FLOATING_THRASH},
+	{"agony", CONST_ME_AGONY},
+	{"loothighlight", CONST_ME_LOOT_HIGHLIGHT},
 };
 
 ShootTypeNames shootTypeNames = {
@@ -856,6 +932,19 @@ ShootTypeNames shootTypeNames = {
 	{"smallearth",		CONST_ANI_SMALLEARTH},
 	{"eartharrow",		CONST_ANI_EARTHARROW},
 	{"explosion",		CONST_ANI_EXPLOSION},
+	{"cake",		CONST_ANI_CAKE},
+	{"envenomedarrow",		CONST_ANI_ENVENOMEDARROW},
+	{"gloothspear",			CONST_ANI_GLOOTHSPEAR},
+	{"simplearrow",			CONST_ANI_SIMPLEARROW},
+	{"leafstar",			CONST_ANI_LEAFSTAR},
+	{"prismaticbolt",		CONST_ANI_PRISMATICBOLT},
+	{"drillbolt",		CONST_ANI_DRILLBOLT},
+	{"vortexbolt",			CONST_ANI_VORTEXBOLT},
+	{"tarsalarrow",			CONST_ANI_TARSALARROW},
+	{"crystallinearrow",			CONST_ANI_CRYSTALLINEARROW},
+	{"diamondarrow",		CONST_ANI_DIAMONDARROW},
+	{"spectralbolt",		CONST_ANI_SPECTRALBOLT},
+	{"royalstar",			CONST_ANI_ROYALSTAR}
 };
 
 CombatTypeNames combatTypeNames = {
@@ -897,6 +986,8 @@ AmmoTypeNames ammoTypeNames = {
 	{"flammingarrow",	AMMO_ARROW},
 	{"shiverarrow",		AMMO_ARROW},
 	{"eartharrow",		AMMO_ARROW},
+	{"diamondarrow",		AMMO_ARROW},
+	{"spectralbolt",		AMMO_BOLT}
 };
 
 WeaponActionNames weaponActionNames = {
@@ -966,6 +1057,32 @@ Skulls_t getSkullType(const std::string& strValue)
 		return skullType->second;
 	}
 	return SKULL_NONE;
+}
+
+std::string getSpecialSkillName(uint8_t skillid)
+{
+	switch (skillid) {
+		case SPECIALSKILL_CRITICALHITCHANCE:
+			return "critical hit chance";
+
+		case SPECIALSKILL_CRITICALHITAMOUNT:
+			return "critical extra damage";
+
+		case SPECIALSKILL_LIFELEECHCHANCE:
+			return "hitpoints leech chance";
+
+		case SPECIALSKILL_LIFELEECHAMOUNT:
+			return "hitpoints leech amount";
+
+		case SPECIALSKILL_MANALEECHCHANCE:
+			return "manapoints leech chance";
+
+		case SPECIALSKILL_MANALEECHAMOUNT:
+			return "mana points leech amount";
+
+		default:
+			return "unknown";
+	}
 }
 
 std::string getSkillName(uint8_t skillid)
@@ -1240,200 +1357,200 @@ const char* getReturnMessage(ReturnValue value)
 {
 	switch (value) {
 		case RETURNVALUE_REWARDCHESTISEMPTY:
-			return "O ba� est� vazio no momento. Você Não participou de nenhuma batalha nos �ltimos sete dias ou j� reivindicou sua recompensa.";
+			return "The chest is currently empty. You did not take part in any battles in the last seven days or already claimed your reward.";
 			
 		case RETURNVALUE_DESTINATIONOUTOFREACH:
-			return "O destino est� fora do alcance.";
+			return "Destination is out of range.";
 
 		case RETURNVALUE_NOTMOVEABLE:
-			return "Você Não pode mover este objeto.";
+			return "You cannot move this object.";
 
 		case RETURNVALUE_DROPTWOHANDEDITEM:
-			return "Solte o objeto de duas m�os primeiro.";
+			return "Drop the double-handed object first.";
 
 		case RETURNVALUE_BOTHHANDSNEEDTOBEFREE:
-			return "Ambas as m�os precisam estar livres.";
+			return "Both hands need to be free.";
 
 		case RETURNVALUE_CANNOTBEDRESSED:
-			return "Você Não pode vestir este objeto.";
+			return "You cannot dress this object there.";
 
 		case RETURNVALUE_PUTTHISOBJECTINYOURHAND:
-			return "Coloque esse objeto na sua m�o.";
+			return "Put this object in your hand.";
 
 		case RETURNVALUE_PUTTHISOBJECTINBOTHHANDS:
-			return "Coloque este objeto nas duas m�os.";
+			return "Put this object in both hands.";
 
 		case RETURNVALUE_CANONLYUSEONEWEAPON:
-			return "Você pode usar apenas uma arma.";
+			return "You may only use one weapon.";
 
 		case RETURNVALUE_TOOFARAWAY:
-			return "Você est� muito longe.";
+			return "You are too far away.";
 
 		case RETURNVALUE_FIRSTGODOWNSTAIRS:
-			return "Primeiro desça as escadas.";
+			return "First go downstairs.";
 
 		case RETURNVALUE_FIRSTGOUPSTAIRS:
-			return "Primeiro suba as escadas.";
+			return "First go upstairs.";
 
 		case RETURNVALUE_NOTENOUGHCAPACITY:
-			return "Este objeto é muito pesado para você carregar.";
+			return "This object is too heavy for you to carry.";
 
 		case RETURNVALUE_CONTAINERNOTENOUGHROOM:
-			return "Você Não pode colocar mais objetos neste cont�iner.";
+			return "You cannot put more objects in this container.";
 
 		case RETURNVALUE_NEEDEXCHANGE:
 		case RETURNVALUE_NOTENOUGHROOM:
-			return "Não há espaço suficiente.";
+			return "There is not enough room.";
 
 		case RETURNVALUE_CANNOTPICKUP:
-			return "Você Não pode pegar este objeto.";
+			return "You cannot take this object.";
 
 		case RETURNVALUE_CANNOTTHROW:
-			return "Você Não pode jogar lá.";
+			return "You cannot throw there.";
 
 		case RETURNVALUE_THEREISNOWAY:
-			return "Não tem jeito.";
+			return "There is no way.";
 
 		case RETURNVALUE_THISISIMPOSSIBLE:
-			return "Isto é imposs�vel.";
+			return "This is impossible.";
 
 		case RETURNVALUE_PLAYERISPZLOCKED:
-			return "Você não pode entrar em uma zona de proteção depois de atacar outro jogador.";
+			return "You can not enter a protection zone after attacking another player.";
 
 		case RETURNVALUE_PLAYERISNOTINVITED:
-			return "Você não está convidado.";
+			return "You are not invited.";
 
 		case RETURNVALUE_CREATUREDOESNOTEXIST:
-			return "Criatura não existe.";
+			return "Creature does not exist.";
 
 		case RETURNVALUE_DEPOTISFULL:
-			return "Você Não pode colocar mais itens neste depot.";
+			return "You cannot put more items in this depot.";
+			
+		//case RETURNVALUE_SUPPLYSTASHISFULL:
+			//return "You cannot put more items in the Supply Stash.";
 
 		case RETURNVALUE_CANNOTUSETHISOBJECT:
-			return "Você Não pode usar este objeto.";
+			return "You cannot use this object.";
 
 		case RETURNVALUE_PLAYERWITHTHISNAMEISNOTONLINE:
-			return "Um jogador com este nome Não está online.";
+			return "A player with this name is not online.";
 
 		case RETURNVALUE_NOTREQUIREDLEVELTOUSERUNE:
-			return "Você Não tem magic level necessário para usar esta runa.";
+			return "You do not have the required magic level to use this rune.";
 
 		case RETURNVALUE_YOUAREALREADYTRADING:
-			return "Você já está negociando.";
+			return "You are already trading. Finish this trade first.";
 
 		case RETURNVALUE_THISPLAYERISALREADYTRADING:
-			return "Este jogador j� est� negociando.";
+			return "This player is already trading.";
 
 		case RETURNVALUE_YOUMAYNOTLOGOUTDURINGAFIGHT:
-			return "Você Não pode sair durante ou imediatamente ap�s uma luta!";
+			return "You may not logout during or immediately after a fight!";
 
 		case RETURNVALUE_DIRECTPLAYERSHOOT:
-			return "Você Não tem permiss�o para atirar diretamente nos jogadores.";
+			return "You are not allowed to shoot directly on players.";
 
 		case RETURNVALUE_NOTENOUGHLEVEL:
-			return "Seu nível est� muito baixo.";
+			return "Your level is too low.";
 
 		case RETURNVALUE_NOTENOUGHMAGICLEVEL:
-			return "Você Não tem magic level suficiente.";
+			return "You do not have enough magic level.";
 
 		case RETURNVALUE_NOTENOUGHMANA:
-			return "Você Não tem mana suficiente.";
+			return "You do not have enough mana.";
 
 		case RETURNVALUE_NOTENOUGHSOUL:
-			return "Você Não tem soul suficiente.";
+			return "You do not have enough soul.";
 
 		case RETURNVALUE_YOUAREEXHAUSTED:
-			return "Você est� exausto.";
+			return "You are exhausted.";
 
 		case RETURNVALUE_YOUCANNOTUSEOBJECTSTHATFAST:
-			return "Você Não pode usar objetos t�o r�pido.";
+			return "You cannot use objects that fast.";
 
 		case RETURNVALUE_CANONLYUSETHISRUNEONCREATURES:
-			return "Você s� pode us�-lo em criaturas.";
+			return "You can only use it on creatures.";
 
 		case RETURNVALUE_PLAYERISNOTREACHABLE:
-			return "O jogador Não est� acess�vel.";
+			return "Player is not reachable.";
 
 		case RETURNVALUE_CREATUREISNOTREACHABLE:
-			return "Criatura Não � alcan��vel.";
+			return "Creature is not reachable.";
 
 		case RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE:
-			return "Esta a��o Não � permitida em uma zona de prote��o.";
+			return "This action is not permitted in a protection zone.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKTHISPLAYER:
-			return "Você Não pode atacar essa pessoa.";
+			return "You may not attack this person.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKTHISCREATURE:
-			return "Você Não pode atacar esta criatura.";
+			return "You may not attack this creature.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKAPERSONINPROTECTIONZONE:
-			return "Você Não pode atacar uma pessoa em uma zona de prote��o.";
+			return "You may not attack a person in a protection zone.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKAPERSONWHILEINPROTECTIONZONE:
-			return "Você Não pode atacar uma pessoa enquanto estiver em uma zona de prote��o.";
+			return "You may not attack a person while you are in a protection zone.";
 
 		case RETURNVALUE_YOUCANONLYUSEITONCREATURES:
-			return "Você s� pode us�-lo em criaturas.";
+			return "You can only use it on creatures.";
 
 		case RETURNVALUE_TURNSECUREMODETOATTACKUNMARKEDPLAYERS:
-			return "Desative o modo seguro se você realmente quiser atacar jogadores Não marcados.";
+			return "Turn secure mode off if you really want to attack unmarked players.";
 
 		case RETURNVALUE_YOUNEEDPREMIUMACCOUNT:
-			return "Você precisa de uma conta premium.";
+			return "You need a premium account.";
 
 		case RETURNVALUE_YOUNEEDTOLEARNTHISSPELL:
-			return "Você deve aprender esse feiti�o primeiro.";
+			return "You must learn this spell first.";
 
 		case RETURNVALUE_YOURVOCATIONCANNOTUSETHISSPELL:
-			return "Você tem a voca��o errada para lan�ar este feiti�o.";
+			return "You have the wrong vocation to cast this spell.";
 
 		case RETURNVALUE_YOUNEEDAWEAPONTOUSETHISSPELL:
-			return "Você precisa equipar uma arma para usar esse feiti�o.";
+			return "You need to equip a weapon to use this spell.";
 
 		case RETURNVALUE_PLAYERISPZLOCKEDLEAVEPVPZONE:
-			return "Você Não pode sair de uma zona pvp depois de atacar outro jogador.";
+			return "You can not leave a pvp zone after attacking another player.";
 
 		case RETURNVALUE_PLAYERISPZLOCKEDENTERPVPZONE:
-			return "Você Não pode entrar em uma zona pvp depois de atacar outro jogador.";
+			return "You can not enter a pvp zone after attacking another player.";
 
 		case RETURNVALUE_ACTIONNOTPERMITTEDINANOPVPZONE:
-			return "Esta a��o Não � permitida em uma zona noo pvp.";
+			return "This action is not permitted in a non pvp zone.";
 
 		case RETURNVALUE_YOUCANNOTLOGOUTHERE:
-			return "Você Não pode deslogar aqui.";
+			return "You can not logout here.";
 
 		case RETURNVALUE_YOUNEEDAMAGICITEMTOCASTSPELL:
-			return "Você precisa de um item m�gico para lan�ar este feiti�o.";
+			return "You need a magic item to cast this spell.";
 
 		case RETURNVALUE_CANNOTCONJUREITEMHERE:
-			return "Você Não pode conjurar itens aqui.";
+			return "You cannot conjure items here.";
 
 		case RETURNVALUE_YOUNEEDTOSPLITYOURSPEARS:
-			return "Você precisa dividir suas lan�as primeiro.";
+			return "You need to split your spears first.";
 
 		case RETURNVALUE_NAMEISTOOAMBIGUOUS:
-			return "O nome do jogador � amb�guo.";
+			return "Player name is ambiguous.";
 
 		case RETURNVALUE_CANONLYUSEONESHIELD:
-			return "Você pode usar apenas um escudo.";
+			return "You may use only one shield.";
 
 		case RETURNVALUE_NOPARTYMEMBERSINRANGE:
-			return "Nenhum membro do grupo dentro do alcance.";
+			return "No party members in range.";
+			
+		case RETURNVALUE_YOUCANTOPENCORPSEADM:
+			return "You can't open this corpse, because you are an Admin.";
 
 		case RETURNVALUE_YOUARENOTTHEOWNER:
-			return "Você Não � o dono.";
-
-		case RETURNVALUE_NOSUCHRAIDEXISTS:
-			return "Não existe essa raid.";
-
-		case RETURNVALUE_ANOTHERRAIDISALREADYEXECUTING:
-			return "Outra raid j� est� em execu��o.";
+			return "You are not the owner.";
 
 		case RETURNVALUE_TRADEPLAYERFARAWAY:
 			return "Trade player is too far away.";
 
 		case RETURNVALUE_YOUDONTOWNTHISHOUSE:
-			return "Você Não � dono desta casa.";
+			return "You don't own this house.";
 
 		case RETURNVALUE_TRADEPLAYERALREADYOWNSAHOUSE:
 			return "Trade player already owns a house.";
@@ -1442,11 +1559,20 @@ const char* getReturnMessage(ReturnValue value)
 			return "Trade player is currently the highest bidder of an auctioned house.";
 
 		case RETURNVALUE_YOUCANNOTTRADETHISHOUSE:
-			return "Você Não pode trocar esta casa.";
+			return "You can not trade this house.";
 
 		case RETURNVALUE_YOUDONTHAVEREQUIREDPROFESSION:
-			return "Você Não tem a profiss�o necess�ria.";
+			return "You don't have the required profession.";
 
+		//case RETURNVALUE_ITEMCANNOTBEMOVEDTHERE:
+			//return "This item cannot be moved there.";
+
+		//case RETURNVALUE_YOUCANNOTUSETHISBED:
+			//return "This bed can't be used, but Premium Account players can rent houses and sleep in beds there to regain health and mana.";
+			
+		case RETURNVALUE_QUIVERAMMOONLY:
+			return "This quiver only holds arrows and bolts.\nYou cannot put any other items in it.";
+			
 		default: // RETURNVALUE_NOTPOSSIBLE, etc
 			return "Desculpe, Não � poss�vel.";
 	}
@@ -1468,6 +1594,14 @@ SpellGroup_t stringToSpellGroup(std::string value)
 		return SPELLGROUP_SUPPORT;
 	} else if (tmpStr == "special" || tmpStr == "4") {
 		return SPELLGROUP_SPECIAL;
+	} else if (tmpStr == "conjure" || tmpStr == "5") {
+		return SPELLGROUP_CONJURE;
+	} else if (tmpStr == "crippling" || tmpStr == "6") {
+		return SPELLGROUP_CRIPPLING;
+	} else if (tmpStr == "focus" || tmpStr == "7") {
+		return SPELLGROUP_FOCUS;
+	} else if (tmpStr == "ultimatestrikes" || tmpStr == "8") {
+		return SPELLGROUP_ULTIMATESTRIKES;
 	}
 	return SPELLGROUP_NONE;
 }

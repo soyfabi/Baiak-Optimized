@@ -261,18 +261,21 @@ bool ConfigManager::load()
 	boolean[SERVER_SAVE_CLOSE] = getGlobalBoolean(L, "serverSaveClose", false);
 	boolean[SERVER_SAVE_SHUTDOWN] = getGlobalBoolean(L, "serverSaveShutdown", true);
 	boolean[ONLINE_OFFLINE_CHARLIST] = getGlobalBoolean(L, "showOnlineStatusInCharlist", false);
+	boolean[HOUSE_DOOR_SHOW_PRICE] = getGlobalBoolean(L, "houseDoorShowPrice", true);
 	boolean[YELL_ALLOW_PREMIUM] = getGlobalBoolean(L, "yellAlwaysAllowPremium", false);
+	boolean[PREMIUM_TO_SEND_PRIVATE] = getGlobalBoolean(L, "premiumToSendPrivate", false);
 	boolean[FORCE_MONSTERTYPE_LOAD] = getGlobalBoolean(L, "forceMonsterTypesOnLoad", true);
 	boolean[SPOOF_ENABLED] = getGlobalBoolean(L, "spoofEnabled", false);
-	boolean[GM_FULL_LIGHT_ON_EQUIP_ITEM] = getGlobalBoolean(L, "GMFullLightOnEquipItem", false);
 	boolean[CLOSED_WORLD] = getGlobalBoolean(L, "closedWorld", false);
-	boolean[SHOW_MONSTER_EXIVA] = getGlobalBoolean(L, "showMonsterExiva", true);
 	boolean[REMOVE_ON_DESPAWN] = getGlobalBoolean(L, "removeOnDespawn", true);
 	boolean[PACKET_COMPRESSION] = getGlobalBoolean(L, "packetCompression", true);
-	boolean[ANTI_BOT] = getGlobalBoolean(L, "antiBot", true);
-	boolean[GUILD_LEADER_SQUARE] = getGlobalBoolean(L, "guildLeaderSquare", true);
-	boolean[PVP_BALANCE] = getGlobalBoolean(L, "pvpBalance", true);
+	boolean[NPCS_USING_BANK_MONEY] = getGlobalBoolean(L, "npcsUsingBankMoney", true);
 	boolean[PUSH_CRUZADO] = getGlobalBoolean(L, "pushCruzado", true);
+	boolean[SORT_LOOT_BY_CHANCE] = getGlobalBoolean(L, "sortLootByChance", false);
+	boolean[BLOCK_LOGIN] = getGlobalBoolean(L, "blockLogin", false);
+	boolean[SHOW_PACKETS] = getGlobalBoolean(L, "showPackets", false);
+	boolean[STAMINA_TRAINER] = getGlobalBoolean(L, "staminaTrainer", false);
+	boolean[STAMINA_PZ] = getGlobalBoolean(L, "staminaPz", false);
 
 	string[DEFAULT_PRIORITY] = getGlobalString(L, "defaultPriority", "high");
 	string[SERVER_NAME] = getGlobalString(L, "serverName", "");
@@ -282,6 +285,7 @@ bool ConfigManager::load()
 	string[LOCATION] = getGlobalString(L, "location", "");
 	string[MOTD] = getGlobalString(L, "motd", "");
 	string[WORLD_TYPE] = getGlobalString(L, "worldType", "pvp");
+	string[BLOCK_LOGIN_TEXT] = getGlobalString(L, "blockLoginText", "Server is closed for bug fixing.");
 
 	integer[MAX_PLAYERS] = getGlobalNumber(L, "maxPlayers");
 	integer[PZ_LOCKED] = getGlobalNumber(L, "pzLocked", 60000);
@@ -292,14 +296,11 @@ bool ConfigManager::load()
 	integer[RATE_LOOT] = getGlobalNumber(L, "rateLoot", 2);
 	integer[RATE_MAGIC] = getGlobalNumber(L, "rateMagic", 3);
 	integer[RATE_SPAWN] = getGlobalNumber(L, "rateSpawn", 1);
-  integer[SPAWN_MULTIPLIER] = getGlobalNumber(L, "spawnMultiplier", 1);
+	integer[SPAWN_MULTIPLIER] = getGlobalNumber(L, "spawnMultiplier", 1);
 	integer[HOUSE_PRICE] = getGlobalNumber(L, "housePriceEachSQM", 1000);
 	integer[KILLS_TO_RED] = getGlobalNumber(L, "killsToRedSkull", 3);
 	integer[KILLS_TO_BLACK] = getGlobalNumber(L, "killsToBlackSkull", 6);
-	integer[ACTIONS_DELAY_INTERVAL] = getGlobalNumber(L, "timeBetweenActions", 200);
-	integer[EX_ACTIONS_DELAY_INTERVAL] = getGlobalNumber(L, "timeBetweenExActions", 1000);
 	integer[MAX_MESSAGEBUFFER] = getGlobalNumber(L, "maxMessageBuffer", 4);
-	integer[KICK_AFTER_MINUTES] = getGlobalNumber(L, "kickIdlePlayerAfterMinutes", 15);
 	integer[PROTECTION_LEVEL] = getGlobalNumber(L, "protectionLevel", 1);
 	integer[DEATH_LOSE_PERCENT] = getGlobalNumber(L, "deathLosePercent", -1);
 	integer[STATUSQUERY_TIMEOUT] = getGlobalNumber(L, "statusTimeout", 5000);
@@ -308,8 +309,11 @@ bool ConfigManager::load()
 	integer[STAIRHOP_DELAY] = getGlobalNumber(L, "stairJumpExhaustion", 2000);
 	integer[EXP_FROM_PLAYERS_LEVEL_RANGE] = getGlobalNumber(L, "expFromPlayersLevelRange", 75);
 	integer[MAX_PACKETS_PER_SECOND] = getGlobalNumber(L, "maxPacketsPerSecond", 25);
+	integer[PROTECTION_TIME] = getGlobalNumber(L, "protectionTime", 10);
 	integer[SERVER_SAVE_NOTIFY_DURATION] = getGlobalNumber(L, "serverSaveNotifyDuration", 5);
 	integer[YELL_MINIMUM_LEVEL] = getGlobalNumber(L, "yellMinimumLevel", 2);
+	integer[MINIMUM_LEVEL_TO_SEND_PRIVATE] = getGlobalNumber(L, "minimumLevelToSendPrivate", 1);
+	integer[NPCS_SHOP_DELAY] = getGlobalNumber(L, "npcsShopDelay", 400);
 	integer[SPOOF_DAILY_MIN_PLAYERS] = getGlobalNumber(L, "spoofDailyMinPlayers", 50);
 	integer[SPOOF_DAILY_MAX_PLAYERS] = getGlobalNumber(L, "spoofDailyMaxPlayers", 200);
 	integer[SPOOF_NOISE_INTERVAL] = getGlobalNumber(L, "spoofNoiseInterval", 10 * 60 * 1000);
@@ -318,7 +322,30 @@ bool ConfigManager::load()
 	integer[SPOOF_INTERVAL] = getGlobalNumber(L, "spoofInterval", 60 * 1000);
 	integer[SPOOF_CHANGE_CHANCE] = getGlobalNumber(L, "spoofChangeChance", 100);
 	integer[SPOOF_INCREMENT_CHANCE] = getGlobalNumber(L, "spoofIncrementChange", 5);
-
+	integer[STAMINA_REGEN_MINUTE] = getGlobalNumber(L, "timeToRegenMinuteStamina", 3 * 60);
+	integer[STAMINA_REGEN_PREMIUM] = getGlobalNumber(L, "timeToRegenMinutePremiumStamina", 10 * 60);
+	integer[STAMINA_PZ_GAIN] = getGlobalNumber(L, "staminaPzGain", 1);
+	integer[STAMINA_ORANGE_DELAY] = getGlobalNumber(L, "staminaOrangeDelay", 1);
+	integer[STAMINA_GREEN_DELAY] = getGlobalNumber(L, "staminaGreenDelay", 5);
+	integer[STAMINA_TRAINER_DELAY] = getGlobalNumber(L, "staminaTrainerDelay", 5);
+	integer[STAMINA_TRAINER_GAIN] = getGlobalNumber(L, "staminaTrainerGain", 1);
+	integer[MAX_ALLOWED_ON_A_DUMMY] = getGlobalNumber(L, "maxAllowedOnADummy", 5);
+	integer[RATE_EXERCISE_TRAINING_SPEED] = getGlobalNumber(L, "rateExerciseTrainingSpeed", 1.0);
+	
+	//Floating ConfigManager
+	floating[MLVL_BONUSDMG] = getGlobalFloat(L, "monsterBonusDamage", 0);
+	floating[MLVL_BONUSSPEED] = getGlobalFloat(L, "monsterBonusSpeed", 0);
+	floating[MLVL_BONUSHP] = getGlobalFloat(L, "monsterBonusHealth", 0);
+	
+	floating[RATE_HEALTH_REGEN] = getGlobalFloat(L, "rateHealthRegen", 1.0);
+	floating[RATE_HEALTH_REGEN_SPEED] = getGlobalFloat(L, "rateHealthRegenSpeed", 1.0);
+	floating[RATE_MANA_REGEN] = getGlobalFloat(L, "rateManaRegen", 1.0);
+	floating[RATE_MANA_REGEN_SPEED] = getGlobalFloat(L, "rateManaRegenSpeed", 1.0);
+	floating[RATE_SOUL_REGEN] = getGlobalFloat(L, "rateSoulRegen", 1.0);
+	floating[RATE_SOUL_REGEN_SPEED] = getGlobalFloat(L, "rateSoulRegenSpeed", 1.0);
+	floating[RATE_ATTACK_SPEED] = getGlobalFloat(L, "rateAttackSpeed", 1.0);
+	floating[RATE_SPELL_COOLDOWN] = getGlobalFloat(L, "rateSpellCooldown", 1.0);
+	
 	expStages = loadXMLStages();
 	if (expStages.empty()) {
 		expStages = loadLuaStages(L);
@@ -326,10 +353,6 @@ bool ConfigManager::load()
 		std::cout << "[Warning - ConfigManager::load] XML stages are deprecated, consider moving to config.lua." << std::endl;
 	}
 	expStages.shrink_to_fit();
-
-	floating[MLVL_BONUSDMG] = getGlobalFloat(L, "monsterBonusDamage", 0);
-	floating[MLVL_BONUSSPEED] = getGlobalFloat(L, "monsterBonusSpeed", 0);
-	floating[MLVL_BONUSHP] = getGlobalFloat(L, "monsterBonusHealth", 0);
 
 	loaded = true;
 	lua_close(L);

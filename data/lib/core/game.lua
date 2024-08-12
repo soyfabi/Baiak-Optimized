@@ -60,47 +60,131 @@ if not globalStorageTable then
 end
 
 function Game.getStorageValue(key)
-	return globalStorageTable[key]
+	return globalStorageTable[key] or -1
 end
 
 function Game.setStorageValue(key, value)
 	globalStorageTable[key] = value
 end
 
-function getMoneyCount(string)
-	local b,
-	e = string:find("%d+")
-	local money = b and e and tonumber(string:sub(b, e)) or -1
-	if isValidMoney(money) then
-		return money
+function getFormattedWorldTime()
+	local worldTime = getWorldTime()
+	local hours = math.floor(worldTime / 60)
+
+	local minutes = worldTime % 60
+	if minutes < 10 then
+		minutes = '0' .. minutes
 	end
-	return -1
+	return hours .. ':' .. minutes
 end
 
-function getBankMoney(cid, amount)
-	local player = Player(cid)
-	if player:getBankBalance() >= amount then
-		player:setBankBalance(player:getBankBalance() - amount)
-		player:sendTextMessage(MESSAGE_INFO_DESCR, "Paid " .. amount .. " gold from bank account. Your account balance is now " .. player:getBankBalance() .. " gold.")
+do
+	local quests = {}
+	local missions = {}
+	local trackedQuests = {}
+
+	function Game.getQuests() return quests end
+	function Game.getMissions() return missions end
+	function Game.getTrackedQuests() return trackedQuests end
+
+	function Game.getQuestById(id) return quests[id] end
+	function Game.getMissionById(id) return missions[id] end
+
+	function Game.clearQuests()
+		quests = {}
+		missions = {}
+		for playerId, _ in pairs(trackedQuests) do
+			local player = Player(playerId)
+			if player then
+				player:sendQuestTracker({})
+			end
+		end
+		trackedQuests = {}
 		return true
 	end
-	return false
+
+	function Game.createQuest(name, quest)
+		if not isScriptsInterface() then
+			return
+		end
+
+		if type(quest) == "table" then
+			setmetatable(quest, Quest)
+			quest.id = -1
+			quest.name = name
+			if type(quest.missions) ~= "table" then
+				quest.missions = {}
+			end
+
+			return quest
+		end
+
+		quest = setmetatable({}, Quest)
+		quest.id = -1
+		quest.name = name
+		quest.storageId = 0
+		quest.storageValue = 0
+		quest.missions = {}
+		return quest
+	end
+
+	function Game.isQuestStorage(key, value, oldValue)
+		for _, quest in pairs(quests) do
+			if quest.storageId == key then
+				if quest.storageValue == value then
+					return true
+				end
+				return true
+			end
+		end
+
+		for _, mission in pairs(missions) do
+			if mission.storageId == key then
+				if value >= mission.startValue and value <= mission.endValue then
+					return true
+				end
+				return true
+			end
+		end
+		return false
+	end
 end
 
-function getMoneyWeight(money)
-	local gold = money
-	local crystal = math.floor(gold / 10000)
-	gold = gold - crystal * 10000
-	local platinum = math.floor(gold / 100)
-	gold = gold - platinum * 100
-	return (ItemType(2160):getWeight() * crystal) + (ItemType(2152):getWeight() * platinum) +
-	(ItemType(2148):getWeight() * gold)
+do
+	local worldLightLevel = 0
+	local worldLightColor = 0
+
+	function Game.getWorldLight() return worldLightLevel, worldLightColor end
+
+	function Game.setWorldLight(color, level)
+		if not configManager.getBoolean(configKeys.DEFAULT_WORLD_LIGHT) then return end
+
+		local previousColor = worldLightColor
+		local previousLevel = worldLightLevel
+		worldLightColor = color
+		worldLightLevel = level
+
+		if worldLightColor ~= previousColor or worldLightLevel ~= previousLevel then
+			for _, player in ipairs(Game.getPlayers()) do
+				player:sendWorldLight(worldLightColor, worldLightLevel)
+			end
+		end
+	end
 end
 
-function isValidMoney(money)
-	return isNumber(money) and money > 0 and money < 4294967296
-end
+do
+	local worldTime = 0
 
-function isNumber(str)
-	return tonumber(str) ~= nil
+	function Game.getWorldTime() return worldTime end
+
+	function Game.setWorldTime(time)
+		worldTime = time
+
+		-- quarter-hourly update to client clock near the minimap
+		if worldTime % 15 == 0 then
+			for _, player in ipairs(Game.getPlayers()) do
+				player:sendWorldTime(worldTime)
+			end
+		end
+	end
 end

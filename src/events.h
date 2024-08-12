@@ -22,6 +22,7 @@
 
 #include "luascript.h"
 #include "const.h"
+#include "creature.h"
 
 class Party;
 class ItemType;
@@ -35,15 +36,18 @@ class Events
 		int32_t creatureOnAreaCombat = -1;
 		int32_t creatureOnTargetCombat = -1;
 		int32_t creatureOnHear = -1;
+		int32_t creatureOnChangeZone = -1;
 
 		// Party
 		int32_t partyOnJoin = -1;
 		int32_t partyOnLeave = -1;
 		int32_t partyOnDisband = -1;
 		int32_t partyOnShareExperience = -1;
+		int32_t partyOnInvite = -1;
+		int32_t partyOnRevokeInvitation = -1;
+		int32_t partyOnPassLeadership = -1;
 
 		// Player
-		int32_t playerOnSay = -1;
 		int32_t playerOnLook = -1;
 		int32_t playerOnLookInBattleList = -1;
 		int32_t playerOnLookInTrade = -1;
@@ -56,9 +60,13 @@ class Events
 		int32_t playerOnTurn = -1;
 		int32_t playerOnTradeRequest = -1;
 		int32_t playerOnTradeAccept = -1;
+		int32_t playerOnTradeCompleted = -1;
 		int32_t playerOnGainExperience = -1;
 		int32_t playerOnLoseExperience = -1;
 		int32_t playerOnGainSkillTries = -1;
+		int32_t playerOnSay = -1;
+		int32_t playerOnInventoryUpdate = -1;
+		int32_t playerOnStepTile = -1;
 
 		// Monster
 		int32_t monsterOnDropLoot = -1;
@@ -75,15 +83,18 @@ class Events
 		ReturnValue eventCreatureOnAreaCombat(Creature* creature, Tile* tile, bool aggressive);
 		ReturnValue eventCreatureOnTargetCombat(Creature* creature, Creature* target);
 		void eventCreatureOnHear(Creature* creature, Creature* speaker, const std::string& words, SpeakClasses type);
+		void eventCreatureOnChangeZone(Creature* creature, ZoneType_t fromZone, ZoneType_t toZone);
 
 		// Party
 		bool eventPartyOnJoin(Party* party, Player* player);
 		bool eventPartyOnLeave(Party* party, Player* player);
 		bool eventPartyOnDisband(Party* party);
 		void eventPartyOnShareExperience(Party* party, uint64_t& exp);
+		bool eventPartyOnInvite(Party* party, Player* player);
+		bool eventPartyOnRevokeInvitation(Party* party, Player* player);
+		bool eventPartyOnPassLeadership(Party* party, Player* player);
 
 		// Player
-		bool eventPlayerOnSay(Player* player, const std::string& message);
 		void eventPlayerOnLook(Player* player, const Position& position, Thing* thing, uint8_t stackpos, int32_t lookDistance);
 		void eventPlayerOnLookInBattleList(Player* player, Creature* creature, int32_t lookDistance);
 		void eventPlayerOnLookInTrade(Player* player, Player* partner, Item* item, int32_t lookDistance);
@@ -96,9 +107,13 @@ class Events
 		bool eventPlayerOnTurn(Player* player, Direction direction);
 		bool eventPlayerOnTradeRequest(Player* player, Player* target, Item* item);
 		bool eventPlayerOnTradeAccept(Player* player, Player* target, Item* item, Item* targetItem);
-		void eventPlayerOnGainExperience(Player* player, Creature* source, uint64_t& exp, uint64_t rawExp);
+		void eventPlayerOnTradeCompleted(Player* player, Player* target, Item* item, Item* targetItem, bool isSuccess);
+		void eventPlayerOnGainExperience(Player* player, Creature* source, uint64_t& exp, uint64_t rawExp, bool sendText);
 		void eventPlayerOnLoseExperience(Player* player, uint64_t& exp);
 		void eventPlayerOnGainSkillTries(Player* player, skills_t skill, uint64_t& tries);
+		bool eventPlayerOnSay(Player* player, const std::string& message);
+		void eventPlayerOnInventoryUpdate(Player* player, Item* item, slots_t slot, bool equip);
+		bool eventPlayerOnStepTile(Player* player, const Position& fromPosition, const Position& toPosition);
 
 		// Monster
 		void eventMonsterOnDropLoot(Monster* monster, Container* corpse);

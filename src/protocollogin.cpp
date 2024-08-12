@@ -52,9 +52,7 @@ void ProtocolLogin::getCharacterList(const std::string& accountName, const std::
 	}
 
 	auto output = OutputMessagePool::getOutputMessage();
-	//Update premium days
-	Game::updatePremium(account);
-
+	
 	const std::string& motd = g_config.getString(ConfigManager::MOTD);
 	if (!motd.empty()) {
 		//Add MOTD
@@ -86,7 +84,7 @@ void ProtocolLogin::getCharacterList(const std::string& accountName, const std::
 	if (g_config.getBoolean(ConfigManager::FREE_PREMIUM)) {
 		output->add<uint16_t>(0xFFFF); //client displays free premium
 	} else {
-		output->add<uint16_t>(account.premiumDays);
+		output->add<uint16_t>(std::max<time_t>(0, account.premiumEndsAt - time(nullptr)) / 86400);
 	}
 
 	send(output);
@@ -146,6 +144,12 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 	if (g_game.getGameState() == GAME_STATE_MAINTAIN) {
 		disconnectClient("O Gameworld está em manutenção.\nReconecte-se daqui a pouco.");
+		return;
+	}
+	
+	const std::string customMessage = g_config.getString(ConfigManager::BLOCK_LOGIN_TEXT);
+	if (g_config.getBoolean(ConfigManager::BLOCK_LOGIN)) {
+		disconnectClient(customMessage);
 		return;
 	}
 

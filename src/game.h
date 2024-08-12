@@ -70,7 +70,16 @@ enum LightState_t {
 	LIGHT_STATE_SUNRISE,
 };
 
+static constexpr int32_t PLAYER_NAME_LENGTH = 25;
 static constexpr int32_t EVENT_LIGHTINTERVAL = 10000;
+static constexpr int32_t MOVE_CREATURE_INTERVAL = 1000;
+static constexpr int32_t RANGE_MOVE_CREATURE_INTERVAL = 1500;
+static constexpr int32_t RANGE_MOVE_ITEM_INTERVAL = 400;
+static constexpr int32_t RANGE_USE_ITEM_INTERVAL = 400;
+static constexpr int32_t RANGE_USE_ITEM_EX_INTERVAL = 400;
+static constexpr int32_t RANGE_USE_WITH_CREATURE_INTERVAL = 400;
+static constexpr int32_t RANGE_ROTATE_ITEM_INTERVAL = 400;
+static constexpr int32_t RANGE_REQUEST_TRADE_INTERVAL = 400;
 
 /**
   * Main Game class.
@@ -93,7 +102,7 @@ class Game
 		void forceRemoveCondition(uint32_t creatureId, ConditionType_t type);
 
 		bool loadMainMap(const std::string& filename);
-		void loadMap(const std::string& path);
+		void loadMap(const std::string& path, bool isCalledByLua = false);
 
 		/**
 		  * Get the map size - info purpose only
@@ -236,7 +245,7 @@ class Game
 		ReturnValue internalMoveCreature(Creature& creature, Tile& toTile, uint32_t flags = 0);
 
 		ReturnValue internalMoveItem(Cylinder* fromCylinder, Cylinder* toCylinder, int32_t index,
-		                             Item* item, uint32_t count, Item** _moveItem, uint32_t flags = 0, Creature* actor = nullptr, Item* tradeItem = nullptr);
+		                             Item* item, uint32_t count, Item** _moveItem, uint32_t flags = 0, Creature* actor = nullptr, Item* tradeItem = nullptr, const Position* fromPos = nullptr, const Position* toPos = nullptr);
 
 		ReturnValue internalAddItem(Cylinder* toCylinder, Item* item, int32_t index = INDEX_WHEREEVER,
 		                            uint32_t flags = 0, bool test = false);
@@ -388,9 +397,7 @@ class Game
 		void playerEnableSharedPartyExperience(uint32_t playerId, bool sharedExpActive);
 
 		void parsePlayerExtendedOpcode(uint32_t playerId, uint8_t opcode, const std::string& buffer);
-
-		static void updatePremium(Account& account);
-
+		
 		void cleanup();
 		void shutdown();
 		void ReleaseCreature(Creature* creature);
@@ -401,6 +408,7 @@ class Game
 		bool isSightClear(const Position& fromPos, const Position& toPos, bool floorCheck) const;
 
 		void changeSpeed(Creature* creature, int32_t varSpeedDelta);
+		void setCreatureSpeed(Creature* creature, int32_t speed);
 		void internalCreatureChangeOutfit(Creature* creature, const Outfit_t& outfit);
 		void internalCreatureChangeVisible(Creature* creature, bool visible);
 		void changeLight(const Creature* creature);

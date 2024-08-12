@@ -36,12 +36,8 @@ extern Events* g_events;
 static constexpr int32_t MINSPAWN_INTERVAL = 1000; // 1 second
 static constexpr int32_t MAXSPAWN_INTERVAL = 86400000; // 1 day
 
-bool Spawns::loadFromXml(const std::string& filename)
+bool Spawns::loadFromXml(const std::string& filename, bool isCalledByLua)
 {
-	if (loaded) {
-		return true;
-	}
-
 	pugi::xml_document doc;
 	pugi::xml_parse_result result = doc.load_file(filename.c_str());
 	if (!result) {
@@ -130,6 +126,10 @@ bool Spawns::loadFromXml(const std::string& filename)
 				npcList.push_front(npc);
 			}
 		}
+		
+		if (isCalledByLua) {
+			spawn.startup();
+		}
 	}
 	return true;
 }
@@ -198,7 +198,10 @@ bool Spawn::findPlayer(const Position& pos)
 	SpectatorVector spectators;
 	g_game.map.getSpectators(spectators, pos, false, true);
 	for (Creature* spectator : spectators) {
-		if (!spectator->getPlayer()->hasFlag(PlayerFlag_IgnoredByMonsters)) {
+		assert(dynamic_cast<Player*>(spectator) != nullptr);
+
+		Player* spectatorPlayer = static_cast<Player*>(spectator);
+		if (!spectatorPlayer->hasFlag(PlayerFlag_IgnoredByMonsters)) {
 			return true;
 		}
 	}
@@ -266,7 +269,7 @@ void Spawn::checkSpawn()
 		spawnBlock_t& sb = it.second;
 
 		if (OTSYS_TIME() >= sb.lastSpawn + std::max<uint32_t>(MINSPAWN_INTERVAL, sb.interval / g_game.getSpawnRate())) {
-			if (sb.mType->info.isBlockable && findPlayer(sb.pos)) {
+			if (sb.mType->info.isIgnoringSpawnBlock && findPlayer(sb.pos)) {
 				sb.lastSpawn = OTSYS_TIME();
 				continue;
 			}

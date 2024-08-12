@@ -23,11 +23,13 @@
 #include "game.h"
 #include "monster.h"
 #include "configmanager.h"
+#include "events.h"
 #include "scheduler.h"
 
 extern Game g_game;
 extern ConfigManager g_config;
 extern CreatureEvents* g_creatureEvents;
+extern Events* g_events;
 
 Creature::Creature()
 {
@@ -251,6 +253,10 @@ bool Creature::getNextStep(Direction& dir, uint32_t&)
 
 void Creature::startAutoWalk(const std::vector<Direction>& listDir)
 {
+	if (hasCondition(CONDITION_ROOTED)) {
+		return;
+	}
+	
 	Player* player = getPlayer();
 	if (player && player->isMovementBlocked()) {
 		player->sendCancelWalk();
@@ -479,8 +485,10 @@ void Creature::onCreatureMove(Creature* creature, const Tile* newTile, const Pos
 			std::vector<Creature*> despawnList;
 			for (Creature* summon : summons) {
 				const Position& pos = summon->getPosition();
-				if (Position::getDistanceZ(newPos, pos) > 2 || (std::max<int32_t>(Position::getDistanceX(newPos, pos), Position::getDistanceY(newPos, pos)) > 30)) {
-					despawnList.push_back(summon);
+				if (Position::getDistanceZ(newPos, pos) > 1 || (std::max<int32_t>(Position::getDistanceX(newPos, pos), Position::getDistanceY(newPos, pos)) > 12)) {
+					g_game.addMagicEffect(this->getPosition(), CONST_ME_TELEPORT);
+					g_game.internalTeleport(summon, summon->getMaster()->getPosition(), true);
+					g_game.addMagicEffect(this->getPosition(), CONST_ME_TELEPORT);
 				}
 			}
 
@@ -488,8 +496,16 @@ void Creature::onCreatureMove(Creature* creature, const Tile* newTile, const Pos
 				g_game.removeCreature(despawnCreature, true);
 			}
 		}
+		
+		// protection time
+		if (creature->getPlayer()) {
+			if (creature->getPlayer()->getProtectionTime() > 0) {
+				creature->getPlayer()->setProtectionTime(0);
+			}
+		}
 
 		if (newTile->getZone() != oldTile->getZone()) {
+			g_events->eventCreatureOnChangeZone(this, oldTile->getZone(), newTile->getZone());
 			onChangeZone(getZone());
 		}
 
@@ -806,7 +822,7 @@ BlockType_t Creature::blockHit(Creature* attacker, CombatType_t combatType, int3
 	if (isImmune(combatType)) {
 		damage = 0;
 		blockType = BLOCK_IMMUNITY;
-	} else if (checkDefense || checkArmor) {
+	} else if (combatType != COMBAT_HEALING && (checkDefense || checkArmor)) {
 		bool hasDefense = false;
 
 		if (blockCount > 0) {
@@ -843,12 +859,39 @@ BlockType_t Creature::blockHit(Creature* attacker, CombatType_t combatType, int3
 		}
 	}
 
-	if (attacker) {
-		attacker->onAttackedCreature(this);
-		attacker->onAttackedCreatureBlockHit(blockType);
+		if (attacker) {
+			if (Player* attackerPlayer = attacker->getPlayer()) {
+				for (int32_t slot = CONST_SLOT_FIRST; slot <= CONST_SLOT_LAST; ++slot) {
+					if (!attackerPlayer->isItemAbilityEnabled(static_cast<slots_t>(slot))) {
+						continue;
+					}
+
+					Item* item = attackerPlayer->getInventoryItem(static_cast<slots_t>(slot));
+					if (!item) {
+						continue;
+					}
+
+					const uint16_t boostPercent = item->getBoostPercent(combatType);
+					if (boostPercent != 0) {
+						damage += std::round(damage * (boostPercent / 100.));
+					}
+				}
+			}
+
+		if (damage <= 0) {
+			damage = 0;
+			blockType = BLOCK_ARMOR;
+		}
+
+		if (combatType != COMBAT_HEALING) {
+			attacker->onAttackedCreature(this);
+			attacker->onAttackedCreatureBlockHit(blockType);
+		}
 	}
 
-	onAttacked();
+	if (combatType != COMBAT_HEALING) {
+		onAttacked();
+	}
 	return blockType;
 }
 
@@ -999,16 +1042,9 @@ void Creature::addDamagePoints(Creature* attacker, int32_t damagePoints)
 
 	uint32_t attackerId = attacker->id;
 
-	auto it = damageMap.find(attackerId);
-	if (it == damageMap.end()) {
-		CountBlock_t cb;
-		cb.ticks = OTSYS_TIME();
-		cb.total = damagePoints;
-		damageMap[attackerId] = cb;
-	} else {
-		it->second.total += damagePoints;
-		it->second.ticks = OTSYS_TIME();
-	}
+	auto& cb = damageMap[attackerId];
+	cb.ticks = OTSYS_TIME();
+	cb.total += damagePoints;
 
 	lastHitCreatureId = attackerId;
 }
@@ -1106,10 +1142,22 @@ void Creature::onGainExperience(uint64_t gainExp, Creature* target)
 
 	gainExp /= 2;
 	master->onGainExperience(gainExp, target);
+	
+	SpectatorVector spectators;
+	g_game.map.getSpectators(spectators, position, false, true);
+	if (spectators.empty()) {
+		return;
+	}
+	
+	TextMessage message(MESSAGE_STATUS_DEFAULT, ucfirst(getNameDescription()) + " gained " + std::to_string(gainExp) + (gainExp != 1 ? " experience points." : " experience point."));
+	message.position = position;
+	message.primary.color = TEXTCOLOR_WHITE;
+	message.primary.value = gainExp;
 
-	std::ostringstream strExp;
-	strExp << ucfirst(getNameDescription()) + " ganhou " + std::to_string(gainExp) + (gainExp != 1 ? " pontos de experiência." : " ponto de experiência.");
-	g_game.addAnimatedText(strExp.str(), position, TEXTCOLOR_WHITE);
+	for (Creature* spectator : spectators) {
+		assert(dynamic_cast<Player*>(spectator) != nullptr);
+		static_cast<Player*>(spectator)->sendTextMessage(message);
+	}
 }
 
 bool Creature::setMaster(Creature* newMaster) {

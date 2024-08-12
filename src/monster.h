@@ -63,22 +63,24 @@ class Monster final : public Creature
 				id = monsterAutoID++;
 			}
 		}
-
-		void removeList() override;
+		
 		void addList() override;
+		void removeList() override;
 
-		const std::string& getName() const override {
-			return mType->name;
-		}
-		const std::string& getNameDescription() const override {
-			return mType->nameDescription;
-		}
+		const std::string& getName() const override;
+		void setName(const std::string& name);
+
+		const std::string& getNameDescription() const override;
+		void setNameDescription(const std::string& nameDescription) {
+			this->nameDescription = nameDescription;
+		};
+		
 		std::string getDescription(int32_t) const override {
 			const Monster* monster = this->getMonster();
 			if (monster && monster->getLevel() > 0) {
-				return strDescription + ", level " + std::to_string(level) + '.';
+				return nameDescription + ", level " + std::to_string(level) + '.';
 			} else {
-				return strDescription + '.';
+				return nameDescription + '.';
 			}
 		}
 
@@ -114,6 +116,9 @@ class Monster final : public Creature
 		}
 		bool isHostile() const {
 			return mType->info.isHostile;
+		}
+		bool isIgnoringSpawnBlock() const {
+			return mType->info.isIgnoringSpawnBlock;
 		}
 		bool isBlockable() const {
 			return mType->info.isBlockable;
@@ -191,7 +196,8 @@ class Monster final : public Creature
 		CreatureHashSet friendList;
 		CreatureList targetList;
 
-		std::string strDescription;
+		std::string name;
+		std::string nameDescription;
 
 		MonsterType* mType;
 		Spawn* spawn = nullptr;

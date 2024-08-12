@@ -58,6 +58,7 @@ void MonsterType::loadLoot(MonsterType* monsterType, LootBlock lootBlock)
 
 bool Monsters::loadFromXml(bool reloading /*= false*/)
 {
+	unloadedMonsters = {};
 	pugi::xml_document doc;
 	pugi::xml_parse_result result = doc.load_file("data/monster/monsters.xml");
 	if (!result) {
@@ -70,14 +71,17 @@ bool Monsters::loadFromXml(bool reloading /*= false*/)
 	for (auto monsterNode : doc.child("monsters").children()) {
 		std::string name = asLowerCaseString(monsterNode.attribute("name").as_string());
 		std::string file = "data/monster/" + std::string(monsterNode.attribute("file").as_string());
-		auto forceLoad = g_config.getBoolean(ConfigManager::FORCE_MONSTERTYPE_LOAD);
-		if (forceLoad) {
-			loadMonster(file, name, true);
-			continue;
-		}
-
-		loadMonster(file, name, reloading);
+		unloadedMonsters.emplace(name, file);
 	}
+	
+	
+	bool forceLoad = g_config.getBoolean(ConfigManager::FORCE_MONSTERTYPE_LOAD);
+	for (auto it : unloadedMonsters) {
+		if (forceLoad || (reloading && monsters.find(it.first) != monsters.end())) {
+			loadMonster(it.second, it.first, reloading);
+		}
+	}
+	
 	return true;
 }
 
@@ -767,6 +771,7 @@ MonsterType* Monsters::loadMonster(const std::string& file, const std::string& m
 
 	if (!mType) {
 		mType = &monsters[monsterName];
+		mType->info = {};
 	}
 
 	mType->name = attr.as_string();
@@ -871,6 +876,8 @@ MonsterType* Monsters::loadMonster(const std::string& file, const std::string& m
 				mType->info.isAttackable = attr.as_bool();
 			} else if (strcasecmp(attrName, "hostile") == 0) {
 				mType->info.isHostile = attr.as_bool();
+			} else if (strcasecmp(attrName, "ignorespawnblock") == 0) {
+				mType->info.isIgnoringSpawnBlock = attr.as_bool();
 			} else if (strcasecmp(attrName, "illusionable") == 0) {
 				mType->info.isIllusionable = attr.as_bool();
 			} else if (strcasecmp(attrName, "convinceable") == 0) {
@@ -1347,18 +1354,22 @@ void Monsters::loadLootContainer(const pugi::xml_node& node, LootBlock& lBlock)
 	}
 }
 
-MonsterType* Monsters::getMonsterType(const std::string& name)
+MonsterType* Monsters::getMonsterType(const std::string& name, bool loadFromFile /*= true */)
 {
 	std::string lowerCaseName = asLowerCaseString(name);
 
 	auto it = monsters.find(lowerCaseName);
 	if (it == monsters.end()) {
-		return nullptr;
+		if (!loadFromFile) {
+			return nullptr;
+		}
+
+		auto it2 = unloadedMonsters.find(lowerCaseName);
+		if (it2 == unloadedMonsters.end()) {
+			return nullptr;
+		}
+
+		return loadMonster(it2->second, name);
 	}
 	return &it->second;
-}
-
-void Monsters::addMonsterType(const std::string& name, MonsterType* mType)
-{
-	mType = &monsters[asLowerCaseString(name)];
 }

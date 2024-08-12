@@ -1,5 +1,7 @@
 function onUpdateDatabase()
-	print("> Updating database to version 27 (Implementing Auction System)")
-	db.query("CREATE TABLE IF NOT EXISTS `auction_system` (`id` int(11) NOT NULL AUTO_INCREMENT, `player_id` int(11) NOT NULL, `item_name` varchar(255) NOT NULL, `item_id` smallint(6) NOT NULL, `count` smallint(5) NOT NULL, `value` int(7) NOT NULL, `date` bigint(20) NOT NULL, PRIMARY KEY (`id`), FOREIGN KEY (`player_id`) REFERENCES `players` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;")
+	print("> Updating database to version 26 (Better premium time handling)")
+	db.query("ALTER TABLE `accounts` DROP COLUMN `lastday`")
+	db.query("ALTER TABLE `accounts` CHANGE COLUMN `premdays` `premium_ends_at` int unsigned NOT NULL DEFAULT 0");
+	db.query("UPDATE `accounts` SET `premium_ends_at` = `premium_ends_at` * 86400 + " .. os.time())
 	return true
 end

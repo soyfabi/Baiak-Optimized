@@ -27,6 +27,8 @@
 #include "configmanager.h"
 #include "bed.h"
 
+#include <fmt/format.h>
+
 extern ConfigManager g_config;
 extern Game g_game;
 
@@ -44,9 +46,7 @@ void House::setOwner(uint32_t guid, bool updateDatabase/* = true*/, Player* play
 	if (updateDatabase && owner != guid) {
 		Database& db = Database::getInstance();
 
-		std::ostringstream query;
-		query << "UPDATE `houses` SET `owner` = " << guid << ", `bid` = 0, `bid_end` = 0, `last_bid` = 0, `highest_bidder` = 0  WHERE `id` = " << id;
-		db.executeQuery(query.str());
+		db.executeQuery(fmt::format("UPDATE `houses` SET `owner` = {:d}, `bid` = 0, `bid_end` = 0, `last_bid` = 0, `highest_bidder` = 0  WHERE `id` = {:d}", guid, id));
 	}
 
 	if (isLoaded && owner == guid) {
@@ -125,20 +125,9 @@ void House::setOwner(uint32_t guid, bool updateDatabase/* = true*/, Player* play
 
 void House::updateDoorDescription() const
 {
-	std::ostringstream ss;
-	if (owner != 0) {
-		ss << "Essa é a casa '" << houseName << "'. " << ownerName << " é dono desta casa.";
-	} else {
-		ss << "Essa é a casa '" << houseName << "'. Ninguém é dono desta casa.";
-
-		const int32_t housePrice = g_config.getNumber(ConfigManager::HOUSE_PRICE);
-		if (housePrice != -1) {
-			ss << " Isso custa " << (houseTiles.size() * housePrice) << " gold coins.";
-		}
-	}
-
+	const int32_t housePrice = g_config.getNumber(ConfigManager::HOUSE_PRICE);
 	for (const auto& it : doorSet) {
-		it->setSpecialDescription(ss.str());
+		it->setSpecialDescription(fmt::format("It belongs to house '{:s}'. {:s} owns this house.{:s}", houseName, (owner != 0) ? ownerName : "Nobody", g_config.getBoolean(ConfigManager::HOUSE_DOOR_SHOW_PRICE) && (housePrice != -1) && (owner == 0) ? fmt::format(" It costs {:d} gold coins.", (houseTiles.size() * housePrice)) : ""));
 	}
 }
 
@@ -424,9 +413,7 @@ HouseTransferItem* HouseTransferItem::createHouseTransferItem(House* house)
 	transferItem->incrementReferenceCounter();
 	transferItem->setID(ITEM_DOCUMENT_RO);
 	transferItem->setSubType(1);
-	std::ostringstream ss;
-	ss << "It is a house transfer document for '" << house->getName() << "'.";
-	transferItem->setSpecialDescription(ss.str());
+	transferItem->setSpecialDescription(fmt::format("It is a house transfer document for '{:s}'.", house->getName()));
 	return transferItem;
 }
 
@@ -788,6 +775,7 @@ void Houses::payHouses(RentPeriod_t rentPeriod) const
 			}
 
 			house->setPaidUntil(paidUntil);
+			house->setPayRentWarnings(0);
 		} else {
 			if (house->getPayRentWarnings() < 7) {
 				int32_t daysLeft = 7 - house->getPayRentWarnings();
@@ -816,9 +804,7 @@ void Houses::payHouses(RentPeriod_t rentPeriod) const
 						break;
 				}
 
-				std::ostringstream ss;
-				ss << "Cuidado! \nO " << period << " aluguel de " << house->getRent() << " gold para sua casa \"" << house->getName() << "\" é pagável. Tê-lo dentro " << daysLeft << " dias ou você vai perder esta casa.";
-				letter->setText(ss.str());
+				letter->setText(fmt::format("Warning! \nThe {:s} rent of {:d} gold for your house \"{:s}\" is payable. Have it within {:d} days or you will lose this house.", period, house->getRent(), house->getName(), daysLeft));
 				DepotLocker* depot = player.getDepotLocker(town->getID());
 				if (depot) {
 					g_game.internalAddItem(depot, letter, INDEX_WHEREEVER, FLAG_NOLIMIT);

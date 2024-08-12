@@ -1,26 +1,31 @@
-Baiak Thunder
-===============
-This repository uses version 1.3 of The Forgotten Server (TFS) in a downgrade to version 8.60.
+# Fabián Server 8.60 Downgrade
 
-## Compiling
-> Use the following tutorial to compile the sources for this project.
+This repository will be for a future server, version 8.60 with everything recent from version 13x.
+It will be updated every commit with everything new.
 
-* [Compiling](https://github.com/otland/forgottenserver/wiki/Compiling)
+## Spr's For OTCLIENT
+https://www.mediafire.com/file/xjq5fr29mrebfcb/860+SPR+Updated!.rar/file
 
-## Issues and Pull Requests
-Use the GitHub tools to request an issue or make a pull request.
+**Download here OTC:**
+https://github.com/OTCv8/otclientv8.git
 
-## Compatible Site
-> The link below contains a website compatible with this downgrade. Soon there will be updates on this site.
+**Activate in features 8.60:**
 
-* [WebSite](https://github.com/moviebr/TheRealGesiorFerobra)
+    g_game.enableFeature(GamePlayerMounts)
+    g_game.enableFeature(GameSlowerManualWalking)
+    g_game.enableFeature(GameEnhancedAnimations)
+    g_game.enableFeature(GameIdleAnimations)
+    g_game.enableFeature(GamePlayerMarket)
 
-## Credits
-@moviebr (Breno Alves) <br>
-@tyxer (Felipe) <br>
-@Crypter (Gustavo)
+## How to compile Ubuntu 22.04
+    
+    sudo apt install libboost-date-time-dev
+    
+    sudo apt-get install cmake build-essential liblua5.4-dev libgmp3-dev libmysqlclient-dev libboost-system-dev libboost-iostreams-dev libboost-filesystem-dev libpugixml-dev libcrypto++-dev libfmt-dev libgmp-dev libboost-date-time-dev g++-10
+    mkdir build && cd build
+    cmake ..
+    make
 
-## Supported
-This project is supported by [TibiaKing](https://tibiaking.com/)
+## How to compile
 
-# Baiak-Optimized
+[Wiki](https://github.com/otland/forgottenserver/wiki/Compiling)

@@ -406,6 +406,14 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 			group = SPELLGROUP_SUPPORT;
 		} else if (tmpStr == "special" || tmpStr == "4") {
 			group = SPELLGROUP_SPECIAL;
+		} else if (tmpStr == "conjure" || tmpStr == "5") {
+			group = SPELLGROUP_CONJURE;
+		} else if (tmpStr == "crippling" || tmpStr == "6") {
+			group = SPELLGROUP_CRIPPLING;
+		} else if (tmpStr == "focus" || tmpStr == "7") {
+			group = SPELLGROUP_FOCUS;
+		} else if (tmpStr == "ultimatestrikes" || tmpStr == "8") {
+			group = SPELLGROUP_ULTIMATESTRIKES;
 		} else {
 			std::cout << "[Warning - Spell::configureSpell] Unknown group: " << attr.as_string() << std::endl;
 		}
@@ -433,6 +441,14 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 			secondaryGroup = SPELLGROUP_SUPPORT;
 		} else if (tmpStr == "special" || tmpStr == "4") {
 			secondaryGroup = SPELLGROUP_SPECIAL;
+		} else if (tmpStr == "conjure" || tmpStr == "5") {
+			secondaryGroup = SPELLGROUP_CONJURE;
+		} else if (tmpStr == "crippling" || tmpStr == "6") {
+			secondaryGroup = SPELLGROUP_CRIPPLING;
+		} else if (tmpStr == "focus" || tmpStr == "7") {
+			secondaryGroup = SPELLGROUP_FOCUS;
+		} else if (tmpStr == "ultimatestrikes" || tmpStr == "8") {
+			secondaryGroup = SPELLGROUP_ULTIMATESTRIKES;
 		} else {
 			std::cout << "[Warning - Spell::configureSpell] Unknown secondarygroup: " << attr.as_string() << std::endl;
 		}
@@ -508,6 +524,10 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 		} else {
 			std::cout << "[Warning - Spell::configureSpell] Blocktype \"" << attr.as_string() << "\" does not exist." << std::endl;
 		}
+	}
+	
+	if ((attr = node.attribute("pzlock"))) {
+		pzLock = booleanString(attr.as_string());
 	}
 
 	if ((attr = node.attribute("aggressive"))) {
@@ -867,7 +887,7 @@ bool InstantSpell::playerCastInstant(Player* player, std::string& param)
 			}
 
 			target = playerTarget;
-			if (!target || target->getHealth() <= 0) {
+			if (!target || target->isRemoved() || target->isDead()) {
 				if (!casterTargetOrDirection) {
 					if (cooldown > 0) {
 						Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN, cooldown, 0, false, spellId);
@@ -897,7 +917,7 @@ bool InstantSpell::playerCastInstant(Player* player, std::string& param)
 			}
 		} else {
 			target = player->getAttackedCreature();
-			if (!target || target->getHealth() <= 0) {
+			if (!target || target->isRemoved() || target->isDead()) {
 				if (!casterTargetOrDirection) {
 					player->sendCancelMessage(RETURNVALUE_YOUCANONLYUSEITONCREATURES);
 					g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
@@ -1184,6 +1204,12 @@ bool RuneSpell::executeUse(Player* player, Item* item, const Position&, Thing* t
 	}
 
 	postCastSpell(player);
+	
+	target = g_game.getCreatureByID(var.number);
+	if (getPzLock() && target) {
+		player->onAttackedCreature(target->getCreature());
+	}
+	
 	if (hasCharges && item && g_config.getBoolean(ConfigManager::REMOVE_RUNE_CHARGES)) {
 		int32_t newCount = std::max<int32_t>(0, item->getItemCount() - 1);
 		g_game.transformItem(item, item->getID(), newCount);

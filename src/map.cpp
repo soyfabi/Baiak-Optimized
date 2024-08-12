@@ -24,10 +24,11 @@
 #include "combat.h"
 #include "creature.h"
 #include "game.h"
+#include "monster.h"
 
 extern Game g_game;
 
-bool Map::loadMap(const std::string& identifier, bool loadHouses)
+bool Map::loadMap(const std::string& identifier, bool loadHouses, bool isCalledByLua)
 {
 	IOMap loader;
 	if (!loader.loadMap(this, identifier)) {
@@ -35,11 +36,11 @@ bool Map::loadMap(const std::string& identifier, bool loadHouses)
 		return false;
 	}
 
-	if (!IOMap::loadSpawns(this)) {
+	if (!IOMap::loadSpawns(this, isCalledByLua)) {
 		std::cout << "[Warning - Map::loadMap] Failed to load spawn data." << std::endl;
 	}
 
-	if (loadHouses) {
+	if (loadHouses && !isCalledByLua) {
 		if (!IOMap::loadHouses(this)) {
 			std::cout << "[Warning - Map::loadMap] Failed to load house data." << std::endl;
 		}
@@ -170,11 +171,10 @@ bool Map::placeCreature(const Position& centerPos, Creature* creature, bool exte
 
 	if (!foundTile) {
 		static std::vector<std::pair<int32_t, int32_t>> extendedRelList {
-			                   {0, -2},
-			         {-1, -1}, {0, -1}, {1, -1},
-			{-2, 0}, {-1,  0},          {1,  0}, {2, 0},
-			         {-1,  1}, {0,  1}, {1,  1},
-			                   {0,  2}
+			         {2,   0}, {0,  2}, {-2, 0},
+			{-1, -1},{0,  -1},          {1, -1}, {-1, 0},
+			         {1,   1}, {-1, 1}, {0,  1},
+			                   {1,  1}
 		};
 
 		static std::vector<std::pair<int32_t, int32_t>> normalRelList {
@@ -587,8 +587,19 @@ const Tile* Map::canWalkTo(const Creature& creature, const Position& pos) const
 
 	//used for non-cached tiles
 	Tile* tile = getTile(pos.x, pos.y, pos.z);
-	if (!tile || tile->queryAdd(0, creature, 1, FLAG_PATHFINDING | FLAG_IGNOREFIELDDAMAGE) != RETURNVALUE_NOERROR) {
-		return nullptr;
+	if (creature.getTile() != tile) {
+		if (!tile) {
+			return nullptr;
+		}
+
+		uint32_t flags = FLAG_PATHFINDING;
+		if (!creature.getPlayer()) {
+			flags |= FLAG_IGNOREFIELDDAMAGE;
+		}
+
+		if (tile->queryAdd(0, creature, 1, flags) != RETURNVALUE_NOERROR) {
+			return nullptr;
+		}
 	}
 	return tile;
 }
@@ -1125,7 +1136,8 @@ inline int_fast32_t AStarNodes::getTileWalkCost(const Creature& creature, const 
 
 	if (const MagicField* field = tile->getFieldItem()) {
 		CombatType_t combatType = field->getCombatType();
-		if (!creature.isImmune(combatType) && !creature.hasCondition(Combat::DamageToConditionType(combatType))) {
+		const Monster* monster = creature.getMonster();
+		if (!creature.isImmune(combatType) && !creature.hasCondition(Combat::DamageToConditionType(combatType)) && (monster && !monster->canWalkOnFieldType(combatType))) {
 			cost += MAP_NORMALWALKCOST * 18;
 		}
 	}

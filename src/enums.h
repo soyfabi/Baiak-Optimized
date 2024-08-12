@@ -88,6 +88,7 @@ enum itemAttrTypes : uint32_t {
 	ITEM_ATTRIBUTE_IMBUEMENTSLOTS = 1 << 26,
 	ITEM_ATTRIBUTE_CLASSIFICATION = 1 << 27,
 	ITEM_ATTRIBUTE_TIER = 1 << 28,
+	ITEM_ATTRIBUTE_DECAYTO = 1 << 29,
 
 	ITEM_ATTRIBUTE_CUSTOM = 1U << 31
 };
@@ -140,6 +141,10 @@ enum SpellGroup_t : uint8_t {
 	SPELLGROUP_HEALING = 2,
 	SPELLGROUP_SUPPORT = 3,
 	SPELLGROUP_SPECIAL = 4,
+	SPELLGROUP_CONJURE = 5,
+	SPELLGROUP_CRIPPLING = 6,
+	SPELLGROUP_FOCUS = 7,
+	SPELLGROUP_ULTIMATESTRIKES = 8
 };
 
 enum AccountType_t : uint8_t {
@@ -147,7 +152,8 @@ enum AccountType_t : uint8_t {
 	ACCOUNT_TYPE_TUTOR = 2,
 	ACCOUNT_TYPE_SENIORTUTOR = 3,
 	ACCOUNT_TYPE_GAMEMASTER = 4,
-	ACCOUNT_TYPE_GOD = 5
+	ACCOUNT_TYPE_COMMUNITYMANAGER = 5,
+	ACCOUNT_TYPE_GOD = 6
 };
 
 enum SpellType_t : uint8_t {
@@ -252,6 +258,12 @@ enum ConditionParam_t {
 	CONDITION_PARAM_SUBID = 45,
 	CONDITION_PARAM_FIELD = 46,
 	CONDITION_PARAM_DISABLE_DEFENSE = 47,
+	CONDITION_PARAM_SPECIALSKILL_CRITICALHITCHANCE = 48,
+	CONDITION_PARAM_SPECIALSKILL_CRITICALHITAMOUNT = 49,
+	CONDITION_PARAM_SPECIALSKILL_LIFELEECHCHANCE = 50,
+	CONDITION_PARAM_SPECIALSKILL_LIFELEECHAMOUNT = 51,
+	CONDITION_PARAM_SPECIALSKILL_MANALEECHCHANCE = 52,
+	CONDITION_PARAM_SPECIALSKILL_MANALEECHAMOUNT = 53,
 };
 
 enum BlockType_t : uint8_t {
@@ -286,6 +298,19 @@ enum stats_t {
 	STAT_FIRST = STAT_MAXHITPOINTS,
 	STAT_LAST = STAT_MAGICPOINTS
 };
+
+enum SpecialSkills_t {
+	SPECIALSKILL_CRITICALHITCHANCE,
+	SPECIALSKILL_CRITICALHITAMOUNT,
+	SPECIALSKILL_LIFELEECHCHANCE,
+	SPECIALSKILL_LIFELEECHAMOUNT,
+	SPECIALSKILL_MANALEECHCHANCE,
+	SPECIALSKILL_MANALEECHAMOUNT,
+
+	SPECIALSKILL_FIRST = SPECIALSKILL_CRITICALHITCHANCE,
+	SPECIALSKILL_LAST = SPECIALSKILL_MANALEECHAMOUNT
+};
+
 enum formulaType_t {
 	COMBAT_FORMULA_UNDEFINED,
 	COMBAT_FORMULA_LEVELMAGIC,
@@ -324,6 +349,7 @@ enum ConditionType_t {
 	CONDITION_PACIFIED = 1 << 25,
 	CONDITION_SPELLCOOLDOWN = 1 << 26,
 	CONDITION_SPELLGROUPCOOLDOWN = 1 << 27,
+	CONDITION_ROOTED = 1 << 28,
 };
 
 enum ConditionId_t : int8_t {
@@ -427,6 +453,7 @@ enum ReturnValue {
 	RETURNVALUE_YOUDONTHAVEREQUIREDPROFESSION,
 	RETURNVALUE_YOUCANTOPENCORPSEADM,
 	RETURNVALUE_REWARDCHESTISEMPTY,
+	RETURNVALUE_QUIVERAMMOONLY,
 };
 
 enum MapMark_t
@@ -465,7 +492,7 @@ struct Outfit_t {
 
 struct LightInfo {
 	uint8_t level = 0;
-	uint8_t color = 0;
+	uint8_t color = 215;
 	constexpr LightInfo() = default;
 	constexpr LightInfo(uint8_t level, uint8_t color) : level(level), color(color) {}
 };
@@ -496,6 +523,7 @@ enum CombatOrigin
 	ORIGIN_MELEE,
 	ORIGIN_RANGED,
 	ORIGIN_WAND,
+	ORIGIN_REFLECT,
 };
 
 struct CombatDamage
@@ -506,11 +534,17 @@ struct CombatDamage
 	} primary, secondary;
 
 	CombatOrigin origin;
+	BlockType_t blockType;
+	bool critical;
+	bool leeched;
 	CombatDamage()
 	{
 		origin = ORIGIN_NONE;
+		blockType = BLOCK_NONE;
 		primary.type = secondary.type = COMBAT_NONE;
 		primary.value = secondary.value = 0;
+		critical = false;
+		leeched = false;
 	}
 };
 
@@ -523,6 +557,20 @@ enum MonstersEvent_t : uint8_t {
 	MONSTERS_EVENT_DISAPPEAR = 3,
 	MONSTERS_EVENT_MOVE = 4,
 	MONSTERS_EVENT_SAY = 5,
+};
+
+struct Reflect {
+	Reflect() = default;
+	Reflect(uint16_t percent, uint16_t chance) : percent(percent), chance(chance) {};
+
+	Reflect& operator+=(const Reflect& other) {
+		percent += other.percent;
+		chance = std::min(100, chance + other.chance);
+		return *this;
+	}
+
+	uint16_t percent = 0;
+	uint16_t chance = 0;
 };
 
 #endif

@@ -440,6 +440,9 @@ ReturnValue MoveEvents::onPlayerDeEquip(Player* player, Item* item, slots_t slot
 {
 	MoveEvent* moveEvent = getEvent(item, MOVE_EVENT_DEEQUIP, slot);
 	if (!moveEvent) {
+		// If the item does not have an event, we make sure to reset the slot, since some items transform into items
+		// without events.
+		player->setItemAbility(slot, false);
 		return RETURNVALUE_NOERROR;
 	}
 	return moveEvent->fireEquip(player, item, slot, false);
@@ -750,6 +753,13 @@ ReturnValue MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* ite
 			player->setVarSkill(static_cast<skills_t>(i), it.abilities->skills[i]);
 		}
 	}
+	
+	for (int32_t i = SPECIALSKILL_FIRST; i <= SPECIALSKILL_LAST; ++i) {
+		if (it.abilities->specialSkills[i]) {
+			needUpdateSkills = true;
+			player->setVarSpecialSkill(static_cast<SpecialSkills_t>(i), it.abilities->specialSkills[i]);
+		}
+	}
 
 	if (needUpdateSkills) {
 		player->sendSkills();
@@ -824,6 +834,13 @@ ReturnValue MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, slots
 		if (it.abilities->skills[i] != 0) {
 			needUpdateSkills = true;
 			player->setVarSkill(static_cast<skills_t>(i), -it.abilities->skills[i]);
+		}
+	}
+	
+	for (int32_t i = SPECIALSKILL_FIRST; i <= SPECIALSKILL_LAST; ++i) {
+		if (it.abilities->specialSkills[i] != 0) {
+			needUpdateSkills = true;
+			player->setVarSpecialSkill(static_cast<SpecialSkills_t>(i), -it.abilities->specialSkills[i]);
 		}
 	}
 
