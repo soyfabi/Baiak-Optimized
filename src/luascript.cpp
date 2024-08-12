@@ -2022,6 +2022,8 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::STAIRHOP_DELAY);
 	registerEnumIn("configKeys", ConfigManager::EXP_FROM_PLAYERS_LEVEL_RANGE);
 	registerEnumIn("configKeys", ConfigManager::MAX_PACKETS_PER_SECOND);
+	registerEnumIn("configKeys", ConfigManager::SORT_LOOT_BY_CHANCE);
+	registerEnumIn("configKeys", ConfigManager::MAX_ALLOWED_ON_A_DUMMY);
 	registerEnumIn("configKeys", ConfigManager::PROTECTION_TIME);
 	registerEnumIn("configKeys", ConfigManager::CLOSED_WORLD);
 	
@@ -2035,6 +2037,17 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::STAMINA_GREEN_DELAY);
 	registerEnumIn("configKeys", ConfigManager::STAMINA_TRAINER_DELAY);
 	registerEnumIn("configKeys", ConfigManager::STAMINA_TRAINER_GAIN);
+	
+	// Rates
+	registerEnumIn("configKeys", ConfigManager::RATE_HEALTH_REGEN);
+	registerEnumIn("configKeys", ConfigManager::RATE_HEALTH_REGEN_SPEED);
+	registerEnumIn("configKeys", ConfigManager::RATE_MANA_REGEN);
+	registerEnumIn("configKeys", ConfigManager::RATE_MANA_REGEN_SPEED);
+	registerEnumIn("configKeys", ConfigManager::RATE_SOUL_REGEN);
+	registerEnumIn("configKeys", ConfigManager::RATE_SOUL_REGEN_SPEED);
+	registerEnumIn("configKeys", ConfigManager::RATE_ATTACK_SPEED);
+	registerEnumIn("configKeys", ConfigManager::RATE_SPELL_COOLDOWN);
+	registerEnumIn("configKeys", ConfigManager::RATE_EXERCISE_TRAINING_SPEED);
 	
 	// Login Text when Server is Closed and Packets
 	registerEnumIn("configKeys", ConfigManager::BLOCK_LOGIN);
