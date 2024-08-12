@@ -38,6 +38,8 @@ statusTimeout = 5000
 replaceKickOnLogin = true
 maxPacketsPerSecond = 475
 packetCompression = true
+npcsUsingBankMoney = true
+npcsShopDelay = 400 -- Place delay when buying and selling in npcs.
 
 -- Map
 -- NOTE: set mapName WITHOUT .otbm at the end

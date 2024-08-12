@@ -2002,6 +2002,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::DEFAULT_DESPAWNRANGE);
 	registerEnumIn("configKeys", ConfigManager::DEFAULT_DESPAWNRADIUS);
 	registerEnumIn("configKeys", ConfigManager::REMOVE_ON_DESPAWN);
+	registerEnumIn("configKeys", ConfigManager::NPCS_USING_BANK_MONEY);
 	registerEnumIn("configKeys", ConfigManager::RATE_EXPERIENCE);
 	registerEnumIn("configKeys", ConfigManager::RATE_SKILL);
 	registerEnumIn("configKeys", ConfigManager::RATE_LOOT);
@@ -2024,6 +2025,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumIn("configKeys", ConfigManager::MAX_PACKETS_PER_SECOND);
 	registerEnumIn("configKeys", ConfigManager::SORT_LOOT_BY_CHANCE);
 	registerEnumIn("configKeys", ConfigManager::MAX_ALLOWED_ON_A_DUMMY);
+	registerEnumIn("configKeys", ConfigManager::NPCS_SHOP_DELAY);
 	registerEnumIn("configKeys", ConfigManager::PROTECTION_TIME);
 	registerEnumIn("configKeys", ConfigManager::CLOSED_WORLD);
 	
