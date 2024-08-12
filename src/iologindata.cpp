@@ -32,8 +32,8 @@ extern Game g_game;
 Account IOLoginData::loadAccount(uint32_t accno)
 {
 	Account account;
-	
-	DBResult_ptr result = Database::getInstance().storeQuery(fmt::format("SELECT `id`, `name`, `password`, `type`, `premdays`, `lastday`  FROM `accounts` WHERE `id` = {:d}", accno));
+
+	DBResult_ptr result = Database::getInstance().storeQuery(fmt::format("SELECT `id`, `name`, `password`, `type`, `premium_ends_at` FROM `accounts` WHERE `id` = {:d}", accno));
 	if (!result) {
 		return account;
 	}
@@ -41,15 +41,14 @@ Account IOLoginData::loadAccount(uint32_t accno)
 	account.id = result->getNumber<uint32_t>("id");
 	account.name = result->getString("name");
 	account.accountType = static_cast<AccountType_t>(result->getNumber<int32_t>("type"));
-	account.premiumDays = result->getNumber<uint16_t>("premdays");
-	account.lastDay = result->getNumber<time_t>("lastday");
+	account.premiumEndsAt = result->getNumber<time_t>("premium_ends_at");
 	return account;
 }
 
 bool IOLoginData::saveAccount(const Account& acc)
 {
 	std::ostringstream query;
-	query << "UPDATE `accounts` SET `premdays` = " << acc.premiumDays << ", `lastday` = " << acc.lastDay << " WHERE `id` = " << acc.id;
+	query << "UPDATE `accounts` SET `premium_ends_at` = " << acc.premiumEndsAt << " WHERE `id` = " << acc.id;
 	return Database::getInstance().executeQuery(query.str());
 }
 
@@ -86,7 +85,9 @@ bool IOLoginData::loginserverAuthentication(const std::string& name, const std::
 {
 	Database& db = Database::getInstance();
 	
-	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id`, `name`, `password`, `secret`, `type`, `premdays`, `lastday` FROM `accounts` WHERE `name` = {:s}", db.escapeString(name)));
+	std::cout << "Authenticating login for account name: " << name << std::endl;
+	
+	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id`, `name`, `password`, `secret`, `type`, `premium_ends_at`, FROM `accounts` WHERE `name` = {:s}", db.escapeString(name)));
 	if (!result) {
 		return false;
 	}
@@ -99,17 +100,13 @@ bool IOLoginData::loginserverAuthentication(const std::string& name, const std::
 	account.name = result->getString("name");
 	account.key = decodeSecret(result->getString("secret"));
 	account.accountType = static_cast<AccountType_t>(result->getNumber<int32_t>("type"));
-	account.premiumDays = result->getNumber<uint16_t>("premdays");
-	account.lastDay = result->getNumber<time_t>("lastday");
+	account.premiumEndsAt = result->getNumber<time_t>("premium_ends_at");
 
 	result = db.storeQuery(fmt::format("SELECT `name` FROM `players` WHERE `account_id` = {:d} AND `deletion` = 0 ORDER BY `name` ASC", account.id));
 	if (result) {
 		do {
-			if (result->getNumber<uint64_t>("deletion") == 0) {
-				account.characters.push_back(result->getString("name"));
-			}
+			account.characters.push_back(result->getString("name"));
 		} while (result->next());
-		std::sort(account.characters.begin(), account.characters.end());
 	}
 	return true;
 }
@@ -161,15 +158,15 @@ void IOLoginData::setAccountType(uint32_t accountId, AccountType_t accountType)
 
 void IOLoginData::updateOnlineStatus(uint32_t guid, bool login)
 {
-	if (g_config.getBoolean(ConfigManager::ALLOW_CLONES)) {
-		return;
-	}
-	
-	if (login) {
-		Database::getInstance().executeQuery(fmt::format("INSERT INTO `players_online` VALUES ({:d})", guid));
-	} else {
-		Database::getInstance().executeQuery(fmt::format("DELETE FROM `players_online` WHERE `player_id` = {:d}", guid));
-	}
+    if (g_config.getBoolean(ConfigManager::ALLOW_CLONES)) {
+        return;
+    }
+    
+    if (login) {
+        Database::getInstance().executeQuery(fmt::format("INSERT INTO `players_online` VALUES ({:d})", guid));
+    } else {
+        Database::getInstance().executeQuery(fmt::format("DELETE FROM `players_online` WHERE `player_id` = {:d}", guid));
+    }
 }
 
 bool IOLoginData::preloadPlayer(Player* player, const std::string& name)
@@ -179,7 +176,7 @@ bool IOLoginData::preloadPlayer(Player* player, const std::string& name)
 	std::ostringstream query;
 	query << "SELECT `id`, `account_id`, `group_id`, `deletion`, (SELECT `type` FROM `accounts` WHERE `accounts`.`id` = `account_id`) AS `account_type`";
 	if (!g_config.getBoolean(ConfigManager::FREE_PREMIUM)) {
-		query << ", (SELECT `premdays` FROM `accounts` WHERE `accounts`.`id` = `account_id`) AS `premium_days`";
+		query << ", (SELECT `premium_ends_at` FROM `accounts` WHERE `accounts`.`id` = `account_id`) AS `premium_ends_at`";
 	}
 	query << " FROM `players` WHERE `name` = " << db.escapeString(name);
 	DBResult_ptr result = db.storeQuery(query.str());
@@ -200,11 +197,7 @@ bool IOLoginData::preloadPlayer(Player* player, const std::string& name)
 	player->setGroup(group);
 	player->accountNumber = result->getNumber<uint32_t>("account_id");
 	player->accountType = static_cast<AccountType_t>(result->getNumber<uint16_t>("account_type"));
-	if (!g_config.getBoolean(ConfigManager::FREE_PREMIUM)) {
-		player->premiumDays = result->getNumber<uint16_t>("premium_days");
-	} else {
-		player->premiumDays = std::numeric_limits<uint16_t>::max();
-	}
+	player->premiumEndsAt = result->getNumber<time_t>("premium_ends_at");
 	return true;
 }
 
@@ -237,11 +230,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 
 	player->accountType = acc.accountType;
 
-	if (g_config.getBoolean(ConfigManager::FREE_PREMIUM)) {
-		player->premiumDays = std::numeric_limits<uint16_t>::max();
-	} else {
-		player->premiumDays = acc.premiumDays;
-	}
+	player->premiumEndsAt = acc.premiumEndsAt;
 
 	Group* group = g_game.groups.getGroup(result->getNumber<uint16_t>("group_id"));
 	if (!group) {
@@ -1066,16 +1055,9 @@ void IOLoginData::removeVIPEntry(uint32_t accountId, uint32_t guid)
 	Database::getInstance().executeQuery(fmt::format("DELETE FROM `account_viplist` WHERE `account_id` = {:d} AND `player_id` = {:d}", accountId, guid));
 }
 
-void IOLoginData::addPremiumDays(uint32_t accountId, int32_t addDays)
+void IOLoginData::updatePremiumTime(uint32_t accountId, time_t endTime)
 {
 	std::ostringstream query;
-	query << "UPDATE `accounts` SET `premdays` = `premdays` + " << addDays << " WHERE `id` = " << accountId;
-	Database::getInstance().executeQuery(query.str());
-}
-
-void IOLoginData::removePremiumDays(uint32_t accountId, int32_t removeDays)
-{
-	std::ostringstream query;
-	query << "UPDATE `accounts` SET `premdays` = `premdays` - " << removeDays << " WHERE `id` = " << accountId;
+	query << "UPDATE `accounts` SET `premium_ends_at` = " << endTime << " WHERE `id` = " << accountId;
 	Database::getInstance().executeQuery(query.str());
 }

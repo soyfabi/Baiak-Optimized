@@ -397,9 +397,7 @@ class Game
 		void playerEnableSharedPartyExperience(uint32_t playerId, bool sharedExpActive);
 
 		void parsePlayerExtendedOpcode(uint32_t playerId, uint8_t opcode, const std::string& buffer);
-
-		static void updatePremium(Account& account);
-
+		
 		void cleanup();
 		void shutdown();
 		void ReleaseCreature(Creature* creature);

@@ -1101,7 +1101,6 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 		}
 
 		Account account = IOLoginData::loadAccount(accountNumber);
-		Game::updatePremium(account);
 		
 		if (guild) {
 			guild->addMember(this);
@@ -3975,12 +3974,12 @@ bool Player::isPremium() const
 		return true;
 	}
 
-	return premiumDays > 0;
+	return premiumEndsAt > time(nullptr);
 }
 
-void Player::setPremiumDays(int32_t v)
+void Player::setPremiumTime(time_t premiumEndsAt)
 {
-	premiumDays = v;
+	this->premiumEndsAt = premiumEndsAt;
 }
 
 PartyShields_t Player::getPartyShield(const Player* player) const
