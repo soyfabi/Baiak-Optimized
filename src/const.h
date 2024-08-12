@@ -621,7 +621,9 @@ enum PlayerFlags : uint64_t {
 	PlayerFlag_IgnoreWeaponCheck = static_cast<uint64_t>(1) << 35,
 	PlayerFlag_CannotBeMuted = static_cast<uint64_t>(1) << 36,
 	PlayerFlag_IsAlwaysPremium = static_cast<uint64_t>(1) << 37,
-  PlayerFlag_CanMoveAllThings = static_cast<uint64_t>(1) << 38,
+	PlayerFlag_IgnoreYellCheck = static_cast<uint64_t>(1) << 38,
+	PlayerFlag_IgnoreSendPrivateCheck = static_cast<uint64_t>(1) << 39,
+	PlayerFlag_CanMoveAllThings = static_cast<uint64_t>(1) << 40,
 };
 
 enum ReloadTypes_t : uint8_t  {

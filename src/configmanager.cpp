@@ -263,6 +263,7 @@ bool ConfigManager::load()
 	boolean[ONLINE_OFFLINE_CHARLIST] = getGlobalBoolean(L, "showOnlineStatusInCharlist", false);
 	boolean[HOUSE_DOOR_SHOW_PRICE] = getGlobalBoolean(L, "houseDoorShowPrice", true);
 	boolean[YELL_ALLOW_PREMIUM] = getGlobalBoolean(L, "yellAlwaysAllowPremium", false);
+	boolean[PREMIUM_TO_SEND_PRIVATE] = getGlobalBoolean(L, "premiumToSendPrivate", false);
 	boolean[FORCE_MONSTERTYPE_LOAD] = getGlobalBoolean(L, "forceMonsterTypesOnLoad", true);
 	boolean[SPOOF_ENABLED] = getGlobalBoolean(L, "spoofEnabled", false);
 	boolean[CLOSED_WORLD] = getGlobalBoolean(L, "closedWorld", false);
@@ -310,6 +311,7 @@ bool ConfigManager::load()
 	integer[PROTECTION_TIME] = getGlobalNumber(L, "protectionTime", 10);
 	integer[SERVER_SAVE_NOTIFY_DURATION] = getGlobalNumber(L, "serverSaveNotifyDuration", 5);
 	integer[YELL_MINIMUM_LEVEL] = getGlobalNumber(L, "yellMinimumLevel", 2);
+	integer[MINIMUM_LEVEL_TO_SEND_PRIVATE] = getGlobalNumber(L, "minimumLevelToSendPrivate", 1);
 	integer[SPOOF_DAILY_MIN_PLAYERS] = getGlobalNumber(L, "spoofDailyMinPlayers", 50);
 	integer[SPOOF_DAILY_MAX_PLAYERS] = getGlobalNumber(L, "spoofDailyMaxPlayers", 200);
 	integer[SPOOF_NOISE_INTERVAL] = getGlobalNumber(L, "spoofNoiseInterval", 10 * 60 * 1000);

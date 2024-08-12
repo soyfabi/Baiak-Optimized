@@ -119,7 +119,7 @@ bool IOMap::loadMap(Map* map, const std::string& fileName)
 		std::cout << "[Warning - IOMap::loadMap] This map needs an updated items.otb." << std::endl;
 	}
 
-	std::cout << "> Tamanho do mapa: " << root_header.width << "x" << root_header.height << '.' << std::endl;
+	std::cout << "> Map size: " << root_header.width << "x" << root_header.height << '.' << std::endl;
 	map->width = root_header.width;
 	map->height = root_header.height;
 
@@ -152,7 +152,7 @@ bool IOMap::loadMap(Map* map, const std::string& fileName)
 		}
 	}
 
-	std::cout << "> Tempo de carregamento do mapa: " << (OTSYS_TIME() - start) / (1000.) << " segundos." << std::endl;
+	std::cout << "> Map loading time: " << (OTSYS_TIME() - start) / (1000.) << " segundos." << std::endl;
 	return true;
 }
 

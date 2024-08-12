@@ -1357,200 +1357,200 @@ const char* getReturnMessage(ReturnValue value)
 {
 	switch (value) {
 		case RETURNVALUE_REWARDCHESTISEMPTY:
-			return "O ba� est� vazio no momento. Você Não participou de nenhuma batalha nos �ltimos sete dias ou j� reivindicou sua recompensa.";
+			return "The chest is currently empty. You did not take part in any battles in the last seven days or already claimed your reward.";
 			
 		case RETURNVALUE_DESTINATIONOUTOFREACH:
-			return "O destino est� fora do alcance.";
+			return "Destination is out of range.";
 
 		case RETURNVALUE_NOTMOVEABLE:
-			return "Você Não pode mover este objeto.";
+			return "You cannot move this object.";
 
 		case RETURNVALUE_DROPTWOHANDEDITEM:
-			return "Solte o objeto de duas m�os primeiro.";
+			return "Drop the double-handed object first.";
 
 		case RETURNVALUE_BOTHHANDSNEEDTOBEFREE:
-			return "Ambas as m�os precisam estar livres.";
+			return "Both hands need to be free.";
 
 		case RETURNVALUE_CANNOTBEDRESSED:
-			return "Você Não pode vestir este objeto.";
+			return "You cannot dress this object there.";
 
 		case RETURNVALUE_PUTTHISOBJECTINYOURHAND:
-			return "Coloque esse objeto na sua m�o.";
+			return "Put this object in your hand.";
 
 		case RETURNVALUE_PUTTHISOBJECTINBOTHHANDS:
-			return "Coloque este objeto nas duas m�os.";
+			return "Put this object in both hands.";
 
 		case RETURNVALUE_CANONLYUSEONEWEAPON:
-			return "Você pode usar apenas uma arma.";
+			return "You may only use one weapon.";
 
 		case RETURNVALUE_TOOFARAWAY:
-			return "Você est� muito longe.";
+			return "You are too far away.";
 
 		case RETURNVALUE_FIRSTGODOWNSTAIRS:
-			return "Primeiro desça as escadas.";
+			return "First go downstairs.";
 
 		case RETURNVALUE_FIRSTGOUPSTAIRS:
-			return "Primeiro suba as escadas.";
+			return "First go upstairs.";
 
 		case RETURNVALUE_NOTENOUGHCAPACITY:
-			return "Este objeto é muito pesado para você carregar.";
+			return "This object is too heavy for you to carry.";
 
 		case RETURNVALUE_CONTAINERNOTENOUGHROOM:
-			return "Você Não pode colocar mais objetos neste cont�iner.";
+			return "You cannot put more objects in this container.";
 
 		case RETURNVALUE_NEEDEXCHANGE:
 		case RETURNVALUE_NOTENOUGHROOM:
-			return "Não há espaço suficiente.";
+			return "There is not enough room.";
 
 		case RETURNVALUE_CANNOTPICKUP:
-			return "Você Não pode pegar este objeto.";
+			return "You cannot take this object.";
 
 		case RETURNVALUE_CANNOTTHROW:
-			return "Você Não pode jogar lá.";
+			return "You cannot throw there.";
 
 		case RETURNVALUE_THEREISNOWAY:
-			return "Não tem jeito.";
+			return "There is no way.";
 
 		case RETURNVALUE_THISISIMPOSSIBLE:
-			return "Isto é imposs�vel.";
+			return "This is impossible.";
 
 		case RETURNVALUE_PLAYERISPZLOCKED:
-			return "Você não pode entrar em uma zona de proteção depois de atacar outro jogador.";
+			return "You can not enter a protection zone after attacking another player.";
 
 		case RETURNVALUE_PLAYERISNOTINVITED:
-			return "Você não está convidado.";
+			return "You are not invited.";
 
 		case RETURNVALUE_CREATUREDOESNOTEXIST:
-			return "Criatura não existe.";
+			return "Creature does not exist.";
 
 		case RETURNVALUE_DEPOTISFULL:
-			return "Você Não pode colocar mais itens neste depot.";
+			return "You cannot put more items in this depot.";
+			
+		//case RETURNVALUE_SUPPLYSTASHISFULL:
+			//return "You cannot put more items in the Supply Stash.";
 
 		case RETURNVALUE_CANNOTUSETHISOBJECT:
-			return "Você Não pode usar este objeto.";
+			return "You cannot use this object.";
 
 		case RETURNVALUE_PLAYERWITHTHISNAMEISNOTONLINE:
-			return "Um jogador com este nome Não está online.";
+			return "A player with this name is not online.";
 
 		case RETURNVALUE_NOTREQUIREDLEVELTOUSERUNE:
-			return "Você Não tem magic level necessário para usar esta runa.";
+			return "You do not have the required magic level to use this rune.";
 
 		case RETURNVALUE_YOUAREALREADYTRADING:
-			return "Você já está negociando.";
+			return "You are already trading. Finish this trade first.";
 
 		case RETURNVALUE_THISPLAYERISALREADYTRADING:
-			return "Este jogador j� est� negociando.";
+			return "This player is already trading.";
 
 		case RETURNVALUE_YOUMAYNOTLOGOUTDURINGAFIGHT:
-			return "Você Não pode sair durante ou imediatamente ap�s uma luta!";
+			return "You may not logout during or immediately after a fight!";
 
 		case RETURNVALUE_DIRECTPLAYERSHOOT:
-			return "Você Não tem permiss�o para atirar diretamente nos jogadores.";
+			return "You are not allowed to shoot directly on players.";
 
 		case RETURNVALUE_NOTENOUGHLEVEL:
-			return "Seu nível est� muito baixo.";
+			return "Your level is too low.";
 
 		case RETURNVALUE_NOTENOUGHMAGICLEVEL:
-			return "Você Não tem magic level suficiente.";
+			return "You do not have enough magic level.";
 
 		case RETURNVALUE_NOTENOUGHMANA:
-			return "Você Não tem mana suficiente.";
+			return "You do not have enough mana.";
 
 		case RETURNVALUE_NOTENOUGHSOUL:
-			return "Você Não tem soul suficiente.";
+			return "You do not have enough soul.";
 
 		case RETURNVALUE_YOUAREEXHAUSTED:
-			return "Você est� exausto.";
+			return "You are exhausted.";
 
 		case RETURNVALUE_YOUCANNOTUSEOBJECTSTHATFAST:
-			return "Você Não pode usar objetos t�o r�pido.";
+			return "You cannot use objects that fast.";
 
 		case RETURNVALUE_CANONLYUSETHISRUNEONCREATURES:
-			return "Você s� pode us�-lo em criaturas.";
+			return "You can only use it on creatures.";
 
 		case RETURNVALUE_PLAYERISNOTREACHABLE:
-			return "O jogador Não est� acess�vel.";
+			return "Player is not reachable.";
 
 		case RETURNVALUE_CREATUREISNOTREACHABLE:
-			return "Criatura Não � alcan��vel.";
+			return "Creature is not reachable.";
 
 		case RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE:
-			return "Esta a��o Não � permitida em uma zona de prote��o.";
+			return "This action is not permitted in a protection zone.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKTHISPLAYER:
-			return "Você Não pode atacar essa pessoa.";
+			return "You may not attack this person.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKTHISCREATURE:
-			return "Você Não pode atacar esta criatura.";
+			return "You may not attack this creature.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKAPERSONINPROTECTIONZONE:
-			return "Você Não pode atacar uma pessoa em uma zona de prote��o.";
+			return "You may not attack a person in a protection zone.";
 
 		case RETURNVALUE_YOUMAYNOTATTACKAPERSONWHILEINPROTECTIONZONE:
-			return "Você Não pode atacar uma pessoa enquanto estiver em uma zona de prote��o.";
+			return "You may not attack a person while you are in a protection zone.";
 
 		case RETURNVALUE_YOUCANONLYUSEITONCREATURES:
-			return "Você s� pode us�-lo em criaturas.";
+			return "You can only use it on creatures.";
 
 		case RETURNVALUE_TURNSECUREMODETOATTACKUNMARKEDPLAYERS:
-			return "Desative o modo seguro se você realmente quiser atacar jogadores Não marcados.";
+			return "Turn secure mode off if you really want to attack unmarked players.";
 
 		case RETURNVALUE_YOUNEEDPREMIUMACCOUNT:
-			return "Você precisa de uma conta premium.";
+			return "You need a premium account.";
 
 		case RETURNVALUE_YOUNEEDTOLEARNTHISSPELL:
-			return "Você deve aprender esse feiti�o primeiro.";
+			return "You must learn this spell first.";
 
 		case RETURNVALUE_YOURVOCATIONCANNOTUSETHISSPELL:
-			return "Você tem a voca��o errada para lan�ar este feiti�o.";
+			return "You have the wrong vocation to cast this spell.";
 
 		case RETURNVALUE_YOUNEEDAWEAPONTOUSETHISSPELL:
-			return "Você precisa equipar uma arma para usar esse feiti�o.";
+			return "You need to equip a weapon to use this spell.";
 
 		case RETURNVALUE_PLAYERISPZLOCKEDLEAVEPVPZONE:
-			return "Você Não pode sair de uma zona pvp depois de atacar outro jogador.";
+			return "You can not leave a pvp zone after attacking another player.";
 
 		case RETURNVALUE_PLAYERISPZLOCKEDENTERPVPZONE:
-			return "Você Não pode entrar em uma zona pvp depois de atacar outro jogador.";
+			return "You can not enter a pvp zone after attacking another player.";
 
 		case RETURNVALUE_ACTIONNOTPERMITTEDINANOPVPZONE:
-			return "Esta a��o Não � permitida em uma zona noo pvp.";
+			return "This action is not permitted in a non pvp zone.";
 
 		case RETURNVALUE_YOUCANNOTLOGOUTHERE:
-			return "Você Não pode deslogar aqui.";
+			return "You can not logout here.";
 
 		case RETURNVALUE_YOUNEEDAMAGICITEMTOCASTSPELL:
-			return "Você precisa de um item m�gico para lan�ar este feiti�o.";
+			return "You need a magic item to cast this spell.";
 
 		case RETURNVALUE_CANNOTCONJUREITEMHERE:
-			return "Você Não pode conjurar itens aqui.";
+			return "You cannot conjure items here.";
 
 		case RETURNVALUE_YOUNEEDTOSPLITYOURSPEARS:
-			return "Você precisa dividir suas lan�as primeiro.";
+			return "You need to split your spears first.";
 
 		case RETURNVALUE_NAMEISTOOAMBIGUOUS:
-			return "O nome do jogador � amb�guo.";
+			return "Player name is ambiguous.";
 
 		case RETURNVALUE_CANONLYUSEONESHIELD:
-			return "Você pode usar apenas um escudo.";
+			return "You may use only one shield.";
 
 		case RETURNVALUE_NOPARTYMEMBERSINRANGE:
-			return "Nenhum membro do grupo dentro do alcance.";
+			return "No party members in range.";
+			
+		case RETURNVALUE_YOUCANTOPENCORPSEADM:
+			return "You can't open this corpse, because you are an Admin.";
 
 		case RETURNVALUE_YOUARENOTTHEOWNER:
-			return "Você Não � o dono.";
-
-		case RETURNVALUE_NOSUCHRAIDEXISTS:
-			return "Não existe essa raid.";
-
-		case RETURNVALUE_ANOTHERRAIDISALREADYEXECUTING:
-			return "Outra raid j� est� em execu��o.";
+			return "You are not the owner.";
 
 		case RETURNVALUE_TRADEPLAYERFARAWAY:
 			return "Trade player is too far away.";
 
 		case RETURNVALUE_YOUDONTOWNTHISHOUSE:
-			return "Você Não � dono desta casa.";
+			return "You don't own this house.";
 
 		case RETURNVALUE_TRADEPLAYERALREADYOWNSAHOUSE:
 			return "Trade player already owns a house.";
@@ -1559,14 +1559,20 @@ const char* getReturnMessage(ReturnValue value)
 			return "Trade player is currently the highest bidder of an auctioned house.";
 
 		case RETURNVALUE_YOUCANNOTTRADETHISHOUSE:
-			return "Você Não pode trocar esta casa.";
+			return "You can not trade this house.";
 
 		case RETURNVALUE_YOUDONTHAVEREQUIREDPROFESSION:
-			return "Você Não tem a profiss�o necess�ria.";
+			return "You don't have the required profession.";
+
+		//case RETURNVALUE_ITEMCANNOTBEMOVEDTHERE:
+			//return "This item cannot be moved there.";
+
+		//case RETURNVALUE_YOUCANNOTUSETHISBED:
+			//return "This bed can't be used, but Premium Account players can rent houses and sleep in beds there to regain health and mana.";
 			
 		case RETURNVALUE_QUIVERAMMOONLY:
 			return "This quiver only holds arrows and bolts.\nYou cannot put any other items in it.";
-
+			
 		default: // RETURNVALUE_NOTPOSSIBLE, etc
 			return "Desculpe, Não � poss�vel.";
 	}

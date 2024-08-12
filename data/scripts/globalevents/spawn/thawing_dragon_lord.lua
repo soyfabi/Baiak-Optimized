@@ -27,6 +27,7 @@ function thawingDragonLord.onThink(interval, lastExecution)
     end
 
     local boss = Game.createMonster(config.monsterName, config.bossPosition, true, true)
+	if not boss then return false end
     boss:setReward(true)
     return true
 end

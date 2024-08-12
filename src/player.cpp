@@ -117,14 +117,14 @@ std::string Player::getDescription(int32_t lookDistance) const
 	std::ostringstream s;
 
 	if (lookDistance == -1) {
-		s << "voc� mesmo.";
+		s << "yourself.";
 
 		if (group->access) {
-			s << " Voc� � " << group->name << '.';
+			s << " You are " << group->name << '.';
 		} else if (vocation->getId() != VOCATION_NONE) {
-			s << " Voc� � " << vocation->getVocDescription() << '.';
+			s << " You are " << vocation->getVocDescription() << '.';
 		} else {
-			s << " Voc� n�o tem voca��o.";
+			s << " You have no vocation.";
 		}
 	} else {
 		s << name;
@@ -134,41 +134,41 @@ std::string Player::getDescription(int32_t lookDistance) const
 		s << '.';
 
 		if (sex == PLAYERSEX_FEMALE) {
-			s << " Ela";
+			s << " She";
 		} else {
-			s << " Ele";
+			s << " He";
 		}
 
 		if (group->access) {
-			s << " � " << group->name << '.';
+			s << " is " << group->name << '.';
 		} else if (vocation->getId() != VOCATION_NONE) {
-			s << " � " << vocation->getVocDescription() << '.';
+			s << " is " << vocation->getVocDescription() << '.';
 		} else {
-			s << " n�o tem voca��o.";
+			s << " has no vocation.";
 		}
 	}
 
 	if (party) {
 		if (lookDistance == -1) {
-			s << " Sua party tem ";
+			s << " Your party has ";
 		} else if (sex == PLAYERSEX_FEMALE) {
-			s << " Ela est� em uma party com ";
+			s << " She is in a party with ";
 		} else {
-			s << " Ele est� em uma party com ";
+			s << " He is in a party with ";
 		}
 
 		size_t memberCount = party->getMemberCount() + 1;
 		if (memberCount == 1) {
-			s << "1 membro e ";
+			s << "1 member and ";
 		} else {
-			s << memberCount << " membros e ";
+			s << memberCount << " members and ";
 		}
 
 		size_t invitationCount = party->getInvitationCount();
 		if (invitationCount == 1) {
-			s << "1 convite pendente.";
+			s << "1 pending invitation.";
 		} else {
-			s << invitationCount << " convites pendentes.";
+			s << invitationCount << " pending invitations.";
 		}
 	}
 
@@ -177,26 +177,24 @@ std::string Player::getDescription(int32_t lookDistance) const
 	}
 
 	if (lookDistance == -1) {
-		s << " Voc� � ";
+		s << " You are ";
 	} else if (sex == PLAYERSEX_FEMALE) {
-		s << " Ela � ";
+		s << " She is ";
 	} else {
-		s << " Ele � ";
+		s << " He is ";
 	}
 
-	s << guildRank->name << " da " << guild->getName();
+	s << guildRank->name << " of the " << guild->getName();
 	if (!guildNick.empty()) {
 		s << " (" << guildNick << ')';
 	}
 
 	size_t memberCount = guild->getMemberCount();
 	if (memberCount == 1) {
-		s << ", que tem 1 membro, " << guild->getMembersOnline().size() << " deles online.";
+		s << ", which has 1 member, " << guild->getMembersOnline().size() << " of them online.";
 	} else {
-		s << ", que tem " << memberCount << " membros, " << guild->getMembersOnline().size() << " deles online.";
+		s << ", which has " << memberCount << " members, " << guild->getMembersOnline().size() << " of them online.";
 	}
-
-	s << "\nO n�vel dessa Guild � " << guild->getLevel() << ".";
 	return s.str();
 }
 
@@ -1257,7 +1255,8 @@ void Player::onWalk(Direction& dir)
 {
 	Creature::onWalk(dir);
 	setNextActionTask(nullptr);
-	setNextAction(OTSYS_TIME() + getStepDuration(dir));
+	// Removing this line fixes exhausted when opening backpack while running.
+	//setNextAction(OTSYS_TIME() + getStepDuration(dir));
 }
 
 void Player::onCreatureMove(Creature* creature, const Tile* newTile, const Position& newPos,
@@ -3327,35 +3326,35 @@ void Player::onAddCombatCondition(ConditionType_t type)
 {
 	switch (type) {
 		case CONDITION_POISON:
-			sendTextMessage(MESSAGE_STATUS_DEFAULT, "Voc� est� envenenado.");
+			sendTextMessage(MESSAGE_STATUS_DEFAULT, "You are poisoned.");
 			break;
 
 		case CONDITION_DROWN:
-			sendTextMessage(MESSAGE_STATUS_DEFAULT, "Voc� est� se afogando.");
+			sendTextMessage(MESSAGE_STATUS_DEFAULT, "You are drowning.");
 			break;
 
 		case CONDITION_PARALYZE:
-			sendTextMessage(MESSAGE_STATUS_DEFAULT, "Voc� est� paralisado.");
+			sendTextMessage(MESSAGE_STATUS_DEFAULT, "You are paralyzed.");
 			break;
 
 		case CONDITION_DRUNK:
-			sendTextMessage(MESSAGE_STATUS_DEFAULT, "Voc� est� b�bado.");
+			sendTextMessage(MESSAGE_STATUS_DEFAULT, "You are drunk.");
 			break;
 
 		case CONDITION_CURSED:
-			sendTextMessage(MESSAGE_STATUS_DEFAULT, "Voc� est� amaldi�oado.");
+			sendTextMessage(MESSAGE_STATUS_DEFAULT, "You are cursed.");
 			break;
 
 		case CONDITION_FREEZING:
-			sendTextMessage(MESSAGE_STATUS_DEFAULT, "Voc� est� congelando.");
+			sendTextMessage(MESSAGE_STATUS_DEFAULT, "You are freezing.");
 			break;
 
 		case CONDITION_DAZZLED:
-			sendTextMessage(MESSAGE_STATUS_DEFAULT, "Voc� est� deslumbrado.");
+			sendTextMessage(MESSAGE_STATUS_DEFAULT, "You are dazzled.");
 			break;
 
 		case CONDITION_BLEEDING:
-			sendTextMessage(MESSAGE_STATUS_DEFAULT, "Voc� est� sangrando.");
+			sendTextMessage(MESSAGE_STATUS_DEFAULT, "You are bleeding.");
 			break;
 			
 		case CONDITION_ROOTED:

@@ -32,9 +32,10 @@ extern Game g_game;
 Account IOLoginData::loadAccount(uint32_t accno)
 {
 	Account account;
-
+	
 	DBResult_ptr result = Database::getInstance().storeQuery(fmt::format("SELECT `id`, `name`, `password`, `type`, `premium_ends_at` FROM `accounts` WHERE `id` = {:d}", accno));
 	if (!result) {
+		std::cout << "No account found with ID: " << accno << std::endl;
 		return account;
 	}
 
@@ -85,10 +86,9 @@ bool IOLoginData::loginserverAuthentication(const std::string& name, const std::
 {
 	Database& db = Database::getInstance();
 	
-	std::cout << "Authenticating login for account name: " << name << std::endl;
-	
-	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id`, `name`, `password`, `secret`, `type`, `premium_ends_at`, FROM `accounts` WHERE `name` = {:s}", db.escapeString(name)));
+	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `id`, `name`, `password`, `secret`, `type`, `premium_ends_at` FROM `accounts` WHERE `name` = {:s}", db.escapeString(name)));
 	if (!result) {
+		std::cout << "Account not found for name: " << name << std::endl;
 		return false;
 	}
 
