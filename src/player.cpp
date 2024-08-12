@@ -1420,20 +1420,7 @@ void Player::setNextWalkActionTask(SchedulerTask* task)
 	walkTask = task;
 }
 
-void Player::setNextWalkTask(SchedulerTask* task)
-{
-	if (nextStepEvent != 0) {
-		g_scheduler.stopEvent(nextStepEvent);
-		nextStepEvent = 0;
-	}
-
-	if (task) {
-		nextStepEvent = g_scheduler.addEvent(task);
-		resetIdleTime();
-	}
-}
-
-void Player::setNextActionTask(SchedulerTask* task)
+void Player::setNextActionTask(SchedulerTask* task, bool resetIdleTime /*= true */)
 {
 	if (actionTaskEvent != 0) {
 		g_scheduler.stopEvent(actionTaskEvent);
@@ -1442,7 +1429,9 @@ void Player::setNextActionTask(SchedulerTask* task)
 
 	if (task) {
 		actionTaskEvent = g_scheduler.addEvent(task);
-		resetIdleTime();
+		if (resetIdleTime) {
+			this->resetIdleTime();
+		}
 	}
 }
 
@@ -3222,11 +3211,27 @@ void Player::doAttacking(uint32_t)
 
 		Item* tool = getWeapon();
 		const Weapon* weapon = g_weapons->getWeapon(tool);
+		uint32_t delay = getAttackSpeed();
+		bool classicSpeed = g_config.getBoolean(ConfigManager::CLASSIC_ATTACK_SPEED);
 
 		if (weapon) {
-			result = weapon->useWeapon(this, tool, attackedCreature);
+			if (!weapon->interruptSwing()) {
+				result = weapon->useWeapon(this, tool, attackedCreature);
+			} else if (!classicSpeed && !canDoAction()) {
+				delay = getNextActionTime();
+			} else {
+				result = weapon->useWeapon(this, tool, attackedCreature);
+			}
 		} else {
 			result = Weapon::useFist(this, attackedCreature);
+		}
+
+		SchedulerTask* task = createSchedulerTask(std::max<uint32_t>(SCHEDULER_MINTICKS, delay), std::bind(&Game::checkCreatureAttack, &g_game, getID()));
+		if (!classicSpeed) {
+			setNextActionTask(task, false);
+		} else {
+			g_scheduler.stopEvent(classicAttackEvent);
+			classicAttackEvent = g_scheduler.addEvent(task);
 		}
 
 		if (result) {
