@@ -4,7 +4,10 @@ This repository will be for a future server, version 8.60 with everything recent
 It will be updated every commit with everything new.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 6d618a7208961c5ab469b05438267db3a5a8245a
 ## Spr's For OTCLIENT
 https://www.mediafire.com/file/xjq5fr29mrebfcb/860+SPR+Updated!.rar/file
 
@@ -19,6 +22,9 @@ https://github.com/OTCv8/otclientv8.git
     g_game.enableFeature(GameIdleAnimations)
     g_game.enableFeature(GamePlayerMarket)
 
+<<<<<<< HEAD
+>>>>>>> 6d618a7208961c5ab469b05438267db3a5a8245a
+=======
 >>>>>>> 6d618a7208961c5ab469b05438267db3a5a8245a
 ## How to compile Ubuntu 22.04
     
