@@ -1,0 +1,213 @@
+-- Combat settings
+-- NOTE: valid values for worldType are: "pvp", "no-pvp" and "pvp-enforced"
+worldType = "pvp"
+hotkeyAimbotEnabled = true
+protectionLevel = 50
+killsToRedSkull = 100
+killsToBlackSkull = 150
+pzLocked = 30000
+removeChargesFromRunes = false
+removeChargesFromPotions = false
+removeWeaponAmmunition = false
+removeWeaponCharges = false
+-- NOTE: Frags Systems"
+timeToDecreaseFrags = 24 * 60 * 60 * 1000
+whiteSkullTime = 30 * 1000
+stairJumpExhaustion = 1000
+experienceByKillingPlayers = false
+expFromPlayersLevelRange = 100
+
+
+--When the player logs in, he has a certain protection time.
+protectionTime = 10 -- Time in seconds
+
+-- Connection Config
+-- NOTE: maxPlayers set to 0 means no limit
+-- NOTE: allowWalkthrough is only applicable to players
+ip = "127.0.0.1"
+bindOnlyGlobalAddress = false
+loginProtocolPort = 7171
+gameProtocolPort = 7172
+statusProtocolPort = 7171
+maxPlayers = 1900
+onePlayerOnlinePerAccount = true
+allowClones = false
+allowWalkthrough = true
+serverName = "Fonticak Server Global"
+statusTimeout = 5000
+replaceKickOnLogin = true
+maxPacketsPerSecond = 475
+packetCompression = true
+npcsUsingBankMoney = true
+npcsShopDelay = 400 -- Place delay when buying and selling in npcs.
+
+-- Map
+-- NOTE: set mapName WITHOUT .otbm at the end
+mapName = "fonticakmap"
+mapAuthor = "Fabian Marzan"
+
+-- Market
+marketOfferDuration = 30 * 24 * 60 * 60
+premiumToCreateMarketOffer = true
+checkExpiredMarketOffersEachMinutes = 60
+maxMarketOffersAtATimePerPlayer = 100
+
+-- MySQL
+mysqlHost = "127.0.0.1"
+mysqlUser = "root"
+mysqlPass = ""
+mysqlDatabase = "tfsopt"
+mysqlPort = 3306
+mysqlSock = ""
+
+-- Deaths
+-- NOTE: Leave deathLosePercent as -1 if you want to use the default
+-- death penalty formula. For the old formula, set it to 10. For
+-- no skill/experience loss, set it to 0.
+deathLosePercent = -1
+
+-- Houses
+-- NOTE: set housePriceEachSQM to -1 to disable the ingame buy house functionality
+-- NOTE: valid values for houseRentPeriod are: "daily", "weekly", "monthly", "yearly"
+-- use any other value to disable the rent system
+housePriceEachSQM = 1000
+houseRentPeriod = "weekly"
+houseDoorShowPrice = true
+
+
+-- Misc.
+-- NOTE: classicAttackSpeed set to true makes players constantly attack at regular
+-- intervals regardless of other actions such as item (potion) use. This setting
+-- may cause high CPU usage with many players and potentially affect performance!
+-- NOTE: forceMonsterTypesOnLoad loads all monster types on startup to validate them.
+-- You can disable it to save some memory if you don't see any errors at startup.
+allowChangeOutfit = true
+freePremium = false
+maxMessageBuffer = 4
+emoteSpells = true
+classicEquipmentSlots = true
+classicAttackSpeed = true
+showScriptsLogInConsole = false
+showOnlineStatusInCharlist = false
+yellMinimumLevel = 2
+yellAlwaysAllowPremium = false
+minimumLevelToSendPrivate = 1
+premiumToSendPrivate = false
+closedWorld = false
+pushCruzado = true
+
+-- Server Save
+-- NOTE: serverSaveNotifyDuration in minutes
+serverSaveNotifyMessage = true
+serverSaveNotifyDuration = 5
+serverSaveCleanMap = false
+serverSaveClose = false
+serverSaveShutdown = true
+
+-- Experience stages
+-- NOTE: to use a flat experience multiplier, set experienceStages to nil
+-- minlevel and multiplier are MANDATORY
+-- maxlevel is OPTIONAL, but is considered infinite by default
+-- to disable stages, create a stage with minlevel 1 and no maxlevel
+experienceStages = {
+	{ minlevel = 1, maxlevel = 100, multiplier = 400 },
+	{ minlevel = 101, maxlevel = 200, multiplier = 300 },
+	{ minlevel = 201, maxlevel = 250, multiplier = 150 },
+	{ minlevel = 251, maxlevel = 320, multiplier = 75 },
+	{ minlevel = 321, maxlevel = 390, multiplier = 35 },
+	{ minlevel = 391, maxlevel = 420, multiplier = 15 },
+	{ minlevel = 421, maxlevel = 480, multiplier = 4 },
+	{ minlevel = 481, maxlevel = 500, multiplier = 2 },
+	{ minlevel = 501, maxlevel = 550, multiplier = 1 },
+	{ minlevel = 551, maxlevel = 600, multiplier = 0.5 },
+	{ minlevel = 601, maxlevel = 670, multiplier = 0.1 },
+	{ minlevel = 671, multiplier = 0.05 },
+}
+
+-- Rates
+-- NOTE: rateExp is not used if you have enabled stages above
+-- rateSpellCooldown lowering it makes the cooldown less.
+rateExp = 5
+rateSkill = 3
+rateLoot = 2
+rateMagic = 3
+rateSpawn = 2
+spawnMultiplier = 1
+rateSpellCooldown = 1
+
+-- Monster Level System
+monsterBonusHealth = 0.5
+monsterBonusSpeed = 0.02
+monsterBonusDamage = 0.02
+
+-- Today regeneration condition over an loop every 1 second,
+-- So values which should regenerated less then 1 second or won't will work
+rateHealthRegen = 1.0
+rateHealthRegenSpeed = 1.0
+rateManaRegen = 1.0
+rateManaRegenSpeed = 1.0
+rateSoulRegen = 1.0
+rateSoulRegenSpeed = 1.0
+rateAttackSpeed = 1.0
+
+-- Sort loot by chance, most rare items drop first
+-- it is good to be setted when you have a higher
+-- rateLoot to avoid losing all rare items when
+-- the corpse size is less than the total of loots
+-- the monster can drop
+sortLootByChance = false
+
+-- removeOnDespawn will remove the monster if true or teleport it back to its spawn position if false
+deSpawnRange = 2
+deSpawnRadius = 50
+removeOnDespawn = true
+
+-- Spoof System
+spoofEnabled = false
+spoofDailyMinPlayers = 1
+spoofDailyMaxPlayers = 2050
+spoofNoiseInterval = 1000
+spoofNoise = 0
+spoofTimezone = -1
+spoofInterval = 1
+spoofChangeChance = 70
+spoofIncrementChange = 100
+
+-- Stamina
+staminaSystem = true
+timeToRegenMinuteStamina = 3 * 60
+timeToRegenMinutePremiumStamina = 6 * 60
+
+-- Stamina in Trainers
+staminaTrainer = true
+staminaTrainerDelay = 5
+staminaTrainerGain = 1
+
+-- Stamina in PZ
+staminaPz = true
+staminaOrangeDelay = 1
+staminaGreenDelay = 5
+staminaPzGain = 1
+
+-- Max players allowed on a dummy.
+maxAllowedOnADummy = 5
+rateExerciseTrainingSpeed = rateAttackSpeed
+
+-- Scripts
+warnUnsafeScripts = true
+convertUnsafeScripts = true
+
+-- Startup
+-- NOTE: defaultPriority only works on Windows and sets process
+-- priority, valid values are: "normal", "above-normal", "high"
+defaultPriority = "high"
+startupDatabaseOptimization = false
+blockLogin = false
+blockLoginText = "Server is closed for bug fixing."
+showPackets = false
+
+-- Status Server Information
+ownerName = "Fabian Marzan"
+ownerEmail = "info.fonticak@gmail.com"
+url = "https://otland.net/"
+location = "Puerto Rico"

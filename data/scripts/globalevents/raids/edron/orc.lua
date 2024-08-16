@@ -1,0 +1,45 @@
+local raid = GlobalEvent("Orc_raids")
+raid:type("timer")
+raid:interval(1800)
+
+local function warning()
+	Game.broadcastMessage("Deep under Edron, the Orc population seems to grow rapidly. Be careful and take a rope with you!", MESSAGE_STATUS_WARNING)
+end
+
+local function warning2()
+	Game.broadcastMessage("Orc berserkers deep under Edron!", MESSAGE_STATUS_WARNING)
+end
+
+local function spawnWave(from, to, z, monsterName, count)
+    for _ = 1, count do
+        local x, y = math.random(from.x, to.x), math.random(from.y, to.y)
+        local monster = Game.createMonster(monsterName, Position(x, y, z))
+        if monster then
+            monster:setStorageValue(monsterRaidStorages.FONTICAK_TOKEN, 1)
+        end
+    end
+end
+
+local function orc_wave()
+    local from, to, z = {x = 33153, y = 31875}, {x = 33183, y = 31906}, 7
+    local orcCount = 20
+	local orcRiderCount = 5
+	local orcSpearmanCount = 15
+	local orcWarriorCount = 10
+    spawnWave(from, to, z, "Orc", orcCount)
+	spawnWave(from, to, z, "Orc Rider", orcRiderCount)
+	spawnWave(from, to, z, "Orc Spearman", orcSpearmanCount)
+	spawnWave(from, to, z, "Orc Warrior", orcWarriorCount)
+end
+
+function raid.onTime(interval)
+    addEvent(warning, 1000)
+	addEvent(warning2, 20000)
+	addEvent(orc_wave, 20000)
+
+    local currentTime = os.date("%Y-%m-%d %H:%M:%S")
+    print(string.format("--> Raid: Orc (Edron). [Executed: %s]", currentTime))
+    return true
+end
+
+--raid:register()
